@@ -4,7 +4,86 @@ namespace AliceScript
 {
    
  
-   
+   class wsverFunc : FunctionBase
+    {
+        public wsverFunc()
+        {
+            this.Name = "wsver";
+            this.MinimumArgCounts = 0;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += WsverFunc_Run;
+        }
+
+        private void WsverFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            //自分自身のAssemblyを取得
+            System.Reflection.Assembly asm =
+                System.Reflection.Assembly.GetExecutingAssembly();
+            //バージョンの取得
+            System.Version ver = asm.GetName().Version;
+            e.Return = new Variable(ver.ToString());
+        }
+    }
+    class functionsFunc : FunctionBase
+    {
+        public functionsFunc()
+        {
+            this.Name = "functions";
+            this.MinimumArgCounts = 0;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += FunctionsFunc_Run;
+        }
+
+        private void FunctionsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count == 0)
+            {
+                Variable v = new Variable(Variable.VarType.ARRAY);
+                foreach (string s in FunctionBaseManerger.Functions)
+                {
+                    v.Tuple.Add(new Variable(s));
+                }
+                e.Return = v;
+            }
+            else
+            {
+                string str = Utils.GetSafeString(e.Args,0);
+                if (NameSpaceManerger.Contains(str))
+                {
+                    Variable v = new Variable(Variable.VarType.ARRAY);
+                    foreach (FunctionBase fb in NameSpaceManerger.NameSpaces[str].Functions)
+                    {
+                        v.Tuple.Add(new Variable(fb.Name));
+                    }
+                    e.Return = v;
+                }
+                else
+                {
+                    throw new System.Exception("指定された名前空間が見つかりませんでした");
+                }
+            }
+        }
+    }
+    class namespacesFunc : FunctionBase
+    {
+        public namespacesFunc()
+        {
+            this.FunctionName = "namespaces";
+            this.MinimumArgCounts = 0;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += NamespacesFunc_Run;
+        }
+
+        private void NamespacesFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            Variable v = new Variable(Variable.VarType.ARRAY);
+            foreach (string s in NameSpaceManerger.NameSpaces.Keys)
+            {
+                v.Tuple.Add(new Variable(s));
+            }
+            e.Return = v;
+        }
+    }
 
 
     class LabelFunction : ActionFunction

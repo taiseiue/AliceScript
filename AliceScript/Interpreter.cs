@@ -132,7 +132,10 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.TRUE, new BoolFunction(true));
             ParserFunction.RegisterFunction(Constants.FALSE, new BoolFunction(false));
             ParserFunction.RegisterFunction(Constants.UNDEFINED, new UndefinedFunction());
-            ParserFunction.RegisterFunction(Constants.EXIT, new ExitFunction());
+            FunctionBaseManerger.Add(new ExitFunction());
+            FunctionBaseManerger.Add(new wsverFunc());
+            FunctionBaseManerger.Add(new functionsFunc());
+            FunctionBaseManerger.Add(new namespacesFunc());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());

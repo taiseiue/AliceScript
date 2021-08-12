@@ -68,12 +68,25 @@ namespace AliceScript
         }
     }
 
-    class ExitFunction : ParserFunction
+    class ExitFunction : FunctionBase
     {
-        protected override Variable Evaluate(ParsingScript script)
+        public ExitFunction()
         {
-            Environment.Exit(0);
-            return Variable.EmptyInstance;
+            this.FunctionName = Constants.EXIT ;
+            this.MinimumArgCounts = 0;
+            this.Run += ExitFunction_Run;
+        }
+
+        private void ExitFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count == 0)
+            {
+                Alice.OnExiting(0);
+            }
+            else
+            {
+                Alice.OnExiting(Utils.GetSafeInt(e.Args,0,0));
+            }
         }
     }
 

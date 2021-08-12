@@ -45,7 +45,12 @@ namespace AliceScript
             sb.Append(start);
             foreach (var arg in args)
             {
-                sb.Append(arg.AsString() + (addSpace ? " " : ""));
+                if (arg == null) { continue; }
+                try
+                {
+                    sb.Append(arg.AsString() + (addSpace ? " " : ""));
+                }
+                catch { }
             }
 
             string output = sb.ToString() + (addLine ? Environment.NewLine : string.Empty);

@@ -242,15 +242,7 @@ namespace AliceScript
         /// </summary>
         public Variable CurentVariable { get; set; }
 
-    }
-    public class EmplyFunc : FunctionBase
-    {
-        public EmplyFunc()
-        {
-            FunctionName = "emplyfunc";
-
-        }
-
 
     }
+   
 }
