@@ -99,16 +99,17 @@ namespace AliceScript
 
         public void RegisterFunctions()
         {
-            ParserFunction.RegisterFunction(Constants.IF, new IfStatement());
-            ParserFunction.RegisterFunction(Constants.DO, new DoWhileStatement());
-            ParserFunction.RegisterFunction(Constants.WHILE, new WhileStatement());
-            ParserFunction.RegisterFunction(Constants.SWITCH, new SwitchStatement());
-            ParserFunction.RegisterFunction(Constants.CASE, new CaseStatement());
-            ParserFunction.RegisterFunction(Constants.DEFAULT, new CaseStatement());
-            ParserFunction.RegisterFunction(Constants.FOR, new ForStatement());
-            ParserFunction.RegisterFunction(Constants.BREAK, new BreakStatement());
-            ParserFunction.RegisterFunction(Constants.GOTO, new GotoGosubFunction(true));
-            ParserFunction.RegisterFunction(Constants.GOSUB, new GotoGosubFunction(false));
+            FunctionBaseManerger.Add(new IfStatement());
+            FunctionBaseManerger.Add(new DoWhileStatement());
+            FunctionBaseManerger.Add(new WhileStatement());
+            FunctionBaseManerger.Add(new NWhileStatement());
+            FunctionBaseManerger.Add(new SwitchStatement());
+            FunctionBaseManerger.Add(new CaseStatement());
+            FunctionBaseManerger.Add(new CaseStatement(),Constants.DEFAULT);
+            FunctionBaseManerger.Add(new ForStatement());
+            FunctionBaseManerger.Add(new BreakStatement());
+            FunctionBaseManerger.Add(new GotoGosubFunction(true));
+            FunctionBaseManerger.Add(new GotoGosubFunction(false));
 
             ParserFunction.RegisterFunction(Constants.CONTINUE, new ContinueStatement());
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
@@ -127,15 +128,19 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.TRY, new TryBlock());
             ParserFunction.RegisterFunction(Constants.THROW, new ThrowFunction());
-            ParserFunction.RegisterFunction(Constants.TYPE, new TypeFunction());
-            ParserFunction.RegisterFunction(Constants.TYPE_OF, new TypeOfFunction());
-            ParserFunction.RegisterFunction(Constants.TRUE, new BoolFunction(true));
-            ParserFunction.RegisterFunction(Constants.FALSE, new BoolFunction(false));
-            ParserFunction.RegisterFunction(Constants.UNDEFINED, new UndefinedFunction());
+
+            FunctionBaseManerger.Add(new TypeFunction());
+            FunctionBaseManerger.Add(new TypeOfFunction());
+            FunctionBaseManerger.Add(new BoolFunction(true));
+            FunctionBaseManerger.Add(new BoolFunction(false));
+            FunctionBaseManerger.Add(new UndefinedFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
             FunctionBaseManerger.Add(new functionsFunc());
             FunctionBaseManerger.Add(new namespacesFunc());
+            FunctionBaseManerger.Add(new ImportFunc());
+            FunctionBaseManerger.Add(new DelegateCreator());
+            FunctionBaseManerger.Add(new DelegateCreator(),"_");
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -207,9 +212,9 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
-            ParserFunction.RegisterFunction("_",new DelegateCreator());
+            
 
-            FunctionBaseManerger.Add(new ImportFunc());
+            
 
             //名前空間への登録
             NameSpaces.Alice_IO_Intiter.Init();
@@ -217,6 +222,8 @@ namespace AliceScript
             NameSpaces.AliceScript_Diagnosis_Initer.Init();
             NameSpaces.Alice_Random_Initer.Init();
             NameSpaces.Alice_Math_Initer.Init();
+
+            VariableFunctionIniter.Init();
         }
 
         public void RegisterEnums()
@@ -592,7 +599,47 @@ namespace AliceScript
             SkipBlock(script);
             return result.IsReturn ? result : Variable.EmptyInstance;
         }
+        internal Variable ProcessNWhile(ParsingScript script)
+        {
+            int startWhileCondition = script.Pointer;
 
+            // A check against an infinite loop.
+            int cycles = 0;
+            bool stillValid = true;
+            Variable result = Variable.EmptyInstance;
+
+            while (!stillValid)
+            {
+                script.Pointer = startWhileCondition;
+
+                //int startSkipOnBreakChar = from;
+                Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
+                stillValid = Convert.ToBoolean(condResult.Value);
+                if (stillValid)
+                {
+                    break;
+                }
+
+                // Check for an infinite loop if we are comparing same values:
+                if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
+                {
+                    throw new ArgumentException("現在 " +
+                        cycles + "回以上のループは許可されていません");
+                }
+
+                result = ProcessBlock(script);
+                if (result.IsReturn || result.Type == Variable.VarType.BREAK)
+                {
+                    script.Pointer = startWhileCondition;
+                    break;
+                }
+            }
+
+            // The while condition is not true anymore: must skip the whole while
+            // block before continuing with next statements.
+            SkipBlock(script);
+            return result.IsReturn ? result : Variable.EmptyInstance;
+        }
         public async Task<Variable> ProcessWhileAsync(ParsingScript script)
         {
             int startWhileCondition = script.Pointer;
@@ -603,6 +650,47 @@ namespace AliceScript
             Variable result = Variable.EmptyInstance;
 
             while (stillValid)
+            {
+                script.Pointer = startWhileCondition;
+
+                //int startSkipOnBreakChar = from;
+                Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
+                stillValid = Convert.ToBoolean(condResult.Value);
+                if (!stillValid)
+                {
+                    break;
+                }
+
+                // Check for an infinite loop if we are comparing same values:
+                if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
+                {
+                    throw new ArgumentException("Looks like an infinite loop after " +
+                        cycles + " cycles.");
+                }
+
+                result = await ProcessBlockAsync(script);
+                if (result.IsReturn || result.Type == Variable.VarType.BREAK)
+                {
+                    script.Pointer = startWhileCondition;
+                    break;
+                }
+            }
+
+            // The while condition is not true anymore: must skip the whole while
+            // block before continuing with next statements.
+            SkipBlock(script);
+            return result.IsReturn ? result : Variable.EmptyInstance;
+        }
+        internal async Task<Variable> ProcessNWhileAsync(ParsingScript script)
+        {
+            int startWhileCondition = script.Pointer;
+
+            // A check against an infinite loop.
+            int cycles = 0;
+            bool stillValid = true;
+            Variable result = Variable.EmptyInstance;
+
+            while (!stillValid)
             {
                 script.Pointer = startWhileCondition;
 

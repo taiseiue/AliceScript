@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace AliceScript
 {
-    class BreakStatement : ParserFunction
+    class BreakStatement : FunctionBase
     {
+        public BreakStatement()
+        {
+            this.Name = Constants.BREAK;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return new Variable(Variable.VarType.BREAK);
@@ -123,8 +127,12 @@ namespace AliceScript
         }
     }   
 
-    class TypeOfFunction : ParserFunction
+    class TypeOfFunction : FunctionBase
     {
+        public TypeOfFunction()
+        {
+            this.Name = Constants.TYPE_OF;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             var args = Utils.GetTokens(script, Constants.TOKEN_SEPARATION);
@@ -1362,24 +1370,35 @@ namespace AliceScript
         }
     }
 
-    class UndefinedFunction : ParserFunction, INumericFunction
+  
+    class UndefinedFunction : FunctionBase
     {
-        protected override Variable Evaluate(ParsingScript script)
+        public UndefinedFunction()
         {
-            return new Variable(Variable.VarType.UNDEFINED);
+            this.Name = "undefind";
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += UndefinedFunction_Run;
+        }
+
+        private void UndefinedFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return=new Variable(Variable.VarType.UNDEFINED);
         }
     }
-
-    class BoolFunction : ParserFunction, INumericFunction
+    class BoolFunction : FunctionBase
     {
         bool m_value;
-        public BoolFunction(bool init)
+        public BoolFunction(bool value)
         {
-            m_value = init;
+            m_value = value;
+            this.Name = value.ToString().ToLower();
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += BoolFunction_Run;
         }
-        protected override Variable Evaluate(ParsingScript script)
+
+        private void BoolFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            return new Variable(m_value);
+            e.Return = new Variable(m_value);
         }
     }
     class ToDoubleFunction : ParserFunction, INumericFunction
@@ -1464,8 +1483,14 @@ namespace AliceScript
         }
     }
 
-    class IfStatement : ParserFunction
+   
+    class IfStatement : FunctionBase
     {
+        public IfStatement()
+        {
+            this.Name = Constants.IF;
+
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             Variable result = Interpreter.Instance.ProcessIf(script);
@@ -1478,8 +1503,12 @@ namespace AliceScript
         }
     }
 
-    class ForStatement : ParserFunction
+    class ForStatement : FunctionBase
     {
+        public ForStatement()
+        {
+            this.Name = Constants.FOR;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return Interpreter.Instance.ProcessFor(script);
@@ -1490,8 +1519,12 @@ namespace AliceScript
         }
     }
 
-    class WhileStatement : ParserFunction
+    class WhileStatement : FunctionBase
     {
+        public WhileStatement()
+        {
+            this.Name = Constants.WHILE;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return Interpreter.Instance.ProcessWhile(script);
@@ -1501,9 +1534,27 @@ namespace AliceScript
             return await Interpreter.Instance.ProcessWhileAsync(script);
         }
     }
-
-    class DoWhileStatement : ParserFunction
+    class NWhileStatement : FunctionBase
     {
+        public NWhileStatement()
+        {
+            this.Name = "until";
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            return Interpreter.Instance.ProcessNWhile(script);
+        }
+        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            return await Interpreter.Instance.ProcessNWhileAsync(script);
+        }
+    }
+    class DoWhileStatement : FunctionBase
+    {
+        public DoWhileStatement()
+        {
+            this.Name = Constants.DO;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return Interpreter.Instance.ProcessDoWhile(script);
@@ -1514,8 +1565,12 @@ namespace AliceScript
         }
     }
 
-    class SwitchStatement : ParserFunction
+    class SwitchStatement : FunctionBase
     {
+        public SwitchStatement()
+        {
+            this.Name = Constants.SWITCH;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return Interpreter.Instance.ProcessSwitch(script);
@@ -1526,8 +1581,12 @@ namespace AliceScript
         }
     }
 
-    class CaseStatement : ParserFunction
+    class CaseStatement : FunctionBase
     {
+        public CaseStatement()
+        {
+            this.Name = Constants.CASE;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             return Interpreter.Instance.ProcessCase(script, Name);
@@ -2388,8 +2447,12 @@ namespace AliceScript
         }
     }
 
-    class TypeFunction : ParserFunction, IStringFunction
+    class TypeFunction : FunctionBase
     {
+        public TypeFunction()
+        {
+            this.Name = Constants.TYPE;
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();

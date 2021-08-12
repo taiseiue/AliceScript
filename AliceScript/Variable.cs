@@ -15,6 +15,25 @@ namespace AliceScript
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTE_ARRAY,
             BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME, CUSTOM, POINTER,DELEGATE
         };
+      
+        public static Variable True
+        {
+            get
+            {
+                return new Variable(true);
+            }
+        }
+        public static Variable False
+        {
+            get
+            {
+                return new Variable(false);
+            }
+        }
+        public static Variable FromText(string text)
+        {
+            return new Variable(text);
+        }
         public static void AddFunc(FunctionBase fb, string name = "")
         {
             if (name == "")
@@ -180,6 +199,7 @@ namespace AliceScript
         {
             Variable newVar = (Variable)this.MemberwiseClone();
             return newVar;
+
         }
         
         public virtual Variable DeepClone()

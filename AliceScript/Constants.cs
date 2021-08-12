@@ -346,6 +346,7 @@ namespace AliceScript
                 case Variable.VarType.OBJECT:   return "OBJECT";
                 case Variable.VarType.BREAK:    return "BREAK";
                 case Variable.VarType.CONTINUE: return "CONTINUE";
+                case Variable.VarType.DELEGATE: return "DELEGATE";
                 case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }
@@ -375,6 +376,7 @@ namespace AliceScript
                 case "ARRAY": return Variable.VarType.ARRAY;
                 case "BREAK": return Variable.VarType.BREAK;
                 case "CONTINUE": return Variable.VarType.CONTINUE;
+                case "DELEGATE": return Variable.VarType.DELEGATE;
                 case "VARIABLE": return Variable.VarType.VARIABLE;
                 default: return Variable.VarType.NONE;
             }

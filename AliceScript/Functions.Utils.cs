@@ -95,8 +95,12 @@ namespace AliceScript
         }
     }
     //デリゲートを作成する関数クラスです
-    class DelegateCreator : ParserFunction
+    class DelegateCreator : FunctionBase
     {
+        public DelegateCreator()
+        {
+            this.Name = "delegate";
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
 
@@ -183,13 +187,21 @@ namespace AliceScript
         }
     }
 
-    class GotoGosubFunction : ParserFunction
+    class GotoGosubFunction : FunctionBase
     {
         bool m_isGoto = true;
 
         public GotoGosubFunction(bool gotoMode = true)
         {
             m_isGoto = gotoMode;
+            if (m_isGoto)
+            {
+                this.Name = Constants.GOTO;
+            }
+            else
+            {
+                this.Name = Constants.GOSUB;
+            }
         }
 
         protected override Variable Evaluate(ParsingScript script)
