@@ -4,6 +4,7 @@ using System.IO;
 
 namespace alice
 {
+ //これらのコードの一部にWSOFTScriptプロジェクトの成果物が含有されています
     class Program
     {
         static List<string> outpass = new List<string>();
