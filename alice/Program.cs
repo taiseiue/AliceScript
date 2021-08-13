@@ -107,7 +107,15 @@ namespace alice
                            
                             foreach (string s in Scripts)
                             {
-
+                                if (canoutput)
+                                {
+                                    AliceScript.Interpreter.Instance.OnOutput += Instance_OnOutput;
+                                }
+                                if (canerrput)
+                                {
+                                    AliceScript.ThrowErrorManerger.HandleError = true;
+                                    AliceScript.ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
+                                }
                                 AliceScript.Alice.Execute(File.ReadAllText(s));
                             }
                            
@@ -124,6 +132,23 @@ namespace alice
 
 
 
+        }
+
+        private static void ThrowErrorManerger_ThrowError(object sender, AliceScript.ThrowErrorEventArgs e)
+        {
+
+            AliceScript.Utils.PrintColor("実行中のエラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + e.Script.Filename + "\r\n", ConsoleColor.Red);
+            Dictionary<string, AliceScript.Variable> dic = AliceScript.Debug.Variables;
+            Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
+            foreach (string s in dic.Keys)
+            {
+                Console.WriteLine("| " + s + " | " + dic[s].AsString() + " |");
+            }
+        }
+
+        private static void Instance_OnOutput(object sender, AliceScript.OutputAvailableEventArgs e)
+        {
+            Console.Write(e.Output);
         }
 
         enum Mode

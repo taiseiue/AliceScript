@@ -31,6 +31,7 @@ namespace alice
             {
                 Console.WriteLine();
                 Console.WriteLine("何かキーを押して終了します。");
+                Console.ReadKey();
                 Environment.Exit(0);
             };
 
@@ -45,11 +46,11 @@ namespace alice
             ThrowErrorManerger.HandleError = true;
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
 
-            string scriptFilename = "scripts/temp.WSOFTScript";
+            string scriptFilename = "scripts/temp.alice";
             scriptFilename = "";
             string script = Utils.GetFileContents(scriptFilename);
 
-            Variable resultprop = Interpreter.Instance.Process("print(\"AliceScript バージョン\"+wsver);\r\nprint(\"(c) 2020 WSOFT All rights reserved.\");");
+            Variable resultprop = Interpreter.Instance.Process("print(\"AliceScript バージョン\"+wsver);\r\nprint(\"(c) 2021 WSOFT All rights reserved.\");");
 
             
             Console.WriteLine();
