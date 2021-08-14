@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace AliceScript
@@ -27,6 +29,7 @@ namespace AliceScript
                 Environment.Exit(e.ExitCode);
             }
         }
+        public static string Runtime_File_Path = Path.Combine(Assembly.GetExecutingAssembly().Location,"Alice.Runtime.dll");
     }
     public delegate void Exiting(object sender,ExitingEventArgs e);
     public class ExitingEventArgs : EventArgs

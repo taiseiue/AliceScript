@@ -5,7 +5,9 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using static AliceScript.ParserFunction;
+using System.Reflection;
 
 namespace AliceScript
 {
@@ -17,6 +19,7 @@ namespace AliceScript
         }
         public string Output { get; set; }
     }
+    
 
     public partial class Interpreter
     {
@@ -212,16 +215,11 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
-            
-
-            
-
-            //名前空間への登録
-            NameSpaces.Alice_IO_Intiter.Init();
-            NameSpaces.Alice_Net_Initer.Init();
-            NameSpaces.AliceScript_Diagnosis_Initer.Init();
-            NameSpaces.Alice_Random_Initer.Init();
-            NameSpaces.Alice_Math_Initer.Init();
+            Assembly myAssembly = Assembly.GetEntryAssembly();
+            if (File.Exists(Alice.Runtime_File_Path))
+            {
+                AliceScript.Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
+            }
 
             VariableFunctionIniter.Init();
         }
