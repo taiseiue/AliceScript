@@ -12,11 +12,11 @@ namespace AliceScript
         public EventObject()
         {
            
-            this.Functions.Add("do",new e_doFunc(this));
+            this.Functions.Add("Invoke",new e_doFunc(this));
             
         }
         public List<CustomFunction> Event = new List<CustomFunction>();
-        public void Do(List<Variable> args)
+        public void Invoke(List<Variable> args)
         {
             //とりあえずイベントポンプ中は変数無効エラーを抑制
             EventObject.overDDerror = true;
@@ -33,7 +33,7 @@ namespace AliceScript
                 case "+=":
                     if (left == null || right==null) { return; }
             if (right.Type != Variable.VarType.DELEGATE) { return; }
-                    Console.WriteLine("DELEGATE_ADDR_TO_LEFT");
+                    
                Event.Add(right.AsDelegate());
                     break;
                 case "-=":
@@ -84,14 +84,14 @@ namespace AliceScript
         public e_doFunc(EventObject host)
         {
             Host = host;
-            FunctionName = "do";
+            FunctionName = "Invoke";
             this.Run += E_doFunc_Run;
         
         }
 
         private void E_doFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            Host.Do(e.Args);
+            Host.Invoke(e.Args);
         }
 
         public EventObject Host;
