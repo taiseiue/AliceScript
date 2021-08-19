@@ -1,17 +1,17 @@
-﻿using System;
+﻿using AliceScript;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AliceScript;
 using System.IO;
+using System.Text;
 
 namespace alice
 {
-    public class SecondProgram
+    public class Shell
     {
-        const string EXT = "WSOFTScript";
-
+        private static bool allow_print = true;
+        private static List<string> print_redirect_files = new List<string>();
+        private static bool allow_throw = true;
+        private static List<string> throw_redirect_files = new List<string>();
         enum NEXT_CMD
         {
             NONE = 0,
@@ -22,10 +22,7 @@ namespace alice
         public static bool canDebug = false;
         [STAThread]
         public static void Do(string[] args)
-
         {
-
-
             Alice.Exiting += Alice_Exiting;
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e)
             {
@@ -37,52 +34,53 @@ namespace alice
 
             ClearLine();
 
-            // Subscribe to the printing events from the interpreter.
-            // A printing event will be triggered after each successful statement
-            // execution. On error an exception will be thrown.
+            //標準出力
             Interpreter.Instance.OnOutput += Print;
 
             //例外スローを静かにする
             ThrowErrorManerger.HandleError = true;
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
 
-            string scriptFilename = "scripts/temp.alice";
-            scriptFilename = "";
-            string script = Utils.GetFileContents(scriptFilename);
+            
 
             Variable resultprop = Interpreter.Instance.Process("print(\"AliceScript バージョン\"+wsver);\r\nprint(\"(c) 2021 WSOFT All rights reserved.\");");
 
-            
             Console.WriteLine();
-
-
-
-
-            if (args.Length >= 3)
-            {
-                Translation.TranslateScript(args);
-                return;
-            }
-            if (args.Length > 0)
-            {
-                if (args[0].EndsWith(EXT))
+            ParsedArguments pa = new ParsedArguments(args);
+            
+                //実行モード
+                if (pa.Values.ContainsKey("print"))
                 {
-                    scriptFilename = args[0];
-                    Console.WriteLine("Reading script from " + scriptFilename);
-                    script = Utils.GetFileContents(scriptFilename);
+                    if (pa.Values["print"].ToLower() == "off")
+                    {
+                        allow_print = false;
+                    }
+                    else
+                    {
+                        print_redirect_files.Add(pa.Values["print"]);
+                    }
                 }
-                else
+                if (pa.Values.ContainsKey("throw"))
                 {
-                    script = args[0];
+                    if (pa.Values["throw"].ToLower() == "off")
+                    {
+                        allow_throw = false;
+                    }
+                    else
+                    {
+                        throw_redirect_files.Add(pa.Values["throw"]);
+                    }
                 }
-            }
-
-            if (!string.IsNullOrWhiteSpace(script))
-            {
-                ProcessScript(script, scriptFilename);
-                return;
-            }
-
+                if (pa.Values.ContainsKey("runtime"))
+                {
+                    Alice.Runtime_File_Path = pa.Values["runtime"];
+                }
+                bool mainfile = pa.Flags.Contains("mainfile");
+                foreach (string fn in pa.Files)
+                {
+                    Alice.Execute(PowerEncodeReader.ReadAllText(fn), Path.GetFileName(fn), mainfile);
+                }
+          
             RunLoop();
         }
 
@@ -91,16 +89,28 @@ namespace alice
 
         }
 
-     
+
         private static void ThrowErrorManerger_ThrowError(object sender, ThrowErrorEventArgs e)
         {
-
-            Utils.PrintColor("実行中のエラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + e.Script.Filename + "\r\n", ConsoleColor.Red);
-            Dictionary<string, Variable> dic = Debug.Variables;
-            Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
-            foreach (string s in dic.Keys)
+            if (e.Message != "")
             {
-                Console.WriteLine("| " + s + " | " + dic[s].AsString() + " |");
+                if (allow_throw)
+                {
+                    AliceScript.Utils.PrintColor("エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n", ConsoleColor.Red);
+                    Dictionary<string, AliceScript.Variable> dic = AliceScript.Debug.Variables;
+                    Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
+                    foreach (string s in dic.Keys)
+                    {
+                        Console.WriteLine("| " + s + " | " + dic[s].AsString() + " |");
+                    }
+                }
+                if (throw_redirect_files.Count > 0)
+                {
+                    foreach (string fn in throw_redirect_files)
+                    {
+                        File.AppendAllText(fn, "エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n");
+                    }
+                }
             }
         }
 
@@ -369,7 +379,17 @@ namespace alice
 
         static void Print(object sender, OutputAvailableEventArgs e)
         {
-            Console.Write(e.Output);
+            if (allow_print)
+            {
+                Console.Write(e.Output);
+            }
+            if (print_redirect_files.Count > 0)
+            {
+                foreach (string fn in print_redirect_files)
+                {
+                    File.AppendAllText(fn, e.Output);
+                }
+            }
             s_PrintingCompleted = true;
         }
         static bool s_PrintingCompleted = false;

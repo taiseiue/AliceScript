@@ -9,9 +9,9 @@ namespace AliceScript
 {
    public static class Alice
     {
-        public static Variable Execute(string code)
+        public static Variable Execute(string code,string filename="",bool mainFile=false)
         {
-           return Interpreter.Instance.Process(code);
+           return Interpreter.Instance.Process(code,filename,mainFile);
         }
         public static event Exiting Exiting;
         internal static void OnExiting(int exitcode=0)
@@ -29,7 +29,7 @@ namespace AliceScript
                 Environment.Exit(e.ExitCode);
             }
         }
-        public static string Runtime_File_Path = Path.Combine(Assembly.GetExecutingAssembly().Location,"Alice.Runtime.dll");
+        public static string Runtime_File_Path = Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"Alice.Runtime.dll");
     }
     public delegate void Exiting(object sender,ExitingEventArgs e);
     public class ExitingEventArgs : EventArgs
@@ -39,7 +39,7 @@ namespace AliceScript
         /// </summary>
         public bool Cancel { get; set; }
         /// <summary>
-        /// 要求されている終了コードを表します
+        /// 終了コードを表します
         /// </summary>
         public int ExitCode { get; set; }
     }

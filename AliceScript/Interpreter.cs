@@ -360,7 +360,7 @@ namespace AliceScript
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("Expecting: for(item :/in/of array)",
+                    Utils.ThrowErrorMsg("for(-in-)の形で入力してください",
                                      script, Constants.FOR);
                 }
                 varName = forString.Substring(0, index);
