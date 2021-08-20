@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AliceScript
 {
@@ -12,6 +13,18 @@ namespace AliceScript
         public static Variable Execute(string code,string filename="",bool mainFile=false)
         {
            return Interpreter.Instance.Process(code,filename,mainFile);
+        }
+        public static Variable ExecuteFile(string filename,bool mainFile=false)
+        {
+            return Interpreter.Instance.ProcessFile(filename,mainFile);
+        }
+        public static Task<Variable> ExecuteAsync(string code,string filename="",bool mainFile = false)
+        {
+            return Interpreter.Instance.ProcessAsync(code,filename,mainFile);
+        }
+        public static Task<Variable> ExecuteFileAsync(string filename,bool mainFile = false)
+        {
+            return Interpreter.Instance.ProcessFileAsync(filename,mainFile);
         }
         public static event Exiting Exiting;
         internal static void OnExiting(int exitcode=0)

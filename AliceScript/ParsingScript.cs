@@ -619,14 +619,13 @@ namespace AliceScript
         public ParsingScript GetIncludeFileScript(string filename)
         {
             string pathname = GetFilePath(filename);
-            string[] lines = Utils.GetFileLines(pathname);
 
-            string includeFile = string.Join(Environment.NewLine, lines);
+            string includeFile = Utils.GetFileLines(pathname);
             Dictionary<int, int> char2Line;
             var includeScript = Utils.ConvertToScript(includeFile, out char2Line, pathname);
             ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
             tempScript.Filename = pathname;
-            tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+            tempScript.OriginalScript = includeFile.Replace(Environment.NewLine,Constants.END_LINE.ToString());
             tempScript.ParentScript = this;
             tempScript.InTryBlock = InTryBlock;
 

@@ -50,7 +50,7 @@ namespace alice
                 Interpreter.Instance.OnOutput += Instance_OnOutput;
                 foreach (string fn in pa.Files)
                 {
-                    Alice.Execute(PowerEncodeReader.ReadAllText(fn),Path.GetFileName(fn),mainfile);
+                    Alice.ExecuteFile(Path.GetFileName(fn),mainfile);
                 }
             }
             else

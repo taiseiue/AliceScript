@@ -315,11 +315,11 @@ namespace AliceScript
             }
         }
 
-        public static string[] GetFileLines(string filename)
+        public static string GetFileLines(string filename)
         {
             try
             {
-                string[] lines = File.ReadAllLines(filename);
+                string lines = File.ReadAllText(filename);
                 return lines;
             }
             catch (Exception ex)
@@ -701,8 +701,7 @@ namespace AliceScript
             }
             try
             {
-                string[] readText = Utils.GetFileLines(filename);
-                return string.Join("\n", readText);
+                return Utils.GetFileLines(filename).Replace(Environment.NewLine,Constants.END_LINE.ToString());
             }
             catch (Exception exc)
             {

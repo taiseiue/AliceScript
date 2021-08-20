@@ -50,7 +50,7 @@ namespace AliceScript.NameSpaces
         {
             if (e.Args.Count < 2)
             {
-                e.Return = new Variable(File.ReadAllText(e.Args[0].AsString()));
+                e.Return = new Variable(SafeReader.ReadAllText(e.Args[0].AsString()));
             }
             else
             {
@@ -478,7 +478,7 @@ namespace AliceScript.NameSpaces
     {
         public directory_getdirectoriesFunc()
         {
-            this.Name = "directory_getdirectoriesFunc";
+            this.Name = "directory_getdirectories";
             this.MinimumArgCounts = 1;
             this.Run += Directory_getdirectoriesFunc_Run;
         }
@@ -522,7 +522,7 @@ namespace AliceScript.NameSpaces
     {
         public directory_getfilesFunc()
         {
-            this.Name = "directory_getfilesFunc";
+            this.Name = "directory_getfiles";
             this.MinimumArgCounts = 1;
             this.Run += Directory_getdirectoriesFunc_Run;
         }
