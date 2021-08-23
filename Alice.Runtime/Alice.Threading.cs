@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AliceScript.NameSpaces
 {
@@ -14,6 +15,8 @@ namespace AliceScript.NameSpaces
             space.Add(new thread_sleepFunc());
             space.Add(new thread_idFunc());
             space.Add(new thread_queueFunc());
+
+            space.Add(new task_runFunc());
 
             NameSpaceManerger.Add(space);
         }
@@ -81,5 +84,26 @@ namespace AliceScript.NameSpaces
         public ParsingScript Script { get; set; }
         public CustomFunction Delegate { get; set; }
     }
+    class task_runFunc : FunctionBase
+    {
+        public task_runFunc()
+        {
+            this.Name = "task_run";
+            this.MinimumArgCounts = 0;
+            this.Run += Task_runFunc_Run;
+        }
+
+        private void Task_runFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args[0].Type != Variable.VarType.DELEGATE) { ThrowErrorManerger.OnThrowError("不正な引数です",e.Script); }
+            List<Variable> args = new List<Variable>();
+            if (e.Args.Count > 1)
+            {
+                args = e.Args.GetRange(1, e.Args.Count - 1);
+            }
+            Task.Run(()=> { e.Args[0].Delegate.Run(args,e.Script); });
+        }
+    }
+   
   
 }

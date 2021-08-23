@@ -181,14 +181,9 @@ namespace AliceScript.NameSpaces
 
         private void File_copyFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count < 3)
-            {
+            
                 File.Move(e.Args[0].AsString(), e.Args[1].AsString());
-            }
-            else
-            {
-                File.Move(e.Args[0].AsString(), e.Args[1].AsString(), e.Args[2].AsBool());
-            }
+           
         }
     }
     class file_existsFunc : FunctionBase
