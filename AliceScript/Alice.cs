@@ -43,6 +43,19 @@ namespace AliceScript
             }
         }
         public static string Runtime_File_Path = Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"Alice.Runtime.dll");
+
+        public static Version Version
+        {
+            get
+            {
+                //自分自身のAssemblyを取得
+                System.Reflection.Assembly asm =
+                    System.Reflection.Assembly.GetExecutingAssembly();
+                //バージョンの取得
+                return asm.GetName().Version;
+                
+            }
+        }
     }
     public delegate void Exiting(object sender,ExitingEventArgs e);
     public class ExitingEventArgs : EventArgs

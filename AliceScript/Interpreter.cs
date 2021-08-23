@@ -176,7 +176,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.SIGNAL, new SignalWaitFunction(true));
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
             ParserFunction.RegisterFunction(Constants.SIZE, new SizeFunction());
-            ParserFunction.RegisterFunction(Constants.SLEEP, new SleepFunction());
             ParserFunction.RegisterFunction(Constants.STR_BETWEEN, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN));
             ParserFunction.RegisterFunction(Constants.STR_BETWEEN_ANY, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN_ANY));
             ParserFunction.RegisterFunction(Constants.STR_CONTAINS, new StringManipulationFunction(StringManipulationFunction.Mode.CONTAINS));
@@ -189,8 +188,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.STR_SUBSTR, new StringManipulationFunction(StringManipulationFunction.Mode.SUBSTRING));
             ParserFunction.RegisterFunction(Constants.STR_TRIM, new StringManipulationFunction(StringManipulationFunction.Mode.TRIM));
             ParserFunction.RegisterFunction(Constants.STR_UPPER, new StringManipulationFunction(StringManipulationFunction.Mode.UPPER));
-            ParserFunction.RegisterFunction(Constants.THREAD, new ThreadFunction());
-            ParserFunction.RegisterFunction(Constants.THREAD_ID, new ThreadIDFunction());
             ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
             ParserFunction.RegisterFunction(Constants.TOKENIZE_LINES, new TokenizeLinesFunction());
             ParserFunction.RegisterFunction(Constants.TOKEN_COUNTER, new TokenCounterFunction());

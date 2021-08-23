@@ -355,44 +355,8 @@ namespace AliceScript
         }
     }
 
-    class ThreadFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string body = script.TryPrev() == Constants.START_GROUP ?
-                          Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP) :
-                          Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
-            ThreadPool.QueueUserWorkItem(ThreadProc, body);
-            return Variable.EmptyInstance;
-        }
-
-        static void ThreadProc(Object stateInfo)
-        {
-            string body = (string)stateInfo;
-            ParsingScript threadScript = new ParsingScript(body);
-            threadScript.ExecuteAll();
-        }
-    }
-    class ThreadIDFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            int threadID = Thread.CurrentThread.ManagedThreadId;
-            return new Variable(threadID.ToString());
-        }
-    }
-    class SleepFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Variable sleepms = Utils.GetItem(script);
-            Utils.CheckPosInt(sleepms, script);
-
-            Thread.Sleep((int)sleepms.Value);
-
-            return Variable.EmptyInstance;
-        }
-    }
+   
+   
     class LockFunction : ParserFunction
     {
         static Object lockObject = new Object();

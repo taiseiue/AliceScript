@@ -94,6 +94,7 @@ namespace AliceScript
         }
 
     }
+
     class ImportFunc : FunctionBase
     {
         public ImportFunc()

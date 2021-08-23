@@ -21,7 +21,7 @@ namespace AliceScript.NameSpaces
             Alice_Math_Initer.Init();
             Alice_Net_Initer.Init();
             Alice_Random_Initer.Init();
-            
+            Alice_Threading_Initer.Init();
         }
     }
 }
