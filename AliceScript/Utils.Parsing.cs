@@ -1315,6 +1315,75 @@ namespace AliceScript
 
             return sb.ToString();
         }
+        public static string GetBodyArrowBetween(ParsingScript script, char open = Constants.START_ARG,
+                                            char close = Constants.END_ARG, char end = '\0')
+        {
+            // We are supposed to be one char after the beginning of the string, i.e.
+            // we must not have the opening char as the first one.
+            StringBuilder sb = new StringBuilder(script.Size());
+            int braces = 0;
+            bool inQuotes = false;
+            bool inQuotes1 = false;
+            bool inQuotes2 = false;
+            bool checkBraces = true;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
+            char before = ' ';
+            bool getarrow = false;
+
+            for (; script.StillValid(); script.Forward())
+            {
+                char ch = script.Current;
+
+                if (ch == end && !inQuotes)
+                {
+                    break;
+                }
+
+                if (close != Constants.QUOTE)
+                {
+                    checkBraces = !inQuotes;
+                    if (ch == Constants.QUOTE && !inQuotes1 && (prev != '\\' || prevprev == '\\'))
+                    {
+                        inQuotes = inQuotes2 = !inQuotes2;
+                    }
+                    if (ch == Constants.QUOTE1 && !inQuotes2 && (prev != '\\' || prevprev == '\\'))
+                    {
+                        inQuotes = inQuotes1 = !inQuotes1;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(ch.ToString()) && sb.Length == 0)
+                {
+                    continue;
+                }
+                else if (checkBraces && ch == open&&getarrow)
+                {
+                    braces++;
+                }
+                else if (checkBraces && ch == close&&getarrow)
+                {
+                    braces--;
+                }
+
+                sb.Append(ch);
+                if (before == '=' && ch == '>') { getarrow = true; }
+                prevprev = prev;
+                prev = ch;
+                if (braces < 0)
+                {
+                    getarrow = false;
+                    if (ch == close)
+                    {
+                        sb.Remove(sb.Length - 1, 1);
+                    }
+                    break;
+                }
+            }
+
+            return sb.ToString();
+        }
+        
 
         public static string ProtectQuotes(string str)
         {

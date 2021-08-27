@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AliceScript
@@ -25,6 +26,29 @@ namespace AliceScript
                 cf.Run(args);
             }
             EventObject.overDDerror = false;
+        }
+        public void BeginInvoke(List<Variable> args)
+        {
+            //とりあえずイベントポンプ中は変数無効エラーを抑制
+            EventObject.overDDerror = true;
+            foreach (CustomFunction cf in Event)
+            {
+                m_BeginInvokeMessanger mb = new m_BeginInvokeMessanger();
+                mb.Args = args;
+                mb.Delegate = cf;
+                ThreadPool.QueueUserWorkItem(ThreadProc, mb);
+            }
+            EventObject.overDDerror = false;
+        }
+        static void ThreadProc(Object stateInfo)
+        {
+            m_BeginInvokeMessanger mb = (m_BeginInvokeMessanger)stateInfo;
+            mb.Delegate.Run(mb.Args);
+        }
+        private class m_BeginInvokeMessanger
+        {
+            public CustomFunction Delegate { get; set; }
+            public List<Variable> Args { get; set; }
         }
         public override void Operator(Variable left, Variable right, string action)
         {
@@ -92,6 +116,23 @@ namespace AliceScript
         private void E_doFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             Host.Invoke(e.Args);
+        }
+
+        public EventObject Host;
+    }
+    class e_do2Func : FunctionBase
+    {
+        public e_do2Func(EventObject host)
+        {
+            Host = host;
+            FunctionName = "BeginInvoke";
+            this.Run += E_doFunc_Run;
+
+        }
+
+        private void E_doFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            Host.BeginInvoke(e.Args);
         }
 
         public EventObject Host;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AliceScript
 {
@@ -122,10 +123,11 @@ namespace AliceScript
                 parentOffset += script.CurrentClass.ParentOffset;
             }
 
-            string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            body = body.Substring(2);
+            KnownLines.Add(script.OriginalLine);
             script.MoveForwardIf(Constants.END_GROUP);
-
-            CustomFunction customFunc = new CustomFunction(" ", body, args, script);
+            CustomFunction customFunc = new CustomFunction("", body, args, script);
             customFunc.ParentScript = script;
             customFunc.ParentOffset = parentOffset;
 
@@ -133,6 +135,7 @@ namespace AliceScript
 
             return new Variable(customFunc);
         }
+        internal static List<string> KnownLines = new List<string>();
     }
     class PointerFunction : ActionFunction
     {

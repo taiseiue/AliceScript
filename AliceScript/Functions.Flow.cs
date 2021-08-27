@@ -993,6 +993,7 @@ namespace AliceScript
 
         protected override Variable Evaluate(ParsingScript script)
         {
+            
             List<Variable> args = Constants.FUNCT_WITH_SPACE.Contains(m_name) ?
                 // Special case of extracting args.
                 Utils.GetFunctionArgsAsStrings(script) :
@@ -1931,6 +1932,10 @@ namespace AliceScript
             {
                 DateOperator(left, right, m_action, script,m_name);
             }
+            else if (left.Type == Variable.VarType.DELEGATE)
+            {
+                DelegateOperator(left,right,m_action,script,m_name);
+            }
             else
             {
                 StringOperator(left, right, m_action);
@@ -1970,7 +1975,22 @@ namespace AliceScript
             }
             valueA.AddToDate(valueB, sign);
         }
-
+        static void DelegateOperator(Variable valueA,Variable valueB,string action,ParsingScript script,string token)
+        {
+            switch (action)
+            {
+                case "=>":
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        Utils.ThrowErrorMsg("Not a valid action [" + action + "] on a date.",
+                                        script,token);
+                        break;
+                    }
+            }
+        }
         static void NumberOperator(Variable valueA,
                                    Variable valueB, string action)
         {

@@ -15,7 +15,19 @@ namespace AliceScript
         private string m_originalScript;// original raw script
         private int m_scriptOffset = 0; // used in functions defined in bigger scripts
         private Dictionary<int, int> m_char2Line = null; // pointers to the original lines
+        private string m_tag;
 
+        public string Tag
+        {
+            get
+            {
+                return m_tag;
+            }
+            set
+            {
+                m_tag = value;
+            }
+        }
         public int Pointer
         {
             get { return m_from; }
