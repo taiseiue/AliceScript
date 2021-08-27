@@ -125,7 +125,10 @@ namespace AliceScript
 
             string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
             body = body.Substring(2);
-            KnownLines.Add(script.OriginalLine);
+            if (!KnownLines.Contains(script.OriginalLine))
+            {
+                KnownLines.Add(script.OriginalLine);
+            }
             script.MoveForwardIf(Constants.END_GROUP);
             CustomFunction customFunc = new CustomFunction("", body, args, script);
             customFunc.ParentScript = script;
