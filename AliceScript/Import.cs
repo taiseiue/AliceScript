@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO.Compression;
 using System.IO;
 
 namespace AliceScript
 {
     class Import
     {
-       
+
     }
     public static class NameSpaceManerger
     {
         public static Dictionary<string, NameSpace> NameSpaces = new Dictionary<string, NameSpace>();
-        public static void Add(NameSpace space,string name = "")
+        public static void Add(NameSpace space, string name = "")
         {
             if (name == "") { name = space.Name; }
-            NameSpaces.Add(name,space);
+            NameSpaces.Add(name, space);
         }
         public static bool Contains(NameSpace name)
         {
@@ -70,7 +68,7 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
-            if (ecount != 0) { throw new Exception("名前空間のロード中に"+ecount+"件の例外が発生しました。これらの例外は捕捉されませんでした"); }
+            if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
         public virtual void UnLoad()
         {
@@ -94,12 +92,11 @@ namespace AliceScript
         }
 
     }
-
-    class ImportFunc : FunctionBase
+    class LibImportFunc : FunctionBase
     {
-        public ImportFunc()
+        public LibImportFunc()
         {
-            this.FunctionName = "import";
+            this.FunctionName = "libimport";
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.MinimumArgCounts = 0;
             this.Run += ImportFunc_Run;
@@ -112,17 +109,11 @@ namespace AliceScript
                 if (e.Args[0].Type == Variable.VarType.STRING)
                 {
                     string file = e.Args[0].AsString();
-                    if (!file.EndsWith(".alp")&&!file.EndsWith(".dll"))
+                    if (!file.EndsWith(".alp") && !file.EndsWith(".dll"))
                     {
                         //拡張子がありません
 
-                        if (NameSpaceManerger.Contains(file))
-                        {
-                            //NameSpace形式で存在
-                            NameSpaceManerger.Load(file);
-                            return;
-                        }
-                        else
+
                         if (File.Exists(Path.ChangeExtension(file, ".alp")))
                         { //alp形式で存在
                             file = Path.ChangeExtension(file, ".alp");
@@ -136,7 +127,7 @@ namespace AliceScript
                         else
                         {
                             //いずれでもない場合
-                            throw new Exception("該当する名前空間またはライブラリが存在しません");
+                            ThrowErrorManerger.OnThrowError("該当するライブラリが見つかりません",e.Script);
                         }
                     }
                     else if (File.Exists(file))
@@ -164,6 +155,38 @@ namespace AliceScript
                             throw;
                         }
                     }
+                }
+            }
+        }
+    }
+    class ImportFunc : FunctionBase
+    {
+        public ImportFunc()
+        {
+            this.FunctionName = "import";
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.MinimumArgCounts = 0;
+            this.Run += ImportFunc_Run;
+        }
+
+        private void ImportFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 0)
+            {
+                if (e.Args[0].Type == Variable.VarType.STRING)
+                {
+                    string file = e.Args[0].AsString();
+                    if (NameSpaceManerger.Contains(file))
+                    {
+                        //NameSpace形式で存在
+                        NameSpaceManerger.Load(file);
+                        return;
+                    }
+                    else
+                    {
+                        ThrowErrorManerger.OnThrowError("該当する名前空間がありません",e.Script);
+                    }
+
                 }
             }
         }

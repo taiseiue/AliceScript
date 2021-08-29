@@ -154,7 +154,7 @@ namespace AliceScript
             return result;
         }
     }
-
+    
     class PointerReferenceFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)

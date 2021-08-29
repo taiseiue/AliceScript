@@ -18,13 +18,21 @@ namespace AliceScript
         }
     }
 
-    class ContinueStatement : ParserFunction
+    class ContinueStatement : FunctionBase
     {
-        protected override Variable Evaluate(ParsingScript script)
+        public ContinueStatement()
         {
-            return new Variable(Variable.VarType.CONTINUE);
+            this.Name = Constants.CONTINUE;
+            this.Attribute = FunctionAttribute.CONTROL_FLOW|FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += ContinueStatement_Run;
+        }
+
+        private void ContinueStatement_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Variable.VarType.CONTINUE);
         }
     }
+    
 
     class ReturnStatement : ParserFunction
     {
