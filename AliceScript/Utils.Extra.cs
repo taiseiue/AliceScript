@@ -123,78 +123,9 @@ namespace AliceScript
             return results;
         }
 
-        public static void Copy(string src, string dst)
-        {
-            bool isFile = File.Exists(src);
-            bool isDir = Directory.Exists(src);
-            if (!isFile && !isDir)
-            {
-                throw new ArgumentException("[" + src + "] doesn't exist");
-            }
-            try
-            {
-                if (isFile)
-                {
-                    if (Directory.Exists(dst))
-                    {
-                        string filename = Path.GetFileName(src);
-                        dst = Path.Combine(dst, filename);
-                    }
+      
 
-                    File.Copy(src, dst, true);
-                }
-                else
-                {
-                    Utils.DirectoryCopy(src, dst);
-                }
-            }
-            catch (Exception exc)
-            {
-                throw new ArgumentException("Couldn't copy to [" + dst + "]: " + exc.Message);
-            }
-        }
-
-        public static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
-        {
-            // Get the subdirectories for the specified directory.
-            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
-
-            if (!dir.Exists)
-            {
-                throw new ArgumentException(sourceDirName + " directory doesn't exist");
-            }
-            if (sourceDirName.Equals(destDirName, StringComparison.InvariantCultureIgnoreCase))
-            {
-                //throw new ArgumentException(sourceDirName + ": directories are same");
-                string addPath = Path.GetFileName(sourceDirName);
-                destDirName = Path.Combine(destDirName, addPath);
-            }
-
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
-            if (!Directory.Exists(destDirName))
-            {
-                Directory.CreateDirectory(destDirName);
-            }
-
-            // Get the files in the directory and copy them to the new location.
-            FileInfo[] files = dir.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                string tempPath = Path.Combine(destDirName, file.Name);
-                File.Copy(file.FullName, tempPath, true);
-            }
-
-            // If copying subdirectories, copy them and their contents to new location.
-            if (copySubDirs)
-            {
-                foreach (DirectoryInfo subdir in dirs)
-                {
-                    string tempPath = Path.Combine(destDirName, subdir.Name);
-                    DirectoryCopy(subdir.FullName, tempPath, copySubDirs);
-                }
-            }
-        }
+       
 
         public static List<string> GetFiles(string path, string[] patterns, bool addDirs = true)
         {

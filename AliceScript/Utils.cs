@@ -14,6 +14,7 @@ namespace AliceScript
         {
             if (args < expected || (exactMatch && args != expected))
             {
+                //Insufficient arguments
                 throw new ArgumentException("Expecting " + expected +
                     " arguments but got " + args + " in " + msg);
             }
@@ -23,7 +24,7 @@ namespace AliceScript
             CheckInteger(variable, script);
             if (variable.Value <= 0)
             {
-                ThrowErrorMsg("Expected a positive integer instead of [" +
+                ThrowErrorMsg("Expected natural number instead of [" +
                               variable.Value + "].", script, script.Current.ToString());
             }
         }
