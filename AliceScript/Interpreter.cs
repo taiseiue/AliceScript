@@ -148,6 +148,8 @@ namespace AliceScript
             FunctionBaseManerger.Add(new LibImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(),"_");
+            FunctionBaseManerger.Add(new PrintFunction());
+            FunctionBaseManerger.Add(new PrintFunction(false));
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -166,8 +168,7 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
             ParserFunction.RegisterFunction(Constants.NAME_EXISTS, new NameExistsFunction());
-            ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction());
-            ParserFunction.RegisterFunction(Constants.PRINT, new PrintFunction());
+            ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction()); 
             ParserFunction.RegisterFunction(Constants.PSTIME, new ProcessorTimeFunction());
             ParserFunction.RegisterFunction(Constants.REGEX, new RegexFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
