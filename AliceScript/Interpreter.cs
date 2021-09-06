@@ -145,11 +145,13 @@ namespace AliceScript
             FunctionBaseManerger.Add(new functionsFunc());
             FunctionBaseManerger.Add(new namespacesFunc());
             FunctionBaseManerger.Add(new ImportFunc());
+            FunctionBaseManerger.Add(new ImportFunc(true));
             FunctionBaseManerger.Add(new LibImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(),"_");
             FunctionBaseManerger.Add(new PrintFunction());
             FunctionBaseManerger.Add(new PrintFunction(false));
+            FunctionBaseManerger.Add(new EvalFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -215,6 +217,7 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
+            ClassManerger.Add(new EventObject());
 
             Assembly myAssembly = Assembly.GetEntryAssembly();
             if (File.Exists(Alice.Runtime_File_Path))

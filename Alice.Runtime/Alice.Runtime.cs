@@ -16,12 +16,14 @@ namespace AliceScript.NameSpaces
 
         public void Main()
         {
-            AliceScript_Diagnosis_Initer.Init();
+            Alice_Diagnostics_Initer.Init();
+            Alice_Drawing_Initer.Init();
             Alice_IO_Intiter.Init();
             Alice_Math_Initer.Init();
             Alice_Net_Initer.Init();
             Alice_Random_Initer.Init();
             Alice_Threading_Initer.Init();
+            Alice_Security_Initer.Init();
         }
     }
 }

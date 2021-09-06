@@ -12,7 +12,7 @@ namespace AliceScript
         public static bool overDDerror = false;
         public EventObject()
         {
-           
+            this.Name = "event";
             this.Functions.Add("Invoke",new e_doFunc(this));
             
         }

@@ -16,8 +16,7 @@ namespace AliceScript
 
         public ObjectBase(string name = "", string color = "")
         {
-            Properties.Add("Name", new Variable("ObjectBase"));
-
+           
         }
 
 
@@ -55,6 +54,10 @@ namespace AliceScript
                 v = ev.Variable;
                 return Task.FromResult(v);
 
+            }else if (sPropertyName.ToLower() == "name")
+            {
+                //名前属性は予約
+                return Task.FromResult(new Variable(this.Name));
             }
             else
             {
@@ -113,6 +116,17 @@ namespace AliceScript
             return Task.FromResult(Variable.EmptyInstance);
         }
         public string ClassName = "ObjectBase";
+        public string Name
+        {
+            get
+            {
+                return ClassName;
+            }
+            set
+            {
+                ClassName = value;
+            }
+        }
 
     }
 

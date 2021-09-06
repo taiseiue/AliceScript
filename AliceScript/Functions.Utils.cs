@@ -140,6 +140,21 @@ namespace AliceScript
         }
         internal static List<string> KnownLines = new List<string>();
     }
+    class EvalFunction : FunctionBase
+    {
+        public EvalFunction()
+        {
+            this.Name = "eval";
+            this.MinimumArgCounts = 1;
+            this.Run += EvalFunction_Run;
+        }
+
+        private void EvalFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            ParsingScript script = new ParsingScript(e.Args[0].AsString());
+            script.ExecuteAll();
+        }
+    }
     class PointerFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)

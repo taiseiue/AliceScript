@@ -45,9 +45,14 @@ namespace AliceScript
         }
         public string Name { get; set; }
         public List<FunctionBase> Functions = new List<FunctionBase>();
+        public List<ObjectBase> Classes = new List<ObjectBase>();
         public void Add(FunctionBase func)
         {
             Functions.Add(func);
+        }
+        public void Add(ObjectBase obj)
+        {
+            Classes.Add(obj);
         }
         public void Remove(FunctionBase func)
         {
@@ -68,6 +73,14 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
+            foreach(ObjectBase obj in Classes)
+            {
+                try
+                {
+                    ClassManerger.Add(obj);
+                }
+                catch { ecount++; }
+            }
             if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
         public virtual void UnLoad()
@@ -81,13 +94,21 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
+            foreach (ObjectBase obj in Classes)
+            {
+                try
+                {
+                    ClassManerger.Remove(obj);
+                }
+                catch { ecount++; }
+            }
             if (ecount != 0) { throw new Exception("名前空間のアンロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
         public int Count
         {
             get
             {
-                return Functions.Count;
+                return Functions.Count+Classes.Count;
             }
         }
 
@@ -161,14 +182,22 @@ namespace AliceScript
     }
     class ImportFunc : FunctionBase
     {
-        public ImportFunc()
+        public ImportFunc(bool isunimport=false)
         {
-            this.FunctionName = "import";
+            if (isunimport)
+            {
+                this.FunctionName = "unimport";
+                unimport = true;
+            }
+            else
+            {
+                this.FunctionName = "import";
+            }
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.MinimumArgCounts = 0;
             this.Run += ImportFunc_Run;
         }
-
+        private bool unimport = false;
         private void ImportFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             if (e.Args.Count > 0)
@@ -179,6 +208,7 @@ namespace AliceScript
                     if (NameSpaceManerger.Contains(file))
                     {
                         //NameSpace形式で存在
+
                         NameSpaceManerger.Load(file);
                         return;
                     }
@@ -191,4 +221,5 @@ namespace AliceScript
             }
         }
     }
+ 
 }

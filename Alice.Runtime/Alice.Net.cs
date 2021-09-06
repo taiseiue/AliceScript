@@ -23,6 +23,7 @@ namespace AliceScript.NameSpaces
             space.Add(new web_download_dataFunc());
             space.Add(new web_download_fileFunc());
             space.Add(new web_download_textFunc());
+            space.Add(new web_send_pingFunc());
 
 
             NameSpaceManerger.Add(space);
@@ -187,6 +188,37 @@ namespace AliceScript.NameSpaces
         private void Web_htmldecodeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             e.Return = new Variable(WebUtility.UrlEncode(e.Args[0].AsString()));
+        }
+    }
+    class web_send_pingFunc : FunctionBase
+    {
+        public web_send_pingFunc()
+        {
+            FunctionName = "web_send_ping";
+            MinimumArgCounts = 1;
+            Run += W_pingFunc_Run;
+
+        }
+
+        private void W_pingFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            //Pingオブジェクトの作成
+            System.Net.NetworkInformation.Ping p =
+                new System.Net.NetworkInformation.Ping();
+
+            System.Net.NetworkInformation.PingReply reply = p.Send(e.Args[0].AsString(),Utils.GetSafeInt(e.Args,1,5000));
+
+            //結果を取得
+            if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
+            {
+                e.Return = Variable.True;
+            }
+            else
+            {
+                e.Return = Variable.False;
+            }
+
+            p.Dispose();
         }
     }
 }
