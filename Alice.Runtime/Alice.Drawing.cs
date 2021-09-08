@@ -13,46 +13,40 @@ namespace AliceScript.NameSpaces
             NameSpace space = new NameSpace("Alice.Drawing");
 
             space.Add(new ColorObject(0,0,0));
-            space.Add(new ColorsObject());
+            //メモリ消費が激しすぎるため一旦Colorsオブジェクトを無効化
+          //  space.Add(new ColorsObject());
 
             NameSpaceManerger.Add(space);
         }
     }
-    class NColorFunc : FunctionBase
-    {
-        public NColorFunc()
-        {
-            this.FunctionName = "newcolor";
-            MinimumArgCounts = 3;
-            Run += NColorFunc_Run;
-        }
-
-        private void NColorFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            ColorObject c = new ColorObject(e.Args[0].AsInt(), e.Args[1].AsInt(), e.Args[2].AsInt());
-
-            e.Return = new Variable(c);
-        }
-    }
+   
     class ColorObject : ObjectBase
     {
         public void init()
         {
-            ClassName = "Color";
-            this.Properties.Add("A", new Variable(255));
-            this.Properties.Add("R", new Variable(255));
-            this.Properties.Add("G", new Variable(255));
-            this.Properties.Add("B", new Variable(255));
+            Name = "Color";
 
+            this.AddProperty(new ColorValueProperty(this, 0));
+            this.AddProperty(new ColorValueProperty(this, 1));
+            this.AddProperty(new ColorValueProperty(this, 2));
+            this.AddProperty(new ColorValueProperty(this, 3));
+            this.AddProperty(new ColorValueProperty(this, 4));
+            this.AddProperty(new ColorValueProperty(this, 5));
+            this.AddProperty(new ColorValueProperty(this, 6));
+            this.AddProperty(new ColorValueProperty(this, 7));
 
-            this.Functions.Add("newcolor", new NColorFunc());
+            this.AddFunction(new FromArgbFunc());
+            this.AddFunction(new FromNameFunc());
+            this.AddFunction(new ToArgbFunc(this));
+            this.AddFunction(new ToNameFunc(this));
+            
         }
         public ColorObject(int r, int g, int b, int a = 255)
         {
             Color = new Color();
 
             Color.FromArgb(a, r, g, b);
-
+            
             init();
 
         }
@@ -62,210 +56,371 @@ namespace AliceScript.NameSpaces
             init();
         }
         public Color Color;
-
-        public override Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
+        private class ColorValueProperty : PropertyBase
         {
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
-            if (sPropertyName.ToLower() == "a")
+            public ColorValueProperty(ColorObject host,int mode)
             {
-
-                return Task.FromResult(new Variable(Color.A));
-
-            }
-            else
-            {
-                if (sPropertyName.ToLower() == "r")
+                Host = host;
+                Mode = mode;
+                this.HandleEvents = true;
+                
+                switch (mode)
                 {
-                    return Task.FromResult(new Variable(Color.R));
-
+                    case 0:
+                        {
+                            this.Name = "A";
+                            break;
+                        }
+                    case 1:
+                        {
+                            this.Name = "R";
+                            break;
+                        }
+                    case 2:
+                        {
+                            this.Name = "G";
+                            break;
+                        }
+                    case 3:
+                        {
+                            this.Name = "B";
+                            break;
+                        }
+                    case 4:
+                        {
+                            this.Name = "IsNamedColor";
+                            break;
+                        }
+                    case 5:
+                        {
+                            //HSLの中の色相
+                            this.Name = "Hue";
+                            break;
+                        }
+                    case 6:
+                        {
+                            //HSLの中の彩度
+                            this.Name = "Saturation";
+                            break;
+                        }
+                    case 7:
+                        {
+                            //HSLの中の輝度
+                            this.Name = "Brightness";
+                            break;
+                        }
                 }
-                else
+                this.Getting += ColorValueProperty_Getting;
+            }
+
+            private void ColorValueProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                switch (Mode)
                 {
-                    if (sPropertyName.ToLower() == "g")
-                    {
-                        return Task.FromResult(new Variable(Color.G));
-
-                    }
-                    else
-                    {
-                        if (sPropertyName.ToLower() == "b")
+                    case 0:
                         {
-                            return Task.FromResult(new Variable(Color.B));
-
+                            e.Value = new Variable(Host.Color.A);
+                            break;
                         }
-                        else
+                    case 1:
                         {
-                            return Task.FromResult(new Variable("Color"));
+                            e.Value = new Variable(Host.Color.R);
+                            break;
                         }
-                    }
+                    case 2:
+                        {
+                            e.Value = new Variable(Host.Color.G);
+                            break;
+                        }
+                    case 3:
+                        {
+                            e.Value = new Variable(Host.Color.B);
+                            break;
+                        }
+                    case 4:
+                        {
+                            e.Value = new Variable(Host.Color.IsNamedColor);
+                            break;
+                        }
+                    case 5:
+                        {
+                            e.Value = new Variable(Host.Color.GetHue());
+                            break;
+                        }
+                    case 6:
+                        {
+                            e.Value = new Variable(Host.Color.GetSaturation());
+                            break;
+                        }
+                    case 7:
+                        {
+                            e.Value = new Variable(Host.Color.GetBrightness());
+                            break;
+                        }
+                }
+            }
+
+            private ColorObject Host;
+            private int Mode = 0;
+        }
+        private class FromArgbFunc : FunctionBase
+        {
+            public FromArgbFunc()
+            {
+                this.Name = "FromArgb";
+                this.MinimumArgCounts = 1;
+                this.Run += FromArgbFunc_Run;
+            }
+
+            private void FromArgbFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                switch (e.Args.Count)
+                {
+                    case 1:
+                        {
+                            e.Return = new Variable(new ColorObject(Color.FromArgb(e.Args[0].AsInt())));
+                            break;
+                        }
+                    case 2:
+                        {
+                            e.Return = new Variable(new ColorObject(Color.FromArgb(e.Args[0].AsInt(),((ColorObject)e.Args[1].Object).Color)));
+                            break;
+                        }
+                    case 3:
+                        {
+                            e.Return = new Variable(new ColorObject(Color.FromArgb(e.Args[0].AsInt(),e.Args[1].AsInt(),e.Args[2].AsInt())));
+                            break;
+                        }
+                    case 4:
+                        {
+                            e.Return = new Variable(new ColorObject(Color.FromArgb(e.Args[0].AsInt(), e.Args[1].AsInt(), e.Args[2].AsInt(),e.Args[3].AsInt())));
+                            break;
+                        }
                 }
             }
         }
+        private class FromNameFunc : FunctionBase
+        {
+            public FromNameFunc()
+            {
+                this.Name = "FromName";
+                this.MinimumArgCounts = 1;
+                this.Run += FromNameFunc_Run;
+            }
+
+            private void FromNameFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                e.Return = new Variable(new ColorObject(Color.FromName(e.Args[0].AsString())));
+            }
+        }
+        private class ToArgbFunc : FunctionBase
+        {
+            public ToArgbFunc(ColorObject host)
+            {
+                this.Name = "ToArgb";
+                this.Host = host;
+                this.Run += ToArgbFunc_Run;
+            }
+            private ColorObject Host;
+            private void ToArgbFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                e.Return = new Variable(Host.Color.ToArgb());
+            }
+        }
+        private class ToNameFunc : FunctionBase
+        {
+            public ToNameFunc(ColorObject host)
+            {
+                this.Name = "ToName";
+                this.Host = host;
+                this.Run += ToArgbFunc_Run;
+            }
+            private ColorObject Host;
+            private void ToArgbFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                e.Return = new Variable(Host.Color.ToKnownColor().ToString());
+            }
+        }
+
     }
     public class ColorsObject : ObjectBase
     {
 
         public ColorsObject()
         {
-            ClassName = "Colors";
+            Name = "Colors";
 
-            this.Properties.Add("AliceBlue", new Variable(new ColorObject(Color.AliceBlue)));
-            this.Properties.Add("AntiqueWhite", new Variable(new ColorObject(Color.AntiqueWhite)));
-            this.Properties.Add("Aqua", new Variable(new ColorObject(Color.Aqua)));
-            this.Properties.Add("Aquamarine", new Variable(new ColorObject(Color.Aquamarine)));
-            this.Properties.Add("Azure", new Variable(new ColorObject(Color.Azure)));
-            this.Properties.Add("Beige", new Variable(new ColorObject(Color.Beige)));
-            this.Properties.Add("Bisque", new Variable(new ColorObject(Color.Bisque)));
-            this.Properties.Add("Black", new Variable(new ColorObject(Color.Black)));
-            this.Properties.Add("BlanchedAlmond", new Variable(new ColorObject(Color.BlanchedAlmond)));
-            this.Properties.Add("Blue", new Variable(new ColorObject(Color.Blue)));
-            this.Properties.Add("BlueViolet", new Variable(new ColorObject(Color.BlueViolet)));
-            this.Properties.Add("Brown", new Variable(new ColorObject(Color.Brown)));
-            this.Properties.Add("BurlyWood", new Variable(new ColorObject(Color.BurlyWood)));
-            this.Properties.Add("CadetBlue", new Variable(new ColorObject(Color.CadetBlue)));
-            this.Properties.Add("Chartreuse", new Variable(new ColorObject(Color.Chartreuse)));
-            this.Properties.Add("Chocolate", new Variable(new ColorObject(Color.Chocolate)));
-            this.Properties.Add("Coral", new Variable(new ColorObject(Color.Coral)));
-            this.Properties.Add("CornflowerBlue", new Variable(new ColorObject(Color.CornflowerBlue)));
-            this.Properties.Add("Cornsilk", new Variable(new ColorObject(Color.Cornsilk)));
-            this.Properties.Add("Crimson", new Variable(new ColorObject(Color.Crimson)));
-            this.Properties.Add("Cyan", new Variable(new ColorObject(Color.Cyan)));
-            this.Properties.Add("DarkBlue", new Variable(new ColorObject(Color.DarkBlue)));
-            this.Properties.Add("DarkCyan", new Variable(new ColorObject(Color.DarkCyan)));
-            this.Properties.Add("DarkGoldenrod", new Variable(new ColorObject(Color.DarkGoldenrod)));
-            this.Properties.Add("DarkGray", new Variable(new ColorObject(Color.DarkGray)));
-            this.Properties.Add("DarkGreen", new Variable(new ColorObject(Color.DarkGreen)));
-            this.Properties.Add("DarkKhaki", new Variable(new ColorObject(Color.DarkKhaki)));
-            this.Properties.Add("DarkMagenta", new Variable(new ColorObject(Color.DarkMagenta)));
-            this.Properties.Add("DarkOliveGreen", new Variable(new ColorObject(Color.DarkOliveGreen)));
-            this.Properties.Add("DarkOrange", new Variable(new ColorObject(Color.DarkOrange)));
-            this.Properties.Add("DarkOrchid", new Variable(new ColorObject(Color.DarkOrchid)));
-            this.Properties.Add("DarkRed", new Variable(new ColorObject(Color.DarkRed)));
-            this.Properties.Add("DarkSalmon", new Variable(new ColorObject(Color.DarkSalmon)));
-            this.Properties.Add("DarkSeaGreen", new Variable(new ColorObject(Color.DarkSeaGreen)));
-            this.Properties.Add("DarkSlateBlue", new Variable(new ColorObject(Color.DarkSlateBlue)));
-            this.Properties.Add("DarkSlateGray", new Variable(new ColorObject(Color.DarkSlateGray)));
-            this.Properties.Add("DarkTurquoise", new Variable(new ColorObject(Color.DarkTurquoise)));
-            this.Properties.Add("DarkViolet", new Variable(new ColorObject(Color.DarkViolet)));
-            this.Properties.Add("DeepPink", new Variable(new ColorObject(Color.DeepPink)));
-            this.Properties.Add("DeepSkyBlue", new Variable(new ColorObject(Color.DeepSkyBlue)));
-            this.Properties.Add("DimGray", new Variable(new ColorObject(Color.DimGray)));
-            this.Properties.Add("DodgerBlue", new Variable(new ColorObject(Color.DodgerBlue)));
-            this.Properties.Add("Firebrick", new Variable(new ColorObject(Color.Firebrick)));
-            this.Properties.Add("FloralWhite", new Variable(new ColorObject(Color.DarkSeaGreen)));
-            this.Properties.Add("ForestGreen", new Variable(new ColorObject(Color.ForestGreen)));
-            this.Properties.Add("Fuchsia", new Variable(new ColorObject(Color.Fuchsia)));
-            this.Properties.Add("Gainsboro", new Variable(new ColorObject(Color.Gainsboro)));
-            this.Properties.Add("GhostWhite", new Variable(new ColorObject(Color.GhostWhite)));
-            this.Properties.Add("Gold", new Variable(new ColorObject(Color.Gold)));
-            this.Properties.Add("Goldenrod", new Variable(new ColorObject(Color.DarkSeaGreen)));
-            this.Properties.Add("Gray", new Variable(new ColorObject(Color.Gray)));
-            this.Properties.Add("Green", new Variable(new ColorObject(Color.Green)));
-            this.Properties.Add("GreenYellow", new Variable(new ColorObject(Color.GreenYellow)));
-            this.Properties.Add("HotPink", new Variable(new ColorObject(Color.HotPink)));
-            this.Properties.Add("IndianRed", new Variable(new ColorObject(Color.IndianRed)));
-            this.Properties.Add("Indigo", new Variable(new ColorObject(Color.Indigo)));
-            this.Properties.Add("Ivory", new Variable(new ColorObject(Color.Ivory)));
-            this.Properties.Add("Khaki", new Variable(new ColorObject(Color.Khaki)));
-            this.Properties.Add("Lavender", new Variable(new ColorObject(Color.Lavender)));
-            this.Properties.Add("LavenderBlush", new Variable(new ColorObject(Color.LavenderBlush)));
-            this.Properties.Add("LawnGreen", new Variable(new ColorObject(Color.HotPink)));
-            this.Properties.Add("LemonChiffon", new Variable(new ColorObject(Color.LemonChiffon)));
-            this.Properties.Add("LightBlue", new Variable(new ColorObject(Color.LightBlue)));
-            this.Properties.Add("LightCoral", new Variable(new ColorObject(Color.LightCoral)));
-            this.Properties.Add("LightCyan", new Variable(new ColorObject(Color.LightCyan)));
-            this.Properties.Add("LightGoldenrodYellow", new Variable(new ColorObject(Color.LightGoldenrodYellow)));
-            this.Properties.Add("LightGray", new Variable(new ColorObject(Color.LightGray)));
-            this.Properties.Add("LightGreen", new Variable(new ColorObject(Color.LightGreen)));
-            this.Properties.Add("LightPink", new Variable(new ColorObject(Color.LightPink)));
-            this.Properties.Add("LightSalmon", new Variable(new ColorObject(Color.LightSalmon)));
-            this.Properties.Add("LightSeaGreen", new Variable(new ColorObject(Color.LightSeaGreen)));
-            this.Properties.Add("LightSkyBlue", new Variable(new ColorObject(Color.LightSkyBlue)));
-            this.Properties.Add("LightSlateGray", new Variable(new ColorObject(Color.LightSlateGray)));
-            this.Properties.Add("LightSteelBlue", new Variable(new ColorObject(Color.LightSteelBlue)));
-            this.Properties.Add("LightYellow", new Variable(new ColorObject(Color.LightYellow)));
-            this.Properties.Add("Lime", new Variable(new ColorObject(Color.Lime)));
-            this.Properties.Add("LimeGreen", new Variable(new ColorObject(Color.LimeGreen)));
-            this.Properties.Add("Linen", new Variable(new ColorObject(Color.Linen)));
-            this.Properties.Add("Magenta", new Variable(new ColorObject(Color.Magenta)));
-            this.Properties.Add("Maroon", new Variable(new ColorObject(Color.Maroon)));
-            this.Properties.Add("MediumAquamarine", new Variable(new ColorObject(Color.MediumAquamarine)));
-            this.Properties.Add("MediumBlue", new Variable(new ColorObject(Color.MediumBlue)));
-            this.Properties.Add("MediumOrchid", new Variable(new ColorObject(Color.MediumOrchid)));
-            this.Properties.Add("MediumSeaGreen", new Variable(new ColorObject(Color.MediumSeaGreen)));
-            this.Properties.Add("MediumSlateBlue", new Variable(new ColorObject(Color.MediumSlateBlue)));
-            this.Properties.Add("MediumSpringGreen", new Variable(new ColorObject(Color.MediumSpringGreen)));
-            this.Properties.Add("MediumTurquoise", new Variable(new ColorObject(Color.MediumTurquoise)));
-            this.Properties.Add("MediumVioletRed", new Variable(new ColorObject(Color.MediumVioletRed)));
-            this.Properties.Add("MidnightBlue", new Variable(new ColorObject(Color.MidnightBlue)));
-            this.Properties.Add("MintCream", new Variable(new ColorObject(Color.MintCream)));
-            this.Properties.Add("MistyRose", new Variable(new ColorObject(Color.MistyRose)));
-            this.Properties.Add("Moccasin", new Variable(new ColorObject(Color.Moccasin)));
-            this.Properties.Add("NavajoWhite", new Variable(new ColorObject(Color.NavajoWhite)));
-            this.Properties.Add("Navy", new Variable(new ColorObject(Color.Navy)));
-            this.Properties.Add("OldLace", new Variable(new ColorObject(Color.OldLace)));
-            this.Properties.Add("Olive", new Variable(new ColorObject(Color.Olive)));
-            this.Properties.Add("OliveDrab", new Variable(new ColorObject(Color.OliveDrab)));
-            this.Properties.Add("Orange", new Variable(new ColorObject(Color.Orange)));
-            this.Properties.Add("Orchid", new Variable(new ColorObject(Color.Orchid)));
-            this.Properties.Add("OrangeRed", new Variable(new ColorObject(Color.OrangeRed)));
-            this.Properties.Add("PaleGoldenrod", new Variable(new ColorObject(Color.PaleGoldenrod)));
-            this.Properties.Add("PaleGreen", new Variable(new ColorObject(Color.PaleGreen)));
-            this.Properties.Add("PaleTurquoise", new Variable(new ColorObject(Color.PaleTurquoise)));
-            this.Properties.Add("PaleVioletRed", new Variable(new ColorObject(Color.PaleVioletRed)));
-            this.Properties.Add("PapayaWhip", new Variable(new ColorObject(Color.PapayaWhip)));
-            this.Properties.Add("PeachPuff", new Variable(new ColorObject(Color.PeachPuff)));
-            this.Properties.Add("Peru", new Variable(new ColorObject(Color.Peru)));
-            this.Properties.Add("Pink", new Variable(new ColorObject(Color.Pink)));
-            this.Properties.Add("Plum", new Variable(new ColorObject(Color.Plum)));
-            this.Properties.Add("PowderBlue", new Variable(new ColorObject(Color.PowderBlue)));
-            this.Properties.Add("Purple", new Variable(new ColorObject(Color.Purple)));
-            this.Properties.Add("Red", new Variable(new ColorObject(Color.Red)));
-            this.Properties.Add("RosyBrown", new Variable(new ColorObject(Color.RosyBrown)));
-            this.Properties.Add("RoyalBlue", new Variable(new ColorObject(Color.RoyalBlue)));
-            this.Properties.Add("SaddleBrown", new Variable(new ColorObject(Color.SaddleBrown)));
-            this.Properties.Add("Salmon", new Variable(new ColorObject(Color.Salmon)));
-            this.Properties.Add("SandyBrown", new Variable(new ColorObject(Color.SandyBrown)));
-            this.Properties.Add("SeaGreen", new Variable(new ColorObject(Color.SeaGreen)));
-            this.Properties.Add("SeaShell", new Variable(new ColorObject(Color.SeaShell)));
-            this.Properties.Add("Sienna", new Variable(new ColorObject(Color.Sienna)));
-            this.Properties.Add("Silver", new Variable(new ColorObject(Color.Silver)));
-            this.Properties.Add("SkyBlue", new Variable(new ColorObject(Color.SkyBlue)));
-            this.Properties.Add("SlateBlue", new Variable(new ColorObject(Color.SlateBlue)));
-            this.Properties.Add("SlateGray", new Variable(new ColorObject(Color.SlateGray)));
-            this.Properties.Add("Snow", new Variable(new ColorObject(Color.Snow)));
-            this.Properties.Add("SpringGreen", new Variable(new ColorObject(Color.SpringGreen)));
-            this.Properties.Add("SteelBlue", new Variable(new ColorObject(Color.SteelBlue)));
-            this.Properties.Add("Tan", new Variable(new ColorObject(Color.Tan)));
-            this.Properties.Add("Teal", new Variable(new ColorObject(Color.Teal)));
-            this.Properties.Add("Thistle", new Variable(new ColorObject(Color.Thistle)));
-            this.Properties.Add("Tomato", new Variable(new ColorObject(Color.Tomato)));
-            this.Properties.Add("Transparent", new Variable(new ColorObject(Color.Transparent)));
-            this.Properties.Add("Turquoise", new Variable(new ColorObject(Color.Turquoise)));
-            this.Properties.Add("Violet", new Variable(new ColorObject(Color.Violet)));
-            this.Properties.Add("Wheat", new Variable(new ColorObject(Color.Wheat)));
-            this.Properties.Add("White", new Variable(new ColorObject(Color.White)));
-            this.Properties.Add("WhiteSmoke", new Variable(new ColorObject(Color.WhiteSmoke)));
-            this.Properties.Add("Yellow", new Variable(new ColorObject(Color.Yellow)));
-            this.Properties.Add("YellowGreen", new Variable(new ColorObject(Color.YellowGreen)));
+            this.AddProperty(new ColorProperty(Color.AliceBlue));
+            this.AddProperty(new ColorProperty(Color.AntiqueWhite));
+            this.AddProperty(new ColorProperty(Color.Aqua));
+            this.AddProperty(new ColorProperty(Color.Aquamarine));
+            this.AddProperty(new ColorProperty(Color.Azure));
+            this.AddProperty(new ColorProperty(Color.Beige));
+            this.AddProperty(new ColorProperty(Color.Bisque));
+            this.AddProperty(new ColorProperty(Color.Black));
+            this.AddProperty(new ColorProperty(Color.BlanchedAlmond));
+            this.AddProperty(new ColorProperty(Color.Blue));
+            this.AddProperty(new ColorProperty(Color.BlueViolet));
+            this.AddProperty(new ColorProperty(Color.Brown));
+            this.AddProperty(new ColorProperty(Color.BurlyWood));
+            this.AddProperty(new ColorProperty(Color.CadetBlue));
+            this.AddProperty(new ColorProperty(Color.Chartreuse));
+            this.AddProperty(new ColorProperty(Color.Chocolate));
+            this.AddProperty(new ColorProperty(Color.Coral));
+            this.AddProperty(new ColorProperty(Color.CornflowerBlue));
+            this.AddProperty(new ColorProperty(Color.Cornsilk));
+            this.AddProperty(new ColorProperty(Color.Crimson));
+            this.AddProperty(new ColorProperty(Color.Cyan));
+            this.AddProperty(new ColorProperty(Color.DarkBlue));
+            this.AddProperty(new ColorProperty(Color.DarkCyan));
+            this.AddProperty(new ColorProperty(Color.DarkGoldenrod));
+            this.AddProperty(new ColorProperty(Color.DarkGray));
+            this.AddProperty(new ColorProperty(Color.DarkGreen));
+            this.AddProperty(new ColorProperty(Color.DarkKhaki));
+            this.AddProperty(new ColorProperty(Color.DarkMagenta));
+            this.AddProperty(new ColorProperty(Color.DarkOliveGreen));
+            this.AddProperty(new ColorProperty(Color.DarkOrange));
+            this.AddProperty(new ColorProperty(Color.DarkOrchid));
+            this.AddProperty(new ColorProperty(Color.DarkRed));
+            this.AddProperty(new ColorProperty(Color.DarkSalmon));
+            this.AddProperty(new ColorProperty(Color.DarkSeaGreen));
+            this.AddProperty(new ColorProperty(Color.DarkSlateBlue));
+            this.AddProperty(new ColorProperty(Color.DarkSlateGray));
+            this.AddProperty(new ColorProperty(Color.DarkTurquoise));
+            this.AddProperty(new ColorProperty(Color.DarkViolet));
+            this.AddProperty(new ColorProperty(Color.DeepPink));
+            this.AddProperty(new ColorProperty(Color.DeepSkyBlue));
+            this.AddProperty(new ColorProperty(Color.DimGray));
+            this.AddProperty(new ColorProperty(Color.DodgerBlue));
+            this.AddProperty(new ColorProperty(Color.Firebrick));
+            this.AddProperty(new ColorProperty(Color.DarkSeaGreen));
+            this.AddProperty(new ColorProperty(Color.ForestGreen));
+            this.AddProperty(new ColorProperty(Color.Fuchsia));
+            this.AddProperty(new ColorProperty(Color.Gainsboro));
+            this.AddProperty(new ColorProperty(Color.GhostWhite));
+            this.AddProperty(new ColorProperty(Color.Gold));
+            this.AddProperty(new ColorProperty(Color.DarkSeaGreen));
+            this.AddProperty(new ColorProperty(Color.Gray));
+            this.AddProperty(new ColorProperty(Color.Green));
+            this.AddProperty(new ColorProperty(Color.GreenYellow));
+            this.AddProperty(new ColorProperty(Color.HotPink));
+            this.AddProperty(new ColorProperty(Color.IndianRed));
+            this.AddProperty(new ColorProperty(Color.Indigo));
+            this.AddProperty(new ColorProperty(Color.Ivory));
+            this.AddProperty(new ColorProperty(Color.Khaki));
+            this.AddProperty(new ColorProperty(Color.Lavender));
+            this.AddProperty(new ColorProperty(Color.LavenderBlush));
+            this.AddProperty(new ColorProperty(Color.HotPink));
+            this.AddProperty(new ColorProperty(Color.LemonChiffon));
+            this.AddProperty(new ColorProperty(Color.LightBlue));
+            this.AddProperty(new ColorProperty(Color.LightCoral));
+            this.AddProperty(new ColorProperty(Color.LightCyan));
+            this.AddProperty(new ColorProperty(Color.LightGoldenrodYellow));
+            this.AddProperty(new ColorProperty(Color.LightGray));
+            this.AddProperty(new ColorProperty(Color.LightGreen));
+            this.AddProperty(new ColorProperty(Color.LightPink));
+            this.AddProperty(new ColorProperty(Color.LightSalmon));
+            this.AddProperty(new ColorProperty(Color.LightSeaGreen));
+            this.AddProperty(new ColorProperty(Color.LightSkyBlue));
+            this.AddProperty(new ColorProperty(Color.LightSlateGray));
+            this.AddProperty(new ColorProperty(Color.LightSteelBlue));
+            this.AddProperty(new ColorProperty(Color.LightYellow));
+            this.AddProperty(new ColorProperty(Color.Lime));
+            this.AddProperty(new ColorProperty(Color.LimeGreen));
+            this.AddProperty(new ColorProperty(Color.Linen));
+            this.AddProperty(new ColorProperty(Color.Magenta));
+            this.AddProperty(new ColorProperty(Color.Maroon));
+            this.AddProperty(new ColorProperty(Color.MediumAquamarine));
+            this.AddProperty(new ColorProperty(Color.MediumBlue));
+            this.AddProperty(new ColorProperty(Color.MediumOrchid));
+            this.AddProperty(new ColorProperty(Color.MediumSeaGreen));
+            this.AddProperty(new ColorProperty(Color.MediumSlateBlue));
+            this.AddProperty(new ColorProperty(Color.MediumSpringGreen));
+            this.AddProperty(new ColorProperty(Color.MediumTurquoise));
+            this.AddProperty(new ColorProperty(Color.MediumVioletRed));
+            this.AddProperty(new ColorProperty(Color.MidnightBlue));
+            this.AddProperty(new ColorProperty(Color.MintCream));
+            this.AddProperty(new ColorProperty(Color.MistyRose));
+            this.AddProperty(new ColorProperty(Color.Moccasin));
+            this.AddProperty(new ColorProperty(Color.NavajoWhite));
+            this.AddProperty(new ColorProperty(Color.Navy));
+            this.AddProperty(new ColorProperty(Color.OldLace));
+            this.AddProperty(new ColorProperty(Color.Olive));
+            this.AddProperty(new ColorProperty(Color.OliveDrab));
+            this.AddProperty(new ColorProperty(Color.Orange));
+            this.AddProperty(new ColorProperty(Color.Orchid));
+            this.AddProperty(new ColorProperty(Color.OrangeRed));
+            this.AddProperty(new ColorProperty(Color.PaleGoldenrod));
+            this.AddProperty(new ColorProperty(Color.PaleGreen));
+            this.AddProperty(new ColorProperty(Color.PaleTurquoise));
+            this.AddProperty(new ColorProperty(Color.PaleVioletRed));
+            this.AddProperty(new ColorProperty(Color.PapayaWhip));
+            this.AddProperty(new ColorProperty(Color.PeachPuff));
+            this.AddProperty(new ColorProperty(Color.Peru));
+            this.AddProperty(new ColorProperty(Color.Pink));
+            this.AddProperty(new ColorProperty(Color.Plum));
+            this.AddProperty(new ColorProperty(Color.PowderBlue));
+            this.AddProperty(new ColorProperty(Color.Purple));
+            this.AddProperty(new ColorProperty(Color.Red));
+            this.AddProperty(new ColorProperty(Color.RosyBrown));
+            this.AddProperty(new ColorProperty(Color.RoyalBlue));
+            this.AddProperty(new ColorProperty(Color.SaddleBrown));
+            this.AddProperty(new ColorProperty(Color.Salmon));
+            this.AddProperty(new ColorProperty(Color.SandyBrown));
+            this.AddProperty(new ColorProperty(Color.SeaGreen));
+            this.AddProperty(new ColorProperty(Color.SeaShell));
+            this.AddProperty(new ColorProperty(Color.Sienna));
+            this.AddProperty(new ColorProperty(Color.Silver));
+            this.AddProperty(new ColorProperty(Color.SkyBlue));
+            this.AddProperty(new ColorProperty(Color.SlateBlue));
+            this.AddProperty(new ColorProperty(Color.SlateGray));
+            this.AddProperty(new ColorProperty(Color.Snow));
+            this.AddProperty(new ColorProperty(Color.SpringGreen));
+            this.AddProperty(new ColorProperty(Color.SteelBlue));
+            this.AddProperty(new ColorProperty(Color.Tan));
+            this.AddProperty(new ColorProperty(Color.Teal));
+            this.AddProperty(new ColorProperty(Color.Thistle));
+            this.AddProperty(new ColorProperty(Color.Tomato));
+            this.AddProperty(new ColorProperty(Color.Transparent));
+            this.AddProperty(new ColorProperty(Color.Turquoise));
+            this.AddProperty(new ColorProperty(Color.Violet));
+            this.AddProperty(new ColorProperty(Color.Wheat));
+            this.AddProperty(new ColorProperty(Color.White));
+            this.AddProperty(new ColorProperty(Color.WhiteSmoke));
+            this.AddProperty(new ColorProperty(Color.Yellow));
+            this.AddProperty(new ColorProperty(Color.YellowGreen));
 
-            this.Properties.Add("Random", new Variable(""));
+            this.AddProperty(new RandomColorProperty());
 
 
         }
-        Random r = new Random();
-        public override Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
+        private class ColorProperty : PropertyBase
         {
-            if (sPropertyName.ToLower() != "random")
+            public ColorProperty(Color color)
             {
-                return base.GetProperty(sPropertyName, args, script);
-
-            }
-            else
-            {
-                return Task.FromResult(new Variable(new ColorObject(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255))));
+                this.Name=color.ToKnownColor().ToString();
+                this.Value = new Variable(new ColorObject(color));
+                this.CanSet = false;
             }
         }
+        private class RandomColorProperty : PropertyBase
+        {
+            Random r = new Random();
+            public RandomColorProperty()
+            {
+                this.Name = "Random";
+                this.CanSet = false;
+                this.HandleEvents = true;
+                this.Getting += RandomColorProperty_Getting;
+            }
+
+            private void RandomColorProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Color.FromArgb(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255)));
+            }
+        }
+       
+      
 
 
     }

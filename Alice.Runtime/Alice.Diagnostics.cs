@@ -72,44 +72,117 @@ namespace AliceScript.NameSpaces
         public StopWatchObject()
         {
             this.Name = "stopwatch";
-            this.Properties.Add("Elapsed".ToLower(), new Variable(stopwatch.ElapsedMilliseconds));
-            this.Properties.Add("Ticks".ToLower(), new Variable(stopwatch.ElapsedTicks));
-            this.Properties.Add("IsRunning".ToLower(), new Variable(stopwatch.IsRunning));
-            this.Properties.Add("Frequency".ToLower(), new Variable(Stopwatch.Frequency));
-            this.Properties.Add("IsHighResolution".ToLower(), new Variable(Stopwatch.IsHighResolution));
-            this.Functions.Add("Start".ToLower(), new STWOFunc(this, 0));
-            this.Functions.Add("Stop".ToLower(), new STWOFunc(this, 1));
-            this.Functions.Add("Reset".ToLower(), new STWOFunc(this, 2));
-            this.Functions.Add("Restart".ToLower(), new STWOFunc(this, 3));
-            this.PropertyGetting += StopWatchObject_PropertyGetting;
-
+            this.AddFunction(new STWOFunc(this,0),"start");
+            this.AddFunction(new STWOFunc(this, 1), "stop");
+            this.AddFunction(new STWOFunc(this, 2), "reset");
+            this.AddFunction(new STWOFunc(this, 3), "restart");
+            this.AddProperty(new ElapsedProperty(stopwatch));
+            this.AddProperty(new ElapsedMillisecondsProperty(stopwatch));
+            this.AddProperty(new ElapsedTicksProperty(stopwatch));
+            this.AddProperty(new FrequencyProperty(stopwatch));
+            this.AddProperty(new IsHighResolutionProperty(stopwatch));
+            this.AddProperty(new IsRunningProperty(stopwatch));
         }
 
-        private void StopWatchObject_PropertyGetting(object sender, PropertyGettingEventArgs e)
-        {
-            if ("Elapsed".ToLower() == e.PropertyName.ToLower())
-            {
-                e.Variable = new Variable(stopwatch.ElapsedMilliseconds);
-            }
-            else if ("Ticks".ToLower() == e.PropertyName.ToLower())
-            {
-                e.Variable = new Variable(stopwatch.ElapsedTicks);
-            }
-            else if ("IsRunning".ToLower() == e.PropertyName.ToLower())
-            {
-                e.Variable = new Variable(stopwatch.IsRunning);
-            }
-            else if ("Frequency".ToLower() == e.PropertyName.ToLower())
-            {
-                e.Variable = new Variable(Stopwatch.Frequency);
-            }
-            else if ("IsHighResolution".ToLower() == e.PropertyName.ToLower())
-            {
-                e.Variable = new Variable(Stopwatch.IsHighResolution);
-            }
-        }
 
         private Stopwatch stopwatch = new Stopwatch();
+
+        class ElapsedProperty : PropertyBase
+        {
+            public ElapsedProperty(Stopwatch stopwatch)
+            {
+                this.Name = "elapsed";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += ElapsedProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void ElapsedProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.Elapsed);
+            }
+        }
+        class ElapsedMillisecondsProperty : PropertyBase
+        {
+            public ElapsedMillisecondsProperty(Stopwatch stopwatch)
+            {
+                this.Name = "elapsedmilliseconds";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += ElapsedProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void ElapsedProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.ElapsedMilliseconds);
+            }
+        }
+        class ElapsedTicksProperty : PropertyBase
+        {
+            public ElapsedTicksProperty(Stopwatch stopwatch)
+            {
+                this.Name = "elapsedticks";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += ElapsedProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void ElapsedProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.ElapsedTicks);
+            }
+        }
+        class IsRunningProperty : PropertyBase
+        {
+            public IsRunningProperty(Stopwatch stopwatch)
+            {
+                this.Name = "isrunning";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += IsRunningProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void IsRunningProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.IsRunning);
+            }
+        }
+        class IsHighResolutionProperty : PropertyBase
+        {
+            public IsHighResolutionProperty(Stopwatch stopwatch)
+            {
+                this.Name = "ishighresolution";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += IsRunningProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void IsRunningProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.IsHighResolution);
+            }
+        }
+        class FrequencyProperty : PropertyBase
+        {
+            public FrequencyProperty(Stopwatch stopwatch)
+            {
+                this.Name = "frequency";
+                this.CanSet = false;
+                this.Stopwatch = stopwatch;
+                this.HandleEvents = true;
+                this.Getting += IsRunningProperty_Getting;
+            }
+            private Stopwatch Stopwatch;
+            private void IsRunningProperty_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                e.Value = new Variable(Stopwatch.Frequency);
+            }
+        }
 
         class STWOFunc : FunctionBase
         {

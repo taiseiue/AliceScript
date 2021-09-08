@@ -8,15 +8,18 @@ namespace AliceScript
 {
     public class ObjectBase : ScriptObject
     {
+        /// <summary>
+        /// このオブジェクトの名前
+        /// </summary>
+        public string Name { get; set; }
 
-
-        public Dictionary<string, Variable> Properties = new Dictionary<string, Variable>();
+        public Dictionary<string, PropertyBase> Properties = new Dictionary<string, PropertyBase>();
         public Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
         public Dictionary<string, EventObject> Events = new Dictionary<string, EventObject>();
 
-        public ObjectBase(string name = "", string color = "")
+        public ObjectBase(string name = "")
         {
-           
+            Name = name;
         }
 
 
@@ -27,11 +30,7 @@ namespace AliceScript
             v.AddRange(new List<string>(Events.Keys));
             return v;
         }
-
-        public event PropertyGettingEventHandler PropertyGetting;
-        public event PropertySettingEventHandler PropertySetting;
-
-        public static bool GETTING = false;
+        internal static bool GETTING = false;
         public static List<Variable> LaskVariable;
 
         public virtual void Operator(Variable left, Variable right, string action)
@@ -40,28 +39,13 @@ namespace AliceScript
         }
         public virtual Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {
-
-
             sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
             if (Properties.ContainsKey(sPropertyName))
             {
-
-                Variable v = null;
-                PropertyGettingEventArgs ev = new PropertyGettingEventArgs();
-                ev.Variable = Properties[sPropertyName];
-                ev.PropertyName = sPropertyName;
-                PropertyGetting?.Invoke(this, ev);
-                v = ev.Variable;
-                return Task.FromResult(v);
-
-            }else if (sPropertyName.ToLower() == "name")
-            {
-                //名前属性は予約
-                return Task.FromResult(new Variable(this.Name));
+               return Task.FromResult(Properties[sPropertyName].Value);
             }
             else
             {
-
                 if (Functions.ContainsKey(sPropertyName))
                 {
 
@@ -82,6 +66,7 @@ namespace AliceScript
                 }
                 else
                 {
+                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはメソッドまたはイベントは存在しません。",script);
                     return Task.FromResult(Variable.EmptyInstance);
                 }
             }
@@ -89,45 +74,48 @@ namespace AliceScript
 
         public virtual Task<Variable> SetProperty(string sPropertyName, Variable argValue)
         {
-
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
-            if (Properties.ContainsKey(sPropertyName))
-            {
-
-                PropertySettingEventArgs ev = new PropertySettingEventArgs();
-                ev.Cancel = false;
-                ev.PropertyName = sPropertyName;
-                ev.Variable = argValue;
-                PropertySetting?.Invoke(this, ev);
-                if (!ev.Cancel)
+           
+                sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
+                if (Properties.ContainsKey(sPropertyName))
                 {
-                    Properties[sPropertyName] = ev.Variable;
+                    Properties[sPropertyName].Value = argValue;
                 }
-
-            }
-            else if (Events.ContainsKey(sPropertyName))
-            {
-                if (argValue.Object is EventObject e)
+                else if (Events.ContainsKey(sPropertyName))
                 {
-                    Events[sPropertyName] = e;
+                    if (argValue.Object is EventObject e)
+                    {
+                        Events[sPropertyName] = e;
+                    }
                 }
-            }
-
+                else
+                {
+                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはイベントは存在しません。");
+                }
+            
             return Task.FromResult(Variable.EmptyInstance);
         }
-        public string ClassName = "ObjectBase";
-        public string Name
+      public void AddProperty(PropertyBase property)
         {
-            get
-            {
-                return ClassName;
-            }
-            set
-            {
-                ClassName = value;
-            }
+            this.Properties.Add(property.Name,property);
         }
-
+        public void RemoveProperty(PropertyBase property)
+        {
+            this.Properties.Remove(property.Name);
+        }
+        public void AddFunction(FunctionBase function,string name="")
+        {
+            if (string.IsNullOrEmpty(name)) { name = function.Name; }
+            this.Functions.Add(name,function);
+        }
+        public void RemoveFunction(string name)
+        {
+            this.Functions.Remove(name);
+        }
+        public void RemoveFunction(FunctionBase function)
+        {
+            this.Functions.Remove(function.Name);
+        }
+        
     }
 
 
@@ -137,7 +125,7 @@ namespace AliceScript
         {
             if (obj != null)
             {
-                ParserFunction.RegisterFunction(obj.ClassName, new GetVarFunction(new Variable(obj)), true);
+                ParserFunction.RegisterFunction(obj.Name, new GetVarFunction(new Variable(obj)), true);
             }
         }
     }
@@ -145,32 +133,99 @@ namespace AliceScript
     public class PropertySettingEventArgs : EventArgs
     {
         /// <summary>
-        /// 変更されるプロパティの名前
+        /// プロパティに代入されようとしている変数の内容
         /// </summary>
-        public string PropertyName { get; set; }
+        public Variable Value { get; set; }
 
-        /// <summary>
-        /// 変更される内容
-        /// </summary>
-        public Variable Variable { get; set; }
-
-        /// <summary>
-        /// キャンセルするには、このプロパティをTrueにします
-        /// </summary>
-        public bool Cancel { get; set; }
     }
     public class PropertyGettingEventArgs : EventArgs
     {
         /// <summary>
-        /// 読み取られるプロパティの名前
+        /// プロパティの変数の内容
         /// </summary>
-        public string PropertyName { get; set; }
-        /// <summary>
-        /// 送られるプロパティの内容
-        /// </summary>
-        public Variable Variable { get; set; }
+        public Variable Value { get; set; }
     }
     public delegate void PropertySettingEventHandler(object sender, PropertySettingEventArgs e);
 
     public delegate void PropertyGettingEventHandler(object sender, PropertyGettingEventArgs e);
+
+    public class PropertyBase
+    {
+        /// <summary>
+        /// このプロパティの名前
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// TrueにするとSettingイベントおよびGettingイベントが発生します
+        /// </summary>
+
+        public bool HandleEvents { get; set; }
+        /// <summary>
+        /// プロパティに存在する変数。このプロパティはHandleEventsがTrueの場合には使用されません
+        /// </summary>
+
+        public Variable Value { get; set; }
+
+        /// <summary>
+        /// プロパティに変数が代入されるときに発生するイベント。このイベントはHandleEventsがTrueの場合のみ発生します
+        /// </summary>
+        public event PropertySettingEventHandler Setting;
+        /// <summary>
+        /// プロパティから変数が読みだされるときに発生するイベント。このイベントはHandleEventsがTrueの場合のみ発生します
+        /// </summary>
+
+        public event PropertyGettingEventHandler Getting;
+        /// <summary>
+        /// SetPropertyが使用可能かを表す値。デフォルトではTrueです。
+        /// </summary>
+        public bool CanSet
+        {
+            get
+            {
+                return m_CanSet;
+            }
+            set
+            {
+                m_CanSet = value;
+            }
+        }
+        private bool m_CanSet = true;
+        public Variable Property
+        {
+            get
+            {
+                if (HandleEvents)
+                {
+                    PropertyGettingEventArgs e = new PropertyGettingEventArgs();
+                    e.Value = Value;
+                    Getting?.Invoke(this, e);
+                    return e.Value;
+                }
+                else
+                {
+                    return Value;
+                }
+            }
+            set
+            {
+                if (CanSet)
+                {
+                    if (HandleEvents)
+                    {
+                        PropertySettingEventArgs e = new PropertySettingEventArgs();
+                        e.Value = value;
+                        Setting?.Invoke(this, e);
+                    }
+                    else
+                    {
+                        Value = value;
+                    }
+                }else
+                {
+                    ThrowErrorManerger.OnThrowError("このプロパティには変数を代入することはできません");
+                }
+            }
+        }
+
+    }
 }
