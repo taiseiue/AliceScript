@@ -1555,7 +1555,14 @@ namespace AliceScript
         {
             if (Type == VarType.OBJECT && Object != null)
             {
-                return Object.GetType().ToString();
+                if (Object is ObjectBase)
+                {
+                    return ((ObjectBase)Object).Name;
+                }
+                else
+                {
+                    return Object.GetType().ToString();
+                }
             }
             return Constants.TypeToString(Type);
         }

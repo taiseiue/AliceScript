@@ -42,7 +42,7 @@ namespace AliceScript
             sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
             if (Properties.ContainsKey(sPropertyName))
             {
-               return Task.FromResult(Properties[sPropertyName].Value);
+               return Task.FromResult(Properties[sPropertyName].Property);
             }
             else
             {
@@ -78,7 +78,7 @@ namespace AliceScript
                 sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
                 if (Properties.ContainsKey(sPropertyName))
                 {
-                    Properties[sPropertyName].Value = argValue;
+                    Properties[sPropertyName].Property = argValue;
                 }
                 else if (Events.ContainsKey(sPropertyName))
                 {
