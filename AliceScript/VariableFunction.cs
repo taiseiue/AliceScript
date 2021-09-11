@@ -23,6 +23,21 @@ namespace AliceScript
             Variable.AddFunc(new str_IsMatchFunc());
             Variable.AddFunc(new str_MatchesFunc());
             Variable.AddFunc(new str_ReplaceMatchesFunc());
+            Variable.AddFunc(new str_CompareToFunc());
+            Variable.AddFunc(new str_ContainsFunc());
+            Variable.AddFunc(new str_IndexOfFunc());
+            Variable.AddFunc(new str_InsertFunc());
+            Variable.AddFunc(new str_IsNormalizedFunc());
+            Variable.AddFunc(new str_LastIndexOfFunc());
+            Variable.AddFunc(new str_RemoveFunc());
+            Variable.AddFunc(new str_ReplaceFunc());
+            Variable.AddFunc(new str_SplitFunc());
+            Variable.AddFunc(new str_SubStringFunc());
+            Variable.AddFunc(new str_ToLowerUpperFunc());
+            Variable.AddFunc(new str_ToLowerUpperFunc(true));
+            Variable.AddFunc(new str_ToLowerUpperInvariantFunc());
+            Variable.AddFunc(new str_ToLowerUpperInvariantFunc(true));
+            Variable.AddFunc(new string_TrimFunc());
             //String関数(終わり)
             //NUMBER(Double)関数
             Variable.AddFunc(new num_EpsilonFunc());
@@ -226,6 +241,265 @@ namespace AliceScript
             }
         }
     }
+    class str_CompareToFunc : FunctionBase
+    {
+        public str_CompareToFunc()
+        {
+            this.Name = "CompareTo";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IndexOfFunc_Run;
+        }
+
+        private void Str_IndexOfFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().CompareTo(e.Args[0].AsString()));
+        }
+    }
+    class str_ContainsFunc : FunctionBase
+    {
+        public str_ContainsFunc()
+        {
+            this.Name = "Contains";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_ContainsFunc_Run;
+        }
+
+        private void Str_ContainsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Contains(e.Args[0].AsString()));
+        }
+    }
+  
+    class str_IndexOfFunc : FunctionBase
+    {
+        public str_IndexOfFunc()
+        {
+            this.Name = "IndexOf";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IndexOfFunc_Run;
+        }
+
+        private void Str_IndexOfFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.Args.Count)
+            {
+                default:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString()));
+                        break;
+                    }
+                case 2:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt()));
+                        break;
+                    }
+                case 3:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(), e.Args[1].AsInt(),e.Args[2].AsInt()));
+                        break;
+                    }
+            }
+            
+        }
+    }
+    class str_InsertFunc : FunctionBase
+    {
+        public str_InsertFunc()
+        {
+            this.Name = "Insert";
+            this.MinimumArgCounts = 2;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_InsertFunc_Run;
+        }
+
+        private void Str_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Insert(e.Args[0].AsInt(),e.Args[1].AsString()));
+        }
+    }
+    class str_IsNormalizedFunc : FunctionBase
+    {
+        public str_IsNormalizedFunc()
+        {
+            this.Name = "IsNormalized";
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IsNormalizedFunc_Run;
+        }
+
+        private void Str_IsNormalizedFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().IsNormalized());
+        }
+    }
+    class str_LastIndexOfFunc : FunctionBase
+    {
+        public str_LastIndexOfFunc()
+        {
+            this.Name = "LastIndexOf";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IndexOfFunc_Run;
+        }
+
+        private void Str_IndexOfFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.Args.Count)
+            {
+                default:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().LastIndexOf(e.Args[0].AsString()));
+                        break;
+                    }
+                case 2:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().LastIndexOf(e.Args[0].AsString(), e.Args[1].AsInt()));
+                        break;
+                    }
+                case 3:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().LastIndexOf(e.Args[0].AsString(), e.Args[1].AsInt(), e.Args[2].AsInt()));
+                        break;
+                    }
+            }
+
+        }
+    }
+    class str_NormalizeFunc : FunctionBase
+    {
+        public str_NormalizeFunc()
+        {
+            this.Name = "Normalize";
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_NormalizeFunc_Run1;
+        }
+
+        private void Str_NormalizeFunc_Run1(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Normalize());
+        }
+    }
+    class str_RemoveFunc : FunctionBase
+    {
+        public str_RemoveFunc()
+        {
+            this.Name = "Remove";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_RemoveFunc_Run;
+        }
+
+        private void Str_RemoveFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Remove(e.Args[0].AsInt()));
+        }
+    }
+    class str_ReplaceFunc : FunctionBase
+    {
+        public str_ReplaceFunc()
+        {
+            this.Name = "Replace";
+            this.MinimumArgCounts = 2;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_ReplaceFunc_Run;
+        }
+
+        private void Str_ReplaceFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(),e.Args[1].AsString()));
+        }
+    }
+    class str_SplitFunc : FunctionBase
+    {
+        public str_SplitFunc()
+        {
+            this.Name = "Split";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_SplitFunc_Run;
+        }
+
+        private void Str_SplitFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString().Split(new string[] {e.Args[0].AsString() },StringSplitOptions.None));
+        }
+    }
+    class str_SubStringFunc : FunctionBase
+    {
+        public str_SubStringFunc()
+        {
+            this.Name = "SubString";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_SubStringFunc_Run;
+        }
+
+        private void Str_SubStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.Args.Count)
+            {
+                default:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().Substring(e.Args[0].AsInt()));
+                        break;
+                    }
+                case 2:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().Substring(e.Args[0].AsInt(),e.Args[1].AsInt()));
+                        break;
+                    }
+            }
+        }
+    }
+    class str_ToLowerUpperFunc : FunctionBase
+    {
+        public str_ToLowerUpperFunc(bool upper = false)
+        {
+            Upper = upper;
+            if (upper) { this.Name = "Upper"; } else { this.Name = "Lower"; }
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_ToLowerUpperFunc_Run;
+        }
+
+        private void Str_ToLowerUpperFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (Upper)
+            {
+                e.Return = new Variable(e.CurentVariable.AsString().ToUpper());
+            }else
+            {
+                e.Return = new Variable(e.CurentVariable.AsString().ToLower());
+            }
+        }
+
+        private bool Upper = false;
+    }
+    class str_ToLowerUpperInvariantFunc : FunctionBase
+    {
+        public str_ToLowerUpperInvariantFunc(bool upper = false)
+        {
+            Upper = upper;
+            if (upper) { this.Name = "UpperInvariant"; } else { this.Name = "LowerInvariant"; }
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_ToLowerUpperFunc_Run;
+        }
+
+        private void Str_ToLowerUpperFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (Upper)
+            {
+                e.Return = new Variable(e.CurentVariable.AsString().ToUpperInvariant());
+            }
+            else
+            {
+                e.Return = new Variable(e.CurentVariable.AsString().ToLowerInvariant());
+            }
+        }
+
+        private bool Upper = false;
+    }
     class str_IsMatchFunc : FunctionBase
     {
         public str_IsMatchFunc()
@@ -353,20 +627,7 @@ namespace AliceScript
 
         bool Right = false;
     }
-    class str_NormalizeFunc : FunctionBase
-    {
-        public str_NormalizeFunc()
-        {
-            this.FunctionName = "Normalize";
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_NormalizeFunc_Run;
-        }
-
-        private void Str_NormalizeFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(e.CurentVariable.AsString().Normalize());
-        }
-    }
+   
     class num_MValueFunc : FunctionBase
     {
         public num_MValueFunc(bool min)

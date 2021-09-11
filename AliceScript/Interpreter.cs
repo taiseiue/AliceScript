@@ -116,6 +116,8 @@ namespace AliceScript
             FunctionBaseManerger.Add(new GotoGosubFunction(true));
             FunctionBaseManerger.Add(new GotoGosubFunction(false));
             FunctionBaseManerger.Add(new ContinueStatement());
+            FunctionBaseManerger.Add(new IncludeFile());
+            FunctionBaseManerger.Add(new EvalFunction());
 
 
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
@@ -130,7 +132,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
-            ParserFunction.RegisterFunction(Constants.INCLUDE, new IncludeFile());
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.TRY, new TryBlock());
             ParserFunction.RegisterFunction(Constants.THROW, new ThrowFunction());
@@ -151,7 +152,6 @@ namespace AliceScript
             FunctionBaseManerger.Add(new DelegateCreator(),"_");
             FunctionBaseManerger.Add(new PrintFunction());
             FunctionBaseManerger.Add(new PrintFunction(false));
-            FunctionBaseManerger.Add(new EvalFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -172,7 +172,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.NAME_EXISTS, new NameExistsFunction());
             ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction()); 
             ParserFunction.RegisterFunction(Constants.PSTIME, new ProcessorTimeFunction());
-            ParserFunction.RegisterFunction(Constants.REGEX, new RegexFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
             ParserFunction.RegisterFunction(Constants.RESET_VARS, new ResetVariablesFunction());
@@ -181,18 +180,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.SIGNAL, new SignalWaitFunction(true));
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
             ParserFunction.RegisterFunction(Constants.SIZE, new SizeFunction());
-            ParserFunction.RegisterFunction(Constants.STR_BETWEEN, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN));
-            ParserFunction.RegisterFunction(Constants.STR_BETWEEN_ANY, new StringManipulationFunction(StringManipulationFunction.Mode.BEETWEEN_ANY));
-            ParserFunction.RegisterFunction(Constants.STR_CONTAINS, new StringManipulationFunction(StringManipulationFunction.Mode.CONTAINS));
-            ParserFunction.RegisterFunction(Constants.STR_LOWER, new StringManipulationFunction(StringManipulationFunction.Mode.LOWER));
-            ParserFunction.RegisterFunction(Constants.STR_ENDS_WITH, new StringManipulationFunction(StringManipulationFunction.Mode.ENDS_WITH));
-            ParserFunction.RegisterFunction(Constants.STR_EQUALS, new StringManipulationFunction(StringManipulationFunction.Mode.EQUALS));
-            ParserFunction.RegisterFunction(Constants.STR_INDEX_OF, new StringManipulationFunction(StringManipulationFunction.Mode.INDEX_OF));
-            ParserFunction.RegisterFunction(Constants.STR_REPLACE, new StringManipulationFunction(StringManipulationFunction.Mode.REPLACE));
-            ParserFunction.RegisterFunction(Constants.STR_STARTS_WITH, new StringManipulationFunction(StringManipulationFunction.Mode.STARTS_WITH));
-            ParserFunction.RegisterFunction(Constants.STR_SUBSTR, new StringManipulationFunction(StringManipulationFunction.Mode.SUBSTRING));
-            ParserFunction.RegisterFunction(Constants.STR_TRIM, new StringManipulationFunction(StringManipulationFunction.Mode.TRIM));
-            ParserFunction.RegisterFunction(Constants.STR_UPPER, new StringManipulationFunction(StringManipulationFunction.Mode.UPPER));
             ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
             ParserFunction.RegisterFunction(Constants.TOKENIZE_LINES, new TokenizeLinesFunction());
             ParserFunction.RegisterFunction(Constants.TOKEN_COUNTER, new TokenCounterFunction());
