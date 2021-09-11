@@ -37,7 +37,6 @@ namespace AliceScript
             Variable.AddFunc(new str_ToLowerUpperFunc(true));
             Variable.AddFunc(new str_ToLowerUpperInvariantFunc());
             Variable.AddFunc(new str_ToLowerUpperInvariantFunc(true));
-            Variable.AddFunc(new string_TrimFunc());
             //String関数(終わり)
             //NUMBER(Double)関数
             Variable.AddFunc(new num_EpsilonFunc());

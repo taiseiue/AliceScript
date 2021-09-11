@@ -25,67 +25,7 @@ namespace AliceScript
             e.Return = new Variable(ver.ToString());
         }
     }
-    class functionsFunc : FunctionBase
-    {
-        public functionsFunc()
-        {
-            this.Name = "functions";
-            this.MinimumArgCounts = 0;
-            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
-            this.Run += FunctionsFunc_Run;
-        }
-
-        private void FunctionsFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (e.Args.Count == 0)
-            {
-                Variable v = new Variable(Variable.VarType.ARRAY);
-                foreach (string s in FunctionBaseManerger.Functions)
-                {
-                    v.Tuple.Add(new Variable(s));
-                }
-                e.Return = v;
-            }
-            else
-            {
-                string str = Utils.GetSafeString(e.Args,0);
-                if (NameSpaceManerger.Contains(str))
-                {
-                    Variable v = new Variable(Variable.VarType.ARRAY);
-                    foreach (FunctionBase fb in NameSpaceManerger.NameSpaces[str].Functions)
-                    {
-                        v.Tuple.Add(new Variable(fb.Name));
-                    }
-                    e.Return = v;
-                }
-                else
-                {
-                    throw new System.Exception("指定された名前空間が見つかりませんでした");
-                }
-            }
-        }
-    }
-    class namespacesFunc : FunctionBase
-    {
-        public namespacesFunc()
-        {
-            this.FunctionName = "namespaces";
-            this.MinimumArgCounts = 0;
-            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
-            this.Run += NamespacesFunc_Run;
-        }
-
-        private void NamespacesFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Variable v = new Variable(Variable.VarType.ARRAY);
-            foreach (string s in NameSpaceManerger.NameSpaces.Keys)
-            {
-                v.Tuple.Add(new Variable(s));
-            }
-            e.Return = v;
-        }
-    }
-
+    
 
     class LabelFunction : ActionFunction
     {
@@ -140,21 +80,7 @@ namespace AliceScript
         }
         internal static List<string> KnownLines = new List<string>();
     }
-    class EvalFunction : FunctionBase
-    {
-        public EvalFunction()
-        {
-            this.Name = "eval";
-            this.MinimumArgCounts = 1;
-            this.Run += EvalFunction_Run;
-        }
-
-        private void EvalFunction_Run(object sender, FunctionBaseEventArgs e)
-        {
-            ParsingScript script = new ParsingScript(e.Args[0].AsString());
-            script.ExecuteAll();
-        }
-    }
+ 
     class PointerFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)

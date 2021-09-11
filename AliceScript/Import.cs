@@ -208,8 +208,20 @@ namespace AliceScript
                     if (NameSpaceManerger.Contains(file))
                     {
                         //NameSpace形式で存在
-
-                        NameSpaceManerger.Load(file);
+                        if (unimport)
+                        {
+                            if (NameSpaceManerger.NameSpaces.ContainsKey(file))
+                            {
+                                NameSpaceManerger.UnLoad(file);
+                            }
+                            else {
+                                ThrowErrorManerger.OnThrowError("該当する名前空間は読み込まれていません",e.Script);
+                            }
+                        }
+                        else
+                        {
+                            NameSpaceManerger.Load(file);
+                        }
                         return;
                     }
                     else

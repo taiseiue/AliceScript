@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using static AliceScript.ParserFunction;
-using System.Reflection;
 
 namespace AliceScript
 {
@@ -19,7 +16,7 @@ namespace AliceScript
         }
         public string Output { get; set; }
     }
-    
+
 
     public partial class Interpreter
     {
@@ -110,46 +107,44 @@ namespace AliceScript
             FunctionBaseManerger.Add(new NWhileStatement());
             FunctionBaseManerger.Add(new SwitchStatement());
             FunctionBaseManerger.Add(new CaseStatement());
-            FunctionBaseManerger.Add(new CaseStatement(),Constants.DEFAULT);
+            FunctionBaseManerger.Add(new CaseStatement(), Constants.DEFAULT);
             FunctionBaseManerger.Add(new ForStatement());
             FunctionBaseManerger.Add(new BreakStatement());
             FunctionBaseManerger.Add(new GotoGosubFunction(true));
             FunctionBaseManerger.Add(new GotoGosubFunction(false));
             FunctionBaseManerger.Add(new ContinueStatement());
             FunctionBaseManerger.Add(new IncludeFile());
-            FunctionBaseManerger.Add(new EvalFunction());
+            FunctionBaseManerger.Add(new ThrowFunction());
+            FunctionBaseManerger.Add(new TryBlock());
+
+            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.EmptyInstance), Constants.NULL);
+            FunctionBaseManerger.Add(new ReturnValueFunction(new Variable(double.PositiveInfinity)), Constants.INFINITY);
+            FunctionBaseManerger.Add(new ReturnValueFunction(new Variable(double.NegativeInfinity)), Constants.NEG_INFINITY);
+            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.True), Constants.TRUE);
+            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.False), Constants.FALSE);
 
 
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
             ParserFunction.RegisterFunction(Constants.ENUM, new EnumFunction());
-            ParserFunction.RegisterFunction(Constants.INFINITY, new InfinityFunction());
-            ParserFunction.RegisterFunction(Constants.NEG_INFINITY, new NegInfinityFunction());
             ParserFunction.RegisterFunction(Constants.ISFINITE, new IsFiniteFunction());
             ParserFunction.RegisterFunction(Constants.ISNAN, new IsNaNFunction());
             ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
-            ParserFunction.RegisterFunction(Constants.NULL, new NullFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
-            ParserFunction.RegisterFunction(Constants.TRY, new TryBlock());
-            ParserFunction.RegisterFunction(Constants.THROW, new ThrowFunction());
 
             FunctionBaseManerger.Add(new TypeFunction());
             FunctionBaseManerger.Add(new TypeOfFunction());
-            FunctionBaseManerger.Add(new BoolFunction(true));
-            FunctionBaseManerger.Add(new BoolFunction(false));
             FunctionBaseManerger.Add(new UndefinedFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
-            FunctionBaseManerger.Add(new functionsFunc());
-            FunctionBaseManerger.Add(new namespacesFunc());
             FunctionBaseManerger.Add(new ImportFunc());
             FunctionBaseManerger.Add(new ImportFunc(true));
             FunctionBaseManerger.Add(new LibImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
-            FunctionBaseManerger.Add(new DelegateCreator(),"_");
+            FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
             FunctionBaseManerger.Add(new PrintFunction(false));
 
@@ -157,7 +152,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
             ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
-            ParserFunction.RegisterFunction(Constants.CANCEL_RUN, new ScheduleRunFunction(false));
             ParserFunction.RegisterFunction(Constants.CHECK_LOADER_MAIN, new CheckLoaderMainFunction());
             ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
             ParserFunction.RegisterFunction(Constants.CURRENT_PATH, new CurrentPathFunction());
@@ -170,14 +164,10 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
             ParserFunction.RegisterFunction(Constants.NAME_EXISTS, new NameExistsFunction());
-            ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction()); 
+            ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction());
             ParserFunction.RegisterFunction(Constants.PSTIME, new ProcessorTimeFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
-            ParserFunction.RegisterFunction(Constants.RESET_VARS, new ResetVariablesFunction());
-            ParserFunction.RegisterFunction(Constants.SCHEDULE_RUN, new ScheduleRunFunction(true));
-            ParserFunction.RegisterFunction(Constants.SHOW, new ShowFunction());
-            ParserFunction.RegisterFunction(Constants.SIGNAL, new SignalWaitFunction(true));
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
             ParserFunction.RegisterFunction(Constants.SIZE, new SizeFunction());
             ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
@@ -191,7 +181,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.TO_NUMBER, new ToDoubleFunction());
             ParserFunction.RegisterFunction(Constants.TO_STRING, new ToStringFunction());
             ParserFunction.RegisterFunction(Constants.VAR, new VarFunction());
-            ParserFunction.RegisterFunction(Constants.WAIT, new SignalWaitFunction(false));
 
             ParserFunction.RegisterFunction(Constants.ADD_DATA, new DataFunction(DataFunction.DataMode.ADD));
             ParserFunction.RegisterFunction(Constants.COLLECT_DATA, new DataFunction(DataFunction.DataMode.SUBSCRIBE));

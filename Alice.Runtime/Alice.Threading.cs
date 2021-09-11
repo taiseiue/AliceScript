@@ -104,6 +104,35 @@ namespace AliceScript.NameSpaces
             Task.Run(()=> { e.Args[0].Delegate.Run(args,e.Script); });
         }
     }
-   
-  
+    class SignalWaitFunction : FunctionBase
+    {
+        static AutoResetEvent waitEvent = new AutoResetEvent(false);
+        bool m_isSignal;
+
+        public SignalWaitFunction(bool isSignal)
+        {
+            m_isSignal = isSignal;
+            this.Attribute = FunctionAttribute.CONTROL_FLOW | FunctionAttribute.FUNCT_WITH_SPACE|FunctionAttribute.LANGUAGE_STRUCTURE;
+            if (isSignal)
+            {
+                this.Name = "signal";
+            }
+            else
+            {
+                this.Name = "signal_wait";
+            }
+            this.Run += SignalWaitFunction_Run;
+        }
+
+        private void SignalWaitFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            bool result = m_isSignal ? waitEvent.Set() :
+                                      waitEvent.WaitOne();
+            e.Return=new Variable(result);
+        }
+
+    }
+
+
+
 }

@@ -15,10 +15,34 @@ namespace AliceScript.NameSpaces
             space.Add(new gc_collectFunc());
             space.Add(new gc_gettotalmemoryFunc());
             space.Add(new gc_collectafterexecuteFunc());
+            space.Add(new Function_ShowFunc());
 
             space.Add(new StopWatchObject());
 
             NameSpaceManerger.Add(space);
+        }
+    }
+    class Function_ShowFunc : FunctionBase
+    {
+        public Function_ShowFunc()
+        {
+            this.Name = "function_show";
+            this.MinimumArgCounts = 1;
+            this.Run += Function_ShowFunc_Run;
+        }
+
+        private void Function_ShowFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string functionName = e.Args[0].AsString();
+
+            CustomFunction custFunc = ParserFunction.GetFunction(functionName, e.Script) as CustomFunction;
+            Utils.CheckNotNull(functionName, custFunc, e.Script);
+
+
+
+            string body = Utils.BeautifyScript(custFunc.Body, custFunc.Header);
+            Utils.PrintScript(body, e.Script);
+            e.Return = new Variable(body);
         }
     }
     class gc_collectFunc : FunctionBase
@@ -225,4 +249,5 @@ namespace AliceScript.NameSpaces
         }
 
     }
+  
 }
