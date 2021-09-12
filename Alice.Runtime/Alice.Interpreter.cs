@@ -235,7 +235,7 @@ namespace AliceScript.NameSpaces
             }
 
             System.Timers.Timer pauseTimer = new System.Timers.Timer(timeout);
-            pauseTimer.Elapsed += (sender, ex) =>
+            pauseTimer.Elapsed += (senders, ex) =>
             {
                 if (!autoReset)
                 {

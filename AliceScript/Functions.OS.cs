@@ -19,26 +19,20 @@ namespace AliceScript
     // Prints passed list of argumentsand
     class PrintFunction : FunctionBase
     {
-        public PrintFunction(bool newLine = true)
+        public PrintFunction()
         {
-            if (newLine)
-            {
+           
                 this.Name = "print";
-            }
-            else
-            {
-                this.Name = "write";
-            }
+           
             this.MinimumArgCounts = 1;
             this.Run += PrintFunction_Run;
-            m_newLine = newLine;
         }
 
         private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
         {
             if (e.Args.Count == 1)
             {
-                AddOutput(e.Args[0].AsString(), e.Script, m_newLine);
+                AddOutput(e.Args[0].AsString(), e.Script,true);
             }
             else
             {
@@ -46,16 +40,30 @@ namespace AliceScript
                 MatchCollection mc = Regex.Matches(text, @"{[0-9]+}");
                 foreach (Match match in mc)
                 {
-                    int mn = int.Parse(match.Value.TrimStart('{').TrimEnd('}'));
-                    if (e.Args.Count > mn+1)
+                    int mn = -1;
+                    if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'), out mn))
                     {
-                        text=text.Replace(match.Value,e.Args[mn+1].AsString());
+                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); break; }
+                        if (e.Args.Count > mn + 1)
+                        {
+                            text = text.Replace(match.Value, e.Args[mn + 1].AsString());
+                        }
+                        else
+                        {
+                            ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        ThrowErrorManerger.OnThrowError("複合書式指定\"" + match.Value + "\"は無効です", e.Script);
+                        break;
                     }
                 }
-                AddOutput(text,e.Script,m_newLine);
+                AddOutput(text,e.Script,true);
             }
         }
-
+        
         public static void AddOutput(string text, ParsingScript script = null,
                                      bool addLine = true, bool addSpace = true, string start = "")
         {
@@ -71,10 +79,8 @@ namespace AliceScript
                 debugger.AddOutput(output, script);
             }
         }
-
-        private bool m_newLine = true;
     }
-
+  
     class DataFunction : ParserFunction
     {
         public enum DataMode { ADD, SUBSCRIBE, SEND };

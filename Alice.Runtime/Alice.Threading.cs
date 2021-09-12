@@ -15,7 +15,8 @@ namespace AliceScript.NameSpaces
             space.Add(new thread_sleepFunc());
             space.Add(new thread_idFunc());
             space.Add(new thread_queueFunc());
-
+            space.Add(new SignalWaitFunction(true));
+            space.Add(new SignalWaitFunction(false));
             space.Add(new task_runFunc());
 
             NameSpaceManerger.Add(space);
