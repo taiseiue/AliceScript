@@ -46,6 +46,7 @@ namespace AliceScript
         public string Name { get; set; }
         public List<FunctionBase> Functions = new List<FunctionBase>();
         public List<ObjectBase> Classes = new List<ObjectBase>();
+        public Dictionary<string, string> Enums = new Dictionary<string, string>();
         public void Add(FunctionBase func)
         {
             Functions.Add(func);
@@ -53,6 +54,10 @@ namespace AliceScript
         public void Add(ObjectBase obj)
         {
             Classes.Add(obj);
+        }
+        public void Add(string name,string val)
+        {
+            Enums.Add(name,val);
         }
         public void Remove(FunctionBase func)
         {
@@ -81,6 +86,14 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
+            foreach(string s in Enums.Keys)
+            {
+                try
+                {
+                    FunctionBase.RegisterEnum(s,Enums[s]);
+                }
+                catch { ecount++; }
+            }
             if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
         public virtual void UnLoad()
@@ -99,6 +112,14 @@ namespace AliceScript
                 try
                 {
                     ClassManerger.Remove(obj);
+                }
+                catch { ecount++; }
+            }
+            foreach(string s in Enums.Keys)
+            {
+                try
+                {
+                    FunctionBase.UnregisterFunction(s);
                 }
                 catch { ecount++; }
             }

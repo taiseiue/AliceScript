@@ -34,7 +34,86 @@ namespace AliceScript.NameSpaces
             FunctionBaseManerger.Add(new Console_GetWindowFunc(3));
             FunctionBaseManerger.Add(new Console_GetWindowFunc(4));
             FunctionBaseManerger.Add(new Console_GetWindowFunc(5));
+            FunctionBaseManerger.Add(new Console_GetColorFunc());
+            FunctionBaseManerger.Add(new Console_GetColorFunc(false));
+            FunctionBaseManerger.Add(new Console_SetColorFunc());
+            FunctionBaseManerger.Add(new Console_SetColorFunc(false));
+            FunctionBaseManerger.Add(new Console_ResetColorFunc());
+            FunctionBase.RegisterEnum("ConsoleColor","System.ConsoleColor");
         }
+    }
+    class Console_ResetColorFunc : FunctionBase
+    {
+        public Console_ResetColorFunc()
+        {
+            this.Name = "Console_ResetColor";
+            this.Run += Console_ResetColorFunc_Run;
+        }
+
+        private void Console_ResetColorFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            Console.ResetColor();
+        }
+    }
+    class Console_GetColorFunc : FunctionBase
+    {
+        public Console_GetColorFunc(bool bgcolor = true)
+        {
+            m_BGColor = bgcolor;
+            if (m_BGColor)
+            {
+                this.Name = "Console_GetBackgroundColor";
+            }
+            else
+            {
+                this.Name = "Console_GetForegroundColor";
+            }
+            this.Run += Console_GetColorFunc_Run;
+        }
+
+        private void Console_GetColorFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (m_BGColor)
+            {
+                e.Return = new Variable((int)Console.BackgroundColor);
+            }
+            else
+            {
+                e.Return = new Variable((int)Console.ForegroundColor);
+            }
+        }
+
+        private bool m_BGColor = true;
+    }
+    class Console_SetColorFunc : FunctionBase
+    {
+        public Console_SetColorFunc(bool bgcolor = true)
+        {
+            m_BGColor = bgcolor;
+            if (m_BGColor)
+            {
+                this.Name = "Console_SetBackgroundColor";
+            }
+            else
+            {
+                this.Name = "Console_SetForegroundColor";
+            }
+            this.Run += Console_GetColorFunc_Run;
+        }
+
+        private void Console_GetColorFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (m_BGColor)
+            {
+                Console.BackgroundColor = ((ConsoleColor)e.Args[0].AsInt());
+            }
+            else
+            {
+                Console.ForegroundColor = ((ConsoleColor)e.Args[0].AsInt());
+            }
+        }
+
+        private bool m_BGColor = true;
     }
     class Console_GetCursorPositionFunc : FunctionBase
     {
