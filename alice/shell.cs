@@ -38,7 +38,7 @@ namespace alice
             Interpreter.Instance.OnOutput += Print;
 
             //例外スローを静かにする
-            ThrowErrorManerger.HandleError = true;
+            //ThrowErrorManerger.HandleError = true;
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
 
             
@@ -75,7 +75,7 @@ namespace alice
                 {
                     Alice.Runtime_File_Path = pa.Values["runtime"];
                 }
-                bool mainfile = pa.Flags.Contains("mainfile");
+                mainfile = pa.Flags.Contains("mainfile");
                 foreach (string fn in pa.Files)
                 {
                     Alice.ExecuteFile(Path.GetFileName(fn), mainfile);
@@ -83,6 +83,7 @@ namespace alice
           
             RunLoop();
         }
+        static bool mainfile = false;
 
         private static void Alice_Exiting(object sender, ExitingEventArgs e)
         {

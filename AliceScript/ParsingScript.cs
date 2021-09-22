@@ -349,6 +349,24 @@ namespace AliceScript
         {
             return m_from >= 3 ? m_data[m_from - 3] : Constants.EMPTY;
         }
+        public char TryPreviewWithoutSpace(int step, out string text,out int far)
+        {
+            text = "";
+            far = 0;
+            char lastchar=Constants.EMPTY;
+            if(m_from <= m_from - step) { return Constants.EMPTY; }
+            for (int i = 1; i < step; i++)
+            {
+                far++;
+                char c=m_data[m_from-i];
+                if(c!=' ')
+                {
+                    text = c + text;
+                    lastchar = c;
+                }
+            }
+            return lastchar;
+        }
 
         public string FromPrev(int backChars = 1, int maxChars = Constants.MAX_CHARS_TO_SHOW)
         {

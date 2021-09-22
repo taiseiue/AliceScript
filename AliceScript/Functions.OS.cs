@@ -165,18 +165,6 @@ namespace AliceScript
         }
     }
 
-    // Returns how much processor time has been spent on the current process
-    class ProcessorTimeFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Process pr = Process.GetCurrentProcess();
-            TimeSpan ts = pr.TotalProcessorTime;
-
-            return new Variable(Math.Round(ts.TotalMilliseconds, 0));
-        }
-    }
-
     class TokenizeFunction : ParserFunction, IArrayFunction
     {
         protected override Variable Evaluate(ParsingScript script)

@@ -13,7 +13,7 @@ namespace AliceScript
         {
             NONE, UNDEFINED, NUMBER, STRING, ARRAY,
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTE_ARRAY,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME, CUSTOM, POINTER,DELEGATE
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME, CUSTOM, POINTER,DELEGATE,BOOLEAN
         };
       
         public static Variable True
@@ -113,9 +113,10 @@ namespace AliceScript
         {
             Value = d;
         }
-        public Variable(bool d)
+        public Variable(bool b)
         {
-            Value = d ? 1.0 : 0.0;
+            Bool = b;
+            Type = VarType.BOOLEAN;
         }
         public Variable(string s)
         {
@@ -273,6 +274,7 @@ namespace AliceScript
         public void Reset()
         {
             m_value = Double.NaN;
+            m_bool = false;
             m_string = null;
             m_object = null;
             m_tuple = null;
@@ -310,7 +312,26 @@ namespace AliceScript
             {
                 return ByteArray == other.ByteArray;
             }
-
+            if(Type == VarType.BOOLEAN)
+            {
+                return Bool == other.Bool;
+            }
+            if(Type == VarType.DELEGATE)
+            {
+                return Delegate.Body == other.Delegate.Body;
+            }
+            if(Type == VarType.BOOLEAN)
+            {
+                return Bool == other.Bool;
+            }
+            if(Type == VarType.ARRAY)
+            {
+                return EqualsArray(Tuple,other.Tuple);
+            }
+            if(Type == VarType.NONE)
+            {
+                return other.Type == VarType.NONE;
+            }
             if (Double.IsNaN(Value) != Double.IsNaN(other.Value) ||
               (!Double.IsNaN(Value) && Value != other.Value))
             {
@@ -337,6 +358,39 @@ namespace AliceScript
                 return false;
             }
             return AsString() == other.AsString();
+        }
+
+        private bool EqualsArray(List<Variable> ary1,List<Variable> ary2)
+        {
+            //結果を格納する変数
+            bool isEqual = true;
+
+            if (object.ReferenceEquals(ary1, ary2))
+            {
+                //同一のインスタンスの時は、同じとする
+                isEqual = true;
+            }
+            else if (ary1 == null || ary2 == null
+                || ary1.Count != ary2.Count)
+            {
+                //どちらかがNULLか、要素数が異なる時は、同じではない
+                isEqual = false;
+            }
+            else
+            {
+                //1つ1つの要素が等しいかを調べる
+                for (int i = 0; i < ary1.Count; i++)
+                {
+                    //ary1の要素のEqualsメソッドで、ary2の要素と等しいか調べる
+                    if (!ary1[i].Equals(ary2[i]))
+                    {
+                        //1つでも等しくない要素があれば、同じではない
+                        isEqual = false;
+                        break;
+                    }
+                }
+            }
+            return isEqual;
         }
 
         public virtual bool Preprocess()
@@ -543,14 +597,14 @@ namespace AliceScript
             return m_dictionary.ContainsKey(lower);
         }
 
-        public int FindIndex(string val)
+        
+        public int FindIndex(Variable val)
         {
             if (this.Type != VarType.ARRAY)
             {
                 return -1;
             }
-            int result = m_tuple.FindIndex(item => item.AsString() == val);
-            return result;
+            return m_tuple.FindIndex(item=>item==val);
         }
 
         public bool Exists(Variable indexVar, bool notEmpty = false)
@@ -577,25 +631,24 @@ namespace AliceScript
             string hash = indexVar.AsString();
             return Exists(hash);
         }
-
+       
         public virtual bool AsBool()
         {
-            if (Type == VarType.NUMBER && Value != 0.0)
+            if (Type == VarType.BOOLEAN)
             {
-                return true;
+                return m_bool;
             }
-            if (Type == VarType.STRING)
-            {
-                if (String.Compare(m_string, "true", true) == 0)
-                    return true;
-            }
-
+            
             return false;
         }
 
         public virtual int AsInt()
         {
             int result = 0;
+            if (Type == VarType.BOOLEAN)
+            {
+                if (Bool) { return 1; } else { return 0; }
+            }
             if (Type == VarType.NUMBER || Value != 0.0)
             {
                 return (int)Value;
@@ -637,6 +690,10 @@ namespace AliceScript
         public virtual double AsDouble()
         {
             double result = 0.0;
+            if (Type == VarType.BOOLEAN)
+            {
+                if (Bool) { return 1.0; } else { return 0.0; }
+            }
             if (Type == VarType.NUMBER)
             {// || (Value != 0.0 && Value != Double.NaN)) {
                 return Value;
@@ -674,6 +731,7 @@ namespace AliceScript
         {
             switch (Type)
             {
+                case VarType.BOOLEAN: return AsBool();
                 case VarType.NUMBER: return AsDouble();
                 case VarType.DATETIME: return AsDateTime();
                 case VarType.OBJECT: return Object;
@@ -704,6 +762,17 @@ namespace AliceScript
                                        bool sameLine = true,
                                        int maxCount = -1)
         {
+            if (Type == VarType.BOOLEAN)
+            {
+                if (m_bool)
+                {
+                    return Constants.TRUE;
+                }
+                else
+                {
+                    return Constants.FALSE;
+                }
+            }
             if (Type == VarType.NUMBER)
             {
                 return Value.ToString();
@@ -724,6 +793,7 @@ namespace AliceScript
             {
                 return Encoding.Unicode.GetString(m_byteArray, 0, m_byteArray.Length);
             }
+            
 
             StringBuilder sb = new StringBuilder();
             if (Type == VarType.ENUM)
@@ -1697,7 +1767,11 @@ namespace AliceScript
             get { return m_value; }
             set { m_value = value; Type = VarType.NUMBER; }
         }
-
+        public virtual bool Bool
+        {
+            get { return m_bool; }
+            set { m_bool = value; }
+        }
         public virtual string String
         {
             get { return m_string; }
@@ -1788,6 +1862,7 @@ namespace AliceScript
         protected double m_value;
         protected string m_string;
         protected object m_object;
+        protected bool m_bool;
         protected DateTime m_datetime;
         protected CustomFunction m_delegate;
         CustomFunction m_customFunctionGet;

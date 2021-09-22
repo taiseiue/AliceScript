@@ -64,6 +64,7 @@ namespace AliceScript
             }
 
             string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
             body = body.Substring(2);
             if (!KnownLines.Contains(script.OriginalLine))
             {

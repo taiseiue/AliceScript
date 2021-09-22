@@ -507,6 +507,14 @@ namespace AliceScript
             }
             return args[index].AsString();
         }
+        public static bool GetSafeBool(List<Variable> args,int index,bool defaultValue = false)
+        {
+            if (args.Count <= index)
+            {
+                return defaultValue;
+            }
+            return args[index].AsBool();
+        }
         public static Variable GetSafeVariable(List<Variable> args, int index, Variable defaultValue = null)
         {
             if (args.Count <= index)
@@ -576,15 +584,41 @@ namespace AliceScript
 
         public static bool CanConvertToDouble(string str, out double num)
         {
-            if (str == "true")
+            num = 0;
+            //文字列を小文字に置き換え
+            str = str.ToLower();
+            //0xから始まる実数の16進表現を確認します
+            System.Text.RegularExpressions.MatchCollection mc =
+    System.Text.RegularExpressions.Regex.Matches(
+    str, @"0x[0-9a-f]+");
+            foreach (System.Text.RegularExpressions.Match m in mc)
             {
-                num = 1.0;
-                return true;
+                try
+                {
+                    //16進表現では浮動小数点型の表現ができないためdoubleと最も近い精度である整数値型long(Int64)を使用します
+                    num = long.Parse(m.Value.Substring(2),NumberStyles.HexNumber);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
-            if (str == "false")
+            //0bから始まる実数の2進表現を確認します
+            mc = System.Text.RegularExpressions.Regex.Matches(
+    str, @"0b[0-9a-f]+");
+            foreach (System.Text.RegularExpressions.Match m in mc)
             {
-                num = 0.0;
-                return true;
+                try
+                {
+                    //2進表現では浮動小数点型の表現ができないためdoubleと最も近い精度である整数値型long(Int64)を使用します
+                    num = Convert.ToInt64(m.Value.Substring(2));
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
             return Double.TryParse(str, NumberStyles.Number |
                                         NumberStyles.AllowExponent |

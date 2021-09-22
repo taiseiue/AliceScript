@@ -280,6 +280,9 @@ namespace AliceScript
             SWITCH, CASE, DEFAULT, NAN, UNDEFINED,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString(), "math"
         };
+        public static Dictionary<string, Variable> CONSTS = new Dictionary<string, Variable> {
+            { TRUE,Variable.True},{ FALSE,Variable.False},{ NULL,Variable.EmptyInstance},{ INFINITY,new Variable(double.PositiveInfinity)},{ NEG_INFINITY,new Variable(double.NegativeInfinity)}
+        };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
         {
@@ -347,6 +350,7 @@ namespace AliceScript
                 case Variable.VarType.BREAK:    return "BREAK";
                 case Variable.VarType.CONTINUE: return "CONTINUE";
                 case Variable.VarType.DELEGATE: return "DELEGATE";
+                case Variable.VarType.BOOLEAN:  return "BOOLEAN";
                 case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }
@@ -377,6 +381,7 @@ namespace AliceScript
                 case "BREAK": return Variable.VarType.BREAK;
                 case "CONTINUE": return Variable.VarType.CONTINUE;
                 case "DELEGATE": return Variable.VarType.DELEGATE;
+                case "BOOLEAN":return Variable.VarType.BOOLEAN;
                 case "VARIABLE": return Variable.VarType.VARIABLE;
                 default: return Variable.VarType.NONE;
             }

@@ -172,7 +172,7 @@ namespace AliceScript.NameSpaces
                         {
                             i = 1;
                         }
-                        Console.CursorVisible=(Utils.GetSafeInt(e.Args, 0, i) != 0);
+                        Console.CursorVisible = (Utils.GetSafeBool(e.Args, 1));
                         e.Return = new Variable(Console.CursorVisible);
                         break;
                     }

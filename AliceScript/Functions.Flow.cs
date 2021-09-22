@@ -122,14 +122,12 @@ namespace AliceScript
         {
             Value = value;
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
-            this.Run += ReturnValueFunction_Run;
         }
 
-        private void ReturnValueFunction_Run(object sender, FunctionBaseEventArgs e)
+        protected override Variable Evaluate(ParsingScript script)
         {
-            e.Return = Value;
+            return new Variable(Value);
         }
-
         private Variable Value;
     }
 
@@ -585,17 +583,7 @@ namespace AliceScript
         }
     }
 
-    class NameExistsFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string varName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
-            varName = Constants.ConvertName(varName);
-
-            bool result = ParserFunction.GetVariable(varName, script) != null;
-            return new Variable(result);
-        }
-    }
+   
 
     class EnumFunction : ParserFunction
     {
@@ -1202,15 +1190,22 @@ namespace AliceScript
     {
         protected override Variable Evaluate(ParsingScript script)
         {
-            // First check if the passed expression is a string between quotes.
+            // 文字列型かどうか確認
             if (Item.Length > 1 &&
               ((Item[0] == Constants.QUOTE && Item[Item.Length - 1] == Constants.QUOTE) ||
                (Item[0] == Constants.QUOTE1 && Item[Item.Length - 1] == Constants.QUOTE1)))
             {
                 return new Variable(Item.Substring(1, Item.Length - 2));
             }
+            //定数に存在するか確認
+            
+            if (Constants.CONSTS.ContainsKey(Item))
+            {
+                return Constants.CONSTS[Item];
+            }
+            
 
-            // Otherwise this should be a number.
+            // 数値として処理
             double num = Utils.ConvertToDouble(Item, script);
             return new Variable(num);
         }
@@ -1340,22 +1335,7 @@ namespace AliceScript
         }
     }
 
-    class FindIndexFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
-
-            Variable var = Utils.GetSafeVariable(args, 0);
-            string val = Utils.GetSafeString(args, 1);
-
-            int index = var.FindIndex(val);
-
-            return new Variable(index);
-        }
-    }
-
+ 
 
     class UndefinedFunction : FunctionBase
     {
@@ -2723,16 +2703,5 @@ namespace AliceScript
         }
     }
 
-    class CheckLoaderMainFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            bool isMain = !string.IsNullOrWhiteSpace(script.MainFilename) &&
-                           script.MainFilename == script.Filename;
-
-            return new Variable(isMain);
-        }
-    }
-
-   
+  
 }

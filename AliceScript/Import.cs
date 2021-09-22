@@ -134,11 +134,11 @@ namespace AliceScript
         }
 
     }
-    class LibImportFunc : FunctionBase
+    class DllImportFunc : FunctionBase
     {
-        public LibImportFunc()
+        public DllImportFunc()
         {
-            this.FunctionName = "libimport";
+            this.FunctionName = "Dllimport";
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.MinimumArgCounts = 0;
             this.Run += ImportFunc_Run;

@@ -49,6 +49,7 @@ namespace AliceScript
             //List関数
             Variable.AddFunc(new list_flattenFunc());
             Variable.AddFunc(new list_marge2Func());
+            Variable.AddFunc(new list_FindIndexFunc());
             //List関数(終わり)
             //BYTES系(Base64)
             Variable.AddFunc(new toBase64Func());
@@ -127,6 +128,7 @@ namespace AliceScript
 
         }
     }
+
     //ここより下は変数(Variable)オブジェクトの関数です
     class toBase64Func : FunctionBase
     {
@@ -764,6 +766,21 @@ namespace AliceScript
             }
 
             e.Return = r;
+        }
+    }
+    class list_FindIndexFunc : FunctionBase
+    {
+        public list_FindIndexFunc()
+        {
+            this.FunctionName = "FindIndex";
+            this.RequestType = Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += List_FindIndexFunc_Run;
+        }
+
+        private void List_FindIndexFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.FindIndex(e.Args[0]));
         }
     }
 }

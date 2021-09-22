@@ -85,16 +85,13 @@ namespace AliceScript
         {
             if (m_bHasBeenInitialized)
                 return;
-            m_bHasBeenInitialized = true; // making sure the init gets call only once
+            m_bHasBeenInitialized = true; // このメソッドは一度のみ呼び出すことができます
 
             ExceptionsTransletor.Init();
 
             RegisterFunctions();
             RegisterEnums();
             RegisterActions();
-
-            ParserFunction.AddGlobal(Constants.THIS,
-                new GetVarFunction(new Variable(Variable.VarType.ARRAY)));
 
             CompiledClass.Init();
         }
@@ -117,13 +114,6 @@ namespace AliceScript
             FunctionBaseManerger.Add(new ThrowFunction());
             FunctionBaseManerger.Add(new TryBlock());
 
-            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.EmptyInstance), Constants.NULL);
-            FunctionBaseManerger.Add(new ReturnValueFunction(new Variable(double.PositiveInfinity)), Constants.INFINITY);
-            FunctionBaseManerger.Add(new ReturnValueFunction(new Variable(double.NegativeInfinity)), Constants.NEG_INFINITY);
-            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.True), Constants.TRUE);
-            FunctionBaseManerger.Add(new ReturnValueFunction(Variable.False), Constants.FALSE);
-
-
             ParserFunction.RegisterFunction(Constants.CLASS, new ClassCreator());
             ParserFunction.RegisterFunction(Constants.ENUM, new EnumFunction());
             ParserFunction.RegisterFunction(Constants.ISFINITE, new IsFiniteFunction());
@@ -142,7 +132,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new wsverFunc());
             FunctionBaseManerger.Add(new ImportFunc());
             FunctionBaseManerger.Add(new ImportFunc(true));
-            FunctionBaseManerger.Add(new LibImportFunc());
+            FunctionBaseManerger.Add(new DllImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
@@ -151,20 +141,16 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
             ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
-            ParserFunction.RegisterFunction(Constants.CHECK_LOADER_MAIN, new CheckLoaderMainFunction());
             ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
             ParserFunction.RegisterFunction(Constants.CURRENT_PATH, new CurrentPathFunction());
             ParserFunction.RegisterFunction(Constants.DATE_TIME, new DateTimeFunction(false));
             ParserFunction.RegisterFunction(Constants.DEEP_COPY, new DeepCopyFunction());
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
-            ParserFunction.RegisterFunction(Constants.FIND_INDEX, new FindIndexFunction());
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
-            ParserFunction.RegisterFunction(Constants.NAME_EXISTS, new NameExistsFunction());
             ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction());
-            ParserFunction.RegisterFunction(Constants.PSTIME, new ProcessorTimeFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
@@ -194,7 +180,6 @@ namespace AliceScript
 
             ClassManerger.Add(new EventObject());
 
-            Assembly myAssembly = Assembly.GetEntryAssembly();
             if (File.Exists(Alice.Runtime_File_Path))
             {
                 AliceScript.Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
@@ -458,7 +443,7 @@ namespace AliceScript
             while (stillValid)
             {
                 Variable condResult = condScript.Execute(null, 0);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -507,7 +492,7 @@ namespace AliceScript
             while (stillValid)
             {
                 Variable condResult = await condScript.ExecuteAsync(null, 0);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -550,7 +535,7 @@ namespace AliceScript
 
                 //int startSkipOnBreakChar = from;
                 Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -591,7 +576,7 @@ namespace AliceScript
 
                 //int startSkipOnBreakChar = from;
                 Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (stillValid)
                 {
                     break;
@@ -600,8 +585,7 @@ namespace AliceScript
                 // Check for an infinite loop if we are comparing same values:
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("現在 " +
-                        cycles + "回以上のループは許可されていません");
+                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
                 }
 
                 result = ProcessBlock(script);
@@ -632,7 +616,7 @@ namespace AliceScript
 
                 //int startSkipOnBreakChar = from;
                 Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -641,8 +625,7 @@ namespace AliceScript
                 // Check for an infinite loop if we are comparing same values:
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("Looks like an infinite loop after " +
-                        cycles + " cycles.");
+                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
                 }
 
                 result = await ProcessBlockAsync(script);
@@ -673,7 +656,7 @@ namespace AliceScript
 
                 //int startSkipOnBreakChar = from;
                 Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -682,8 +665,7 @@ namespace AliceScript
                 // Check for an infinite loop if we are comparing same values:
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("Looks like an infinite loop after " +
-                        cycles + " cycles.");
+                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
                 }
 
                 result = await ProcessBlockAsync(script);
@@ -718,7 +700,7 @@ namespace AliceScript
                 }
                 script.Forward(Constants.WHILE.Length + 1);
                 Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
-                stillValid = Convert.ToBoolean(condResult.Value);
+                stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
                     break;
@@ -793,7 +775,7 @@ namespace AliceScript
             int startIfCondition = script.Pointer;
 
             Variable result = script.Execute(Constants.END_ARG_ARRAY);
-            bool isTrue = Convert.ToBoolean(result.Value);
+            bool isTrue = result.AsBool();
 
             if (isTrue)
             {
@@ -844,7 +826,7 @@ namespace AliceScript
             int startIfCondition = script.Pointer;
 
             Variable result = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
-            bool isTrue = Convert.ToBoolean(result.Value);
+            bool isTrue = result.AsBool();
 
             if (isTrue)
             {
@@ -928,8 +910,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                throw new ArgumentException("Expecting a 'catch()' but got [" +
-                    catchToken + "]");
+                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -994,8 +975,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                throw new ArgumentException("Expecting a 'catch()' but got [" +
-                    catchToken + "]");
+                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -1151,8 +1131,8 @@ namespace AliceScript
             {
                 if (!script.StillValid())
                 {
-                    throw new ArgumentException("Couldn't skip block [" +
-                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]");
+                    ThrowErrorManerger.OnThrowError("次のブロックを実行できませんでした [" +
+                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]", script);
                 }
                 char currentChar = script.CurrentAndForward();
                 switch (currentChar)
@@ -1185,10 +1165,12 @@ namespace AliceScript
                 prevprev = previous;
                 previous = currentChar;
             }
-
-            if (startCount != endCount)
+            if(startCount > endCount)
             {
-                throw new ArgumentException("Mismatched parentheses");
+                ThrowErrorManerger.OnThrowError("終端にはかっこが必要です",script);
+            }else if(startCount < endCount)
+            {
+                ThrowErrorManerger.OnThrowError("終端のかっこは不要です",script);
             }
         }
 

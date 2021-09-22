@@ -83,12 +83,13 @@ namespace AliceScript
     {
         public static void Init()
         {
+            /*
             RegisterClass("CompiledTest", new TestCompiledClass());
             RegisterClass("CompiledTestAsync", new TestCompiledClassAsync());
 
             RegisterFunction("TestObject",
                 new GetVarFunction(new Variable(new TestScriptObject())), true);
-
+            */
            
         }
 

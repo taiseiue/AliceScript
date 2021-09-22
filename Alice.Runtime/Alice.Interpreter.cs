@@ -13,16 +13,110 @@ namespace AliceScript.NameSpaces
             space.Add(new Interpreter_Reset_VariablesFunc());
             space.Add(new Interpreter_Append_OutputOrDataFunc());
             space.Add(new Interpreter_Append_OutputOrDataFunc(true));
+            space.Add(new Interpreter_NameExistsFunc());
             space.Add(new Interpreter_ProcessOrFileFunc());
             space.Add(new Interpreter_ProcessOrFileFunc(true));
             space.Add(new Interpreter_GetVariable());
             space.Add(new Interpreter_NamespacesFunc());
             space.Add(new Interpreter_FunctionsFunc());
             space.Add(new Interpreter_VariablesFunc());
+            space.Add(new Interpreter_ConstsFunc());
             space.Add(new ScheduleRunFunction(true));
             space.Add(new ScheduleRunFunction(false));
+            space.Add(new Interpreter_GetScriptFunc());
+            space.Add(new gc_collectFunc());
+            space.Add(new gc_gettotalmemoryFunc());
+            space.Add(new gc_collectafterexecuteFunc());
+            space.Add(new Function_ShowFunc());
 
             NameSpaceManerger.Add(space);
+        }
+    }
+    class Interpreter_NameExistsFunc : FunctionBase
+    {
+        public Interpreter_NameExistsFunc()
+        {
+            this.Name = "Interpreter_NameExists";
+            this.Attribute = FunctionAttribute.LANGUAGE_STRUCTURE;
+            this.Run += Interpreter_NameExistsFunc_Run;
+        }
+
+        private void Interpreter_NameExistsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string varName = Utils.GetToken(e.Script, Constants.TOKEN_SEPARATION);
+            varName = Constants.ConvertName(varName);
+
+            bool result = ParserFunction.GetVariable(varName, e.Script) != null;
+            e.Return= new Variable(result);
+        }
+    }
+    class Function_ShowFunc : FunctionBase
+    {
+        public Function_ShowFunc()
+        {
+            this.Name = "function_show";
+            this.MinimumArgCounts = 1;
+            this.Run += Function_ShowFunc_Run;
+        }
+
+        private void Function_ShowFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string functionName = e.Args[0].AsString();
+
+            CustomFunction custFunc = ParserFunction.GetFunction(functionName, e.Script) as CustomFunction;
+            Utils.CheckNotNull(functionName, custFunc, e.Script);
+
+
+
+            string body = Utils.BeautifyScript(custFunc.Body, custFunc.Header);
+            Utils.PrintScript(body, e.Script);
+            e.Return = new Variable(body);
+        }
+    }
+    class gc_collectFunc : FunctionBase
+    {
+        public gc_collectFunc()
+        {
+            this.Name = "gc_collect";
+            this.MinimumArgCounts = 0;
+            this.Run += Gc_collectFunc_Run;
+        }
+
+        private void Gc_collectFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            GC.Collect();
+        }
+    }
+    class gc_gettotalmemoryFunc : FunctionBase
+    {
+        public gc_gettotalmemoryFunc()
+        {
+            this.Name = "gc_gettotalmemory";
+            this.MinimumArgCounts = 1;
+            this.Run += Gc_gettotalmemoryFunc_Run;
+        }
+
+        private void Gc_gettotalmemoryFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            GC.GetTotalMemory(e.Args[0].AsBool());
+        }
+    }
+    class gc_collectafterexecuteFunc : FunctionBase
+    {
+        public gc_collectafterexecuteFunc()
+        {
+            this.Name = "gc_collectafterexecute";
+            this.MinimumArgCounts = 0;
+            this.Run += Gc_collectafterexecuteFunc_Run;
+        }
+
+        private void Gc_collectafterexecuteFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 0)
+            {
+                AliceScript.Interop.GCManerger.CollectAfterExecute = e.Args[0].AsBool();
+            }
+            e.Return = new Variable(Interop.GCManerger.CollectAfterExecute);
         }
     }
     class Interpreter_Reset_VariablesFunc : FunctionBase
@@ -49,7 +143,7 @@ namespace AliceScript.NameSpaces
             }
             else
             {
-                this.Name = "Interpreter_Append_Data";
+                this.Name = "Interpreter_Append_Output";
             }
             this.MinimumArgCounts = 1;
             this.Run += Interpreter_Append_OutputOrDataFunc_Run;
@@ -59,11 +153,11 @@ namespace AliceScript.NameSpaces
         {
             if (m_isData)
             {
-                e.Return=new Variable(Interpreter.Instance.AppendData(e.Args[0].AsString(),(Utils.GetSafeInt(e.Args,1)!=0)));
+                e.Return=new Variable(Interpreter.Instance.AppendData(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1))));
             }
             else
             {
-                Interpreter.Instance.AppendOutput(e.Args[0].AsString(), (Utils.GetSafeInt(e.Args, 1) != 0));
+                Interpreter.Instance.AppendOutput(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args,1)));
             }
         }
 
@@ -83,11 +177,11 @@ namespace AliceScript.NameSpaces
         {
             if (m_isFile)
             {
-                Interpreter.Instance.ProcessFile(e.Args[0].AsString(),(Utils.GetSafeInt(e.Args,1)!=0));
+                e.Return=Interpreter.Instance.ProcessFile(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1)));
             }
             else
             {
-                Interpreter.Instance.Process(e.Args[0].AsString(),Utils.GetSafeString(e.Args,1), (Utils.GetSafeInt(e.Args, 2) != 0));
+                e.Return=Interpreter.Instance.Process(e.Args[0].AsString(),Utils.GetSafeString(e.Args,1), (Utils.GetSafeBool(e.Args, 2)));
             }
         }
 
@@ -224,7 +318,7 @@ namespace AliceScript.NameSpaces
             int timeout = e.Args[0].AsInt();
             CustomFunction delAction = e.Args[3].AsDelegate();
             string timerId = Utils.GetSafeString(e.Args, 1);
-            bool autoReset = Utils.GetSafeInt(e.Args, 2, 0) != 0;
+            bool autoReset = (Utils.GetSafeBool(e.Args, 2));
 
             timerId = Utils.ProtectQuotes(timerId);
             List<Variable> args = new List<Variable>();
@@ -251,6 +345,152 @@ namespace AliceScript.NameSpaces
             pauseTimer.Start();
 
             e.Return = Variable.EmptyInstance;
+        }
+    }
+    class Interpreter_GetScriptFunc : FunctionBase
+    {
+        public Interpreter_GetScriptFunc()
+        {
+            this.Name = "Interpreter_GetScript";
+            this.Run += Interpreter_GetScriptFunc_Run;
+        }
+
+        private void Interpreter_GetScriptFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(new Interpreter_ScriptObject(e.Script));
+        }
+    }
+    class Interpreter_ConstsFunc : FunctionBase
+    {
+        public Interpreter_ConstsFunc()
+        {
+            this.Name = "Interpreter_Consts";
+            this.MinimumArgCounts = 0;
+            this.Attribute = FunctionAttribute.GENERAL;
+            this.Run += Interpreter_ConstsFunc_Run;
+        }
+
+        private void Interpreter_ConstsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            Variable v = new Variable(Variable.VarType.ARRAY);
+            foreach(string s in Constants.CONSTS.Keys)
+            {
+                Variable v2 = Constants.CONSTS[s];
+                v.Tuple.Add(v2);
+            }
+            e.Return = v;
+        }
+    }
+    class Interpreter_ScriptObject : ObjectBase
+    {
+        public Interpreter_ScriptObject(ParsingScript script)
+        {
+            this.Name = "Script";
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.IsMainFile,this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.FileName, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.PWD, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalScript, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.FunctionName, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.InTryBlock, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.StillValid, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Size, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalLineNumber, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalLine, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Labels, this));
+
+            Script = script;
+        }
+        private ParsingScript Script;
+        class Interpreter_ScriptObject_Property : PropertyBase
+        {
+            public Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property_Mode mode,Interpreter_ScriptObject host)
+            {
+                Mode = mode;
+                Host = host;
+                this.Name = Mode.ToString();
+                this.CanSet = false;
+                this.HandleEvents = true;
+                this.Getting += Interpreter_ScriptObject_Property_Getting;
+            }
+            private Interpreter_ScriptObject_Property_Mode Mode;
+            private Interpreter_ScriptObject Host;
+            internal enum Interpreter_ScriptObject_Property_Mode
+            {
+                IsMainFile,FileName,PWD,OriginalScript,FunctionName,InTryBlock, StillValid, Size, OriginalLineNumber, OriginalLine, Labels
+            }
+            private void Interpreter_ScriptObject_Property_Getting(object sender, PropertyGettingEventArgs e)
+            {
+                switch (Mode)
+                {
+                    case Interpreter_ScriptObject_Property_Mode.IsMainFile:
+                        {
+                            bool isMain = !string.IsNullOrWhiteSpace(Host.Script.MainFilename) &&
+                           Host.Script.MainFilename == Host.Script.Filename;
+                            e.Value = new Variable(isMain);
+                            break;
+                    }
+                    case Interpreter_ScriptObject_Property_Mode.FileName:
+                        {
+                                e.Value= new Variable(Host.Script.Filename);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.PWD:
+                        {
+                            e.Value = new Variable(Host.Script.PWD);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.OriginalScript:
+                        {
+                            e.Value = new Variable(Host.Script.OriginalScript);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.FunctionName:
+                        {
+                            e.Value = new Variable(Host.Script.FunctionName);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.InTryBlock:
+                        {
+                            e.Value = new Variable(Host.Script.InTryBlock);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.StillValid:
+                        {
+                            e.Value = new Variable(Host.Script.StillValid());
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Size:
+                        {
+                            e.Value = new Variable(Host.Script.Size());
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.OriginalLineNumber:
+                        {
+                            e.Value = new Variable(Host.Script.OriginalLineNumber);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.OriginalLine:
+                        {
+                            e.Value = new Variable(Host.Script.OriginalLine);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Labels:
+                        {
+                            Variable v = new Variable(Variable.VarType.ARRAY);
+                            if (Host.Script.AllLabels == null)
+                            {
+                                e.Value = Variable.EmptyInstance;
+                                break;
+                            }
+                            foreach(string s in Host.Script.AllLabels.Keys)
+                            {
+                                v.Tuple.Add(new Variable(s));
+                            }
+                            e.Value = v;
+                            break;
+                        }
+                }
+            }
         }
     }
 
