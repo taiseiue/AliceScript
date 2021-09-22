@@ -38,7 +38,7 @@ namespace alice
             Interpreter.Instance.OnOutput += Print;
 
             //例外スローを静かにする
-            //ThrowErrorManerger.HandleError = true;
+            ThrowErrorManerger.HandleError = true;
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
 
             
