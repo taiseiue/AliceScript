@@ -19,7 +19,7 @@ namespace AliceScript
             m_impl = this;
         }
 
-        // A "virtual" Constructor
+        // "仮想"コントラクスタ
         public ParserFunction(ParsingScript script, string item, char ch, ref string action)
         {
             if (item.Length == 0 && (ch == Constants.START_ARG || !script.StillValid()))
@@ -54,6 +54,8 @@ namespace AliceScript
             {
                 return;
             }
+
+          
 
             m_impl = GetVariable(item, script);
             if (m_impl != null)
@@ -296,7 +298,10 @@ namespace AliceScript
             {
                 return GetFunction(name, script);
             }
+            
+
             name = Constants.ConvertName(name);
+
             ParserFunction impl;
             StackLevel localStack = script != null &&  script.StackLevel != null ?
                  script.StackLevel : s_locals.Count > StackLevelDelta ? s_lastExecutionLevel : null;
@@ -323,7 +328,7 @@ namespace AliceScript
 
             return GetFunction(name, script);
         }
-
+        
         public static Variable GetVariableValue(string name, ParsingScript script = null)
         {
             name = Constants.ConvertName(name);
@@ -350,7 +355,7 @@ namespace AliceScript
 
             return null;
         }
-
+        
         public static ParserFunction GetFunction(string name, ParsingScript script)
         {
             name = Constants.ConvertName(name);
@@ -950,6 +955,9 @@ namespace AliceScript
 
         // Global variables:
         public static Dictionary<string, ParserFunction> s_variables = new Dictionary<string, ParserFunction>();
+
+        // Global consts:
+        public static Dictionary<string, Variable> s_consts = new Dictionary<string, Variable>();
 
         // Global actions to functions map:
         static Dictionary<string, ActionFunction> s_actions = new Dictionary<string, ActionFunction>();

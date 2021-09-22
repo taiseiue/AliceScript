@@ -202,45 +202,7 @@ namespace AliceScript
         public const string TRIM          = "Trim";
         public const string UPPER         = "Upper";
 
-        // Math Functions
-        public const string MATH_ABS      = "Math.Abs";
-        public const string MATH_ACOS     = "Math.Acos";
-        public const string MATH_ACOSH    = "Math.Acosh";
-        public const string MATH_ASIN     = "Math.Asin";
-        public const string MATH_ASINH    = "Math.Asinh";
-        public const string MATH_ATAN     = "Math.Atan";
-        public const string MATH_ATAN2    = "Math.Atan2";
-        public const string MATH_ATANH    = "Math.Atanh";
-        public const string MATH_CBRT     = "Math.Cbrt";
-        public const string MATH_CEIL     = "Math.Ceil";
-        public const string MATH_COS      = "Math.Cos";
-        public const string MATH_COSH     = "Math.Cosh";
-        public const string MATH_E        = "Math.E";
-        public const string MATH_EXP      = "Math.Exp";
-        public const string MATH_FLOOR    = "Math.Floor";
-        public const string MATH_LN2      = "Math.LN2";
-        public const string MATH_LN10     = "Math.LN10";
-        public const string MATH_LOG      = "Math.LOG";
-        public const string MATH_LOG2E    = "Math.LOG2E";
-        public const string MATH_LOG10E   = "Math.LOG10E";
-        public const string MATH_MAX      = "Math.Max";
-        public const string MATH_MIN      = "Math.Min";
-        public const string MATH_PI       = "Math.PI";
-        public const string MATH_POW      = "Math.Pow";
-        public const string MATH_RANDOM   = "Math.Random";
-        public const string MATH_ROUND    = "Math.Round";
-        public const string MATH_SIGN     = "Math.Sign";
-        public const string MATH_SIN      = "Math.Sin";
-        public const string MATH_SINH     = "Math.Sinh";
-        public const string MATH_SQRT     = "Math.Sqrt";
-        public const string MATH_SQRT1_2  = "Math.Sqrt1_2";
-        public const string MATH_SQRT2    = "Math.Sqrt2";
-        public const string MATH_TAN      = "Math.Tan";
-        public const string MATH_TANH     = "Math.Tanh";
-        public const string MATH_TRUNC    = "Math.Trunc";
-
-        public const string CONSOLE_LOG   = "console.log";
-
+        
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
         // Special property for converting an object to a string:
@@ -281,8 +243,8 @@ namespace AliceScript
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
-            APPENDLINE, CD, CLASS, CONNECTSRV, COPY, DELETE, DIR, EXISTS, FINDFILES, FINDSTR,
-            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP, MKDIR, MORE, MOVE, NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV,
+            APPENDLINE,  CLASS, 
+            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV,
             TAIL, THREAD, TRANSLATE, WRITE, WRITELINE, WRITENL
         };
 #else
@@ -314,6 +276,9 @@ namespace AliceScript
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
             SWITCH, CASE, DEFAULT, NAN, UNDEFINED,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString(), "math"
+        };
+        public static Dictionary<string, Variable> CONSTS = new Dictionary<string, Variable> {
+            { TRUE,Variable.True},{ FALSE,Variable.False},{ NULL,Variable.EmptyInstance},{ INFINITY,new Variable(double.PositiveInfinity)},{ NEG_INFINITY,new Variable(double.NegativeInfinity)}
         };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
@@ -381,6 +346,8 @@ namespace AliceScript
                 case Variable.VarType.OBJECT:   return "OBJECT";
                 case Variable.VarType.BREAK:    return "BREAK";
                 case Variable.VarType.CONTINUE: return "CONTINUE";
+                case Variable.VarType.DELEGATE: return "DELEGATE";
+                case Variable.VarType.BOOLEAN:  return "BOOLEAN";
                 case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }
@@ -410,6 +377,8 @@ namespace AliceScript
                 case "ARRAY": return Variable.VarType.ARRAY;
                 case "BREAK": return Variable.VarType.BREAK;
                 case "CONTINUE": return Variable.VarType.CONTINUE;
+                case "DELEGATE": return Variable.VarType.DELEGATE;
+                case "BOOLEAN":return Variable.VarType.BOOLEAN;
                 case "VARIABLE": return Variable.VarType.VARIABLE;
                 default: return Variable.VarType.NONE;
             }

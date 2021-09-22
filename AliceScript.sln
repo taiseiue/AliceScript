@@ -5,12 +5,14 @@ VisualStudioVersion = 16.0.31025.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AliceScript", "AliceScript\AliceScript.csproj", "{14A492C1-46DC-4545-B40E-A514BF851951}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "alice_repl", "alice_repl\alice_repl.csproj", "{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{93F839D8-1673-47AC-8853-BC03E014EF5A}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "alice", "alice\alice.csproj", "{2514108D-26E0-483A-8064-9CB4ACB5FDA6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alice.Runtime", "Alice.Runtime\Alice.Runtime.csproj", "{90A023AD-BF23-42EF-8043-48A8A3F481C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,18 +36,30 @@ Global
 		{14A492C1-46DC-4545-B40E-A514BF851951}.Release|x64.Build.0 = Release|Any CPU
 		{14A492C1-46DC-4545-B40E-A514BF851951}.Release|x86.ActiveCfg = Release|Any CPU
 		{14A492C1-46DC-4545-B40E-A514BF851951}.Release|x86.Build.0 = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|x64.Build.0 = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Debug|x86.Build.0 = Debug|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|x64.ActiveCfg = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|x64.Build.0 = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|x86.ActiveCfg = Release|Any CPU
-		{86D40D78-ABE1-47A7-BB2C-1CE28AAE331B}.Release|x86.Build.0 = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|x64.Build.0 = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Debug|x86.Build.0 = Debug|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|x64.ActiveCfg = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|x64.Build.0 = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|x86.ActiveCfg = Release|Any CPU
+		{2514108D-26E0-483A-8064-9CB4ACB5FDA6}.Release|x86.Build.0 = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|x64.Build.0 = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Debug|x86.Build.0 = Debug|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|x64.ActiveCfg = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|x64.Build.0 = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|x86.ActiveCfg = Release|Any CPU
+		{90A023AD-BF23-42EF-8043-48A8A3F481C5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

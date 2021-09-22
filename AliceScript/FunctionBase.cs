@@ -36,21 +36,24 @@ namespace AliceScript
         {
 
 
-            List<Variable> args;
-            if (ObjectBase.GETTING)
+            List<Variable> args=null;
+            if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
-                args = ObjectBase.LaskVariable;
-            }
-            else
-            {
-                args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
-            }
+                if (ObjectBase.GETTING)
+                {
+                    args = ObjectBase.LaskVariable;
+                }
+                else
+                {
+                    args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
+                }
 
 
 
-            if (MinimumArgCounts >= 1)
-            {
-                Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
+                if (MinimumArgCounts >= 1)
+                {
+                    Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
+                }
             }
             FunctionBaseEventArgs ex = new FunctionBaseEventArgs();
             ex.Args = args;
@@ -71,21 +74,24 @@ namespace AliceScript
             {
                 if (!currentVariable.Type.HasFlag(this.RequestType)) { ThrowErrorManerger.OnThrowError("関数[" + FunctionName + "]は無効または定義されていません"); return Variable.EmptyInstance; }
             }
-            List<Variable> args;
-            if (ObjectBase.GETTING)
+            List<Variable> args=null;
+            if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
-                args = ObjectBase.LaskVariable;
-            }
-            else
-            {
-                args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
-            }
+                if (ObjectBase.GETTING)
+                {
+                    args = ObjectBase.LaskVariable;
+                }
+                else
+                {
+                    args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
+                }
 
 
 
-            if (MinimumArgCounts >= 1)
-            {
-                Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
+                if (MinimumArgCounts >= 1)
+                {
+                    Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
+                }
             }
             FunctionBaseEventArgs ex = new FunctionBaseEventArgs();
             ex.Args = args;
@@ -145,7 +151,11 @@ namespace AliceScript
         /// <summary>
         /// フロー関数です。これらの関数の戻り値には意味はありません
         /// </summary>
-        CONTROL_FLOW=3
+        CONTROL_FLOW=3,
+        /// <summary>
+        /// 言語構造です。これらの関数では引数の自動チェックなどが実行されず、Script以外の要素はすべてNullになります
+        /// </summary>
+        LANGUAGE_STRUCTURE=4
     }
     
     public static class FunctionBaseManerger
@@ -242,15 +252,7 @@ namespace AliceScript
         /// </summary>
         public Variable CurentVariable { get; set; }
 
-    }
-    public class EmplyFunc : FunctionBase
-    {
-        public EmplyFunc()
-        {
-            FunctionName = "emplyfunc";
-
-        }
-
 
     }
+   
 }

@@ -111,7 +111,7 @@ namespace AliceScript
             Dictionary<string, string> dict1 = TranslationDictionary(fromLang, toLang);
             Dictionary<string, string> dict2 = TranslationDictionary(toLang, fromLang);
 
-            string[] lines = Utils.GetFileLines(filename);
+            string[] lines = Utils.GetFileLines(filename).Split(new string[] { Environment.NewLine},StringSplitOptions.None);
             foreach (string line in lines)
             {
                 string[] tokens = line.Split(" ".ToCharArray(),
@@ -134,7 +134,7 @@ namespace AliceScript
                 return;
             }
             Dictionary<string, string> dict = GetDictionary(Constants.ENGLISH, s_errors);
-            string[] lines = Utils.GetFileLines(filename);
+            string[] lines = Utils.GetFileLines(filename).Split(new string[] { Environment.NewLine},StringSplitOptions.None) ;
             foreach (string line in lines)
             {
                 string[] tokens = line.Split("=".ToCharArray(),

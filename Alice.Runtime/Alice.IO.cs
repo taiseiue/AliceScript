@@ -25,7 +25,7 @@ namespace AliceScript.NameSpaces
             space.Add(new file_write_textFunc());
             space.Add(new file_append_textFunc());
 
-            
+            space.Add(new directory_copyFunc());
             space.Add(new directory_moveFunc());
             space.Add(new directory_deleteFunc());
             space.Add(new directory_existsFunc());
@@ -50,7 +50,7 @@ namespace AliceScript.NameSpaces
         {
             if (e.Args.Count < 2)
             {
-                e.Return = new Variable(File.ReadAllText(e.Args[0].AsString()));
+                e.Return = new Variable(SafeReader.ReadAllText(e.Args[0].AsString()));
             }
             else
             {
@@ -181,14 +181,9 @@ namespace AliceScript.NameSpaces
 
         private void File_copyFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count < 3)
-            {
+            
                 File.Move(e.Args[0].AsString(), e.Args[1].AsString());
-            }
-            else
-            {
-                File.Move(e.Args[0].AsString(), e.Args[1].AsString(), e.Args[2].AsBool());
-            }
+           
         }
     }
     class file_existsFunc : FunctionBase
@@ -254,7 +249,7 @@ namespace AliceScript.NameSpaces
     {
         internal static bool FileDecrypt(string FilePath,string OutFilePath, string Password)
         {
-            int i, len;
+            int len;
             byte[] buffer = new byte[4096];
 
            
@@ -323,7 +318,7 @@ namespace AliceScript.NameSpaces
         internal static bool FileEncrypt(string FilePath, string OutFilePath, string Password)
         {
 
-            int i, len;
+            int len;
             byte[] buffer = new byte[4096];
 
 
@@ -478,7 +473,7 @@ namespace AliceScript.NameSpaces
     {
         public directory_getdirectoriesFunc()
         {
-            this.Name = "directory_getdirectoriesFunc";
+            this.Name = "directory_getdirectories";
             this.MinimumArgCounts = 1;
             this.Run += Directory_getdirectoriesFunc_Run;
         }
@@ -522,7 +517,7 @@ namespace AliceScript.NameSpaces
     {
         public directory_getfilesFunc()
         {
-            this.Name = "directory_getfilesFunc";
+            this.Name = "directory_getfiles";
             this.MinimumArgCounts = 1;
             this.Run += Directory_getdirectoriesFunc_Run;
         }
@@ -576,6 +571,62 @@ namespace AliceScript.NameSpaces
         {
            
             e.Return = new Variable(Directory.GetDirectoryRoot(e.Args[0].AsString()));
+        }
+    }
+    class directory_copyFunc : FunctionBase
+    {
+        public directory_copyFunc()
+        {
+            this.Name = "directory_copy";
+            this.MinimumArgCounts = 2;
+            this.Run += Directory_copyFunc_Run;
+        }
+
+        private void Directory_copyFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            DirectoryCopy(e.Args[0].AsString(),e.Args[1].AsString(),(Utils.GetSafeInt(e.Args,2,1)==1));
+        }
+
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new ArgumentException(sourceDirName + " directory doesn't exist");
+            }
+            if (sourceDirName.Equals(destDirName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //throw new ArgumentException(sourceDirName + ": directories are same");
+                string addPath = Path.GetFileName(sourceDirName);
+                destDirName = Path.Combine(destDirName, addPath);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string tempPath = Path.Combine(destDirName, file.Name);
+                File.Copy(file.FullName, tempPath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string tempPath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, tempPath, copySubDirs);
+                }
+            }
         }
     }
 }

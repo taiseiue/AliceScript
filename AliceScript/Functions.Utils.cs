@@ -1,11 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AliceScript
 {
    
  
-   
+   class wsverFunc : FunctionBase
+    {
+        public wsverFunc()
+        {
+            this.Name = "wsver";
+            this.MinimumArgCounts = 0;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += WsverFunc_Run;
+        }
 
+        private void WsverFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            //自分自身のAssemblyを取得
+            System.Reflection.Assembly asm =
+                System.Reflection.Assembly.GetExecutingAssembly();
+            //バージョンの取得
+            System.Version ver = asm.GetName().Version;
+            e.Return = new Variable(ver.ToString());
+        }
+    }
+    
 
     class LabelFunction : ActionFunction
     {
@@ -16,8 +36,12 @@ namespace AliceScript
         }
     }
     //デリゲートを作成する関数クラスです
-    class DelegateCreator : ParserFunction
+    class DelegateCreator : FunctionBase
     {
+        public DelegateCreator()
+        {
+            this.Name = "delegate";
+        }
         protected override Variable Evaluate(ParsingScript script)
         {
 
@@ -39,10 +63,15 @@ namespace AliceScript
                 parentOffset += script.CurrentClass.ParentOffset;
             }
 
-            string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
+            body = body.Substring(2);
+            if (!KnownLines.Contains(script.OriginalLine))
+            {
+                KnownLines.Add(script.OriginalLine);
+            }
             script.MoveForwardIf(Constants.END_GROUP);
-
-            CustomFunction customFunc = new CustomFunction(" ", body, args, script);
+            CustomFunction customFunc = new CustomFunction("", body, args, script);
             customFunc.ParentScript = script;
             customFunc.ParentOffset = parentOffset;
 
@@ -50,7 +79,9 @@ namespace AliceScript
 
             return new Variable(customFunc);
         }
+        internal static List<string> KnownLines = new List<string>();
     }
+ 
     class PointerFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -65,7 +96,7 @@ namespace AliceScript
             return result;
         }
     }
-
+    
     class PointerReferenceFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -104,13 +135,21 @@ namespace AliceScript
         }
     }
 
-    class GotoGosubFunction : ParserFunction
+    class GotoGosubFunction : FunctionBase
     {
         bool m_isGoto = true;
 
         public GotoGosubFunction(bool gotoMode = true)
         {
             m_isGoto = gotoMode;
+            if (m_isGoto)
+            {
+                this.Name = Constants.GOTO;
+            }
+            else
+            {
+                this.Name = Constants.GOSUB;
+            }
         }
 
         protected override Variable Evaluate(ParsingScript script)

@@ -15,7 +15,19 @@ namespace AliceScript
         private string m_originalScript;// original raw script
         private int m_scriptOffset = 0; // used in functions defined in bigger scripts
         private Dictionary<int, int> m_char2Line = null; // pointers to the original lines
+        private string m_tag;
 
+        public string Tag
+        {
+            get
+            {
+                return m_tag;
+            }
+            set
+            {
+                m_tag = value;
+            }
+        }
         public int Pointer
         {
             get { return m_from; }
@@ -337,6 +349,24 @@ namespace AliceScript
         {
             return m_from >= 3 ? m_data[m_from - 3] : Constants.EMPTY;
         }
+        public char TryPreviewWithoutSpace(int step, out string text,out int far)
+        {
+            text = "";
+            far = 0;
+            char lastchar=Constants.EMPTY;
+            if(m_from <= m_from - step) { return Constants.EMPTY; }
+            for (int i = 1; i < step; i++)
+            {
+                far++;
+                char c=m_data[m_from-i];
+                if(c!=' ')
+                {
+                    text = c + text;
+                    lastchar = c;
+                }
+            }
+            return lastchar;
+        }
 
         public string FromPrev(int backChars = 1, int maxChars = Constants.MAX_CHARS_TO_SHOW)
         {
@@ -619,14 +649,13 @@ namespace AliceScript
         public ParsingScript GetIncludeFileScript(string filename)
         {
             string pathname = GetFilePath(filename);
-            string[] lines = Utils.GetFileLines(pathname);
 
-            string includeFile = string.Join(Environment.NewLine, lines);
+            string includeFile = Utils.GetFileLines(pathname);
             Dictionary<int, int> char2Line;
             var includeScript = Utils.ConvertToScript(includeFile, out char2Line, pathname);
             ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
             tempScript.Filename = pathname;
-            tempScript.OriginalScript = string.Join(Constants.END_LINE.ToString(), lines);
+            tempScript.OriginalScript = includeFile.Replace(Environment.NewLine,Constants.END_LINE.ToString());
             tempScript.ParentScript = this;
             tempScript.InTryBlock = InTryBlock;
 

@@ -6,6 +6,7 @@
     <Description>AliceScriptは軽量なスクリプト言語の実装です</Description>
     <Copyright>©Copylight WSOFT 2021</Copyright>
     <SignAssembly>false</SignAssembly>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

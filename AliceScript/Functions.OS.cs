@@ -17,38 +17,58 @@ namespace AliceScript
     interface IStringFunction { }
 
     // Prints passed list of argumentsand
-    class PrintFunction : ParserFunction
+    class PrintFunction : FunctionBase
     {
-        public PrintFunction(bool newLine = true)
+        public PrintFunction()
         {
-            m_newLine = newLine;
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            AddOutput(args, script, m_newLine);
-
-            return Variable.EmptyInstance;
-        }
-        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
-        {
-            List<Variable> args = await script.GetFunctionArgsAsync();
-            AddOutput(args, script, m_newLine);
-
-            return Variable.EmptyInstance;
+           
+                this.Name = "print";
+           
+            this.MinimumArgCounts = 1;
+            this.Run += PrintFunction_Run;
         }
 
-        public static void AddOutput(List<Variable> args, ParsingScript script = null,
+        private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count == 1)
+            {
+                AddOutput(e.Args[0].AsString(), e.Script,true);
+            }
+            else
+            {
+                string text = e.Args[0].AsString();
+                MatchCollection mc = Regex.Matches(text, @"{[0-9]+}");
+                foreach (Match match in mc)
+                {
+                    int mn = -1;
+                    if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'), out mn))
+                    {
+                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); break; }
+                        if (e.Args.Count > mn + 1)
+                        {
+                            text = text.Replace(match.Value, e.Args[mn + 1].AsString());
+                        }
+                        else
+                        {
+                            ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        ThrowErrorManerger.OnThrowError("複合書式指定\"" + match.Value + "\"は無効です", e.Script);
+                        break;
+                    }
+                }
+                AddOutput(text,e.Script,true);
+            }
+        }
+        
+        public static void AddOutput(string text, ParsingScript script = null,
                                      bool addLine = true, bool addSpace = true, string start = "")
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(start);
-            foreach (var arg in args)
-            {
-                sb.Append(arg.AsString() + (addSpace ? " " : ""));
-            }
-
-            string output = sb.ToString() + (addLine ? Environment.NewLine : string.Empty);
+            
+            string output = text + (addLine ? Environment.NewLine : string.Empty);
             output = output.Replace("\\t", "\t").Replace("\\n", "\n");
             Interpreter.Instance.AppendOutput(output);
 
@@ -59,10 +79,8 @@ namespace AliceScript
                 debugger.AddOutput(output, script);
             }
         }
-
-        private bool m_newLine = true;
     }
-
+  
     class DataFunction : ParserFunction
     {
         public enum DataMode { ADD, SUBSCRIBE, SEND };
@@ -147,18 +165,6 @@ namespace AliceScript
         }
     }
 
-    // Returns how much processor time has been spent on the current process
-    class ProcessorTimeFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Process pr = Process.GetCurrentProcess();
-            TimeSpan ts = pr.TotalProcessorTime;
-
-            return new Variable(Math.Round(ts.TotalMilliseconds, 0));
-        }
-    }
-
     class TokenizeFunction : ParserFunction, IArrayFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -223,85 +229,6 @@ namespace AliceScript
         }
     }
 
-    class StringManipulationFunction : ParserFunction
-    {
-        public enum Mode
-        {
-            CONTAINS, STARTS_WITH, ENDS_WITH, INDEX_OF, EQUALS, REPLACE,
-            UPPER, LOWER, TRIM, SUBSTRING, BEETWEEN, BEETWEEN_ANY
-        };
-        Mode m_mode;
-
-        public StringManipulationFunction(Mode mode)
-        {
-            m_mode = mode;
-        }
-
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-
-            Utils.CheckArgs(args.Count, 1, m_name);
-            string source = Utils.GetSafeString(args, 0);
-            string argument = Utils.GetSafeString(args, 1);
-            string parameter = Utils.GetSafeString(args, 2, "case");
-            int startFrom = Utils.GetSafeInt(args, 3, 0);
-            int length = Utils.GetSafeInt(args, 4, source.Length);
-
-            StringComparison comp = StringComparison.Ordinal;
-            if (parameter.Equals("nocase") || parameter.Equals("no_case"))
-            {
-                comp = StringComparison.OrdinalIgnoreCase;
-            }
-
-            source = source.Replace("\\\"", "\"");
-            argument = argument.Replace("\\\"", "\"");
-
-            switch (m_mode)
-            {
-                case Mode.CONTAINS:
-                    return new Variable(source.IndexOf(argument, comp) >= 0);
-                case Mode.STARTS_WITH:
-                    return new Variable(source.StartsWith(argument, comp));
-                case Mode.ENDS_WITH:
-                    return new Variable(source.EndsWith(argument, comp));
-                case Mode.INDEX_OF:
-                    return new Variable(source.IndexOf(argument, startFrom, comp));
-                case Mode.EQUALS:
-                    return new Variable(source.Equals(argument, comp));
-                case Mode.REPLACE:
-                    return new Variable(source.Replace(argument, parameter));
-                case Mode.UPPER:
-                    return new Variable(source.ToUpper());
-                case Mode.LOWER:
-                    return new Variable(source.ToLower());
-                case Mode.TRIM:
-                    return new Variable(source.Trim());
-                case Mode.SUBSTRING:
-                    startFrom = Utils.GetSafeInt(args, 1, 0);
-                    length = Utils.GetSafeInt(args, 2, source.Length);
-                    length = Math.Min(length, source.Length - startFrom);
-                    return new Variable(source.Substring(startFrom, length));
-                case Mode.BEETWEEN:
-                case Mode.BEETWEEN_ANY:
-                    int index1 = source.IndexOf(argument, comp);
-                    int index2 = m_mode == Mode.BEETWEEN ? source.IndexOf(parameter, index1 + 1, comp) :
-                                          source.IndexOfAny(parameter.ToCharArray(), index1 + 1);
-                    startFrom = index1 + argument.Length;
-
-                    if (index1 < 0 || index2 < index1)
-                    {
-                        throw new ArgumentException("Couldn't extract string between [" + argument +
-                                                    "] and [" + parameter + "] + from " + source);
-                    }
-                    string result = source.Substring(startFrom, index2 - startFrom);
-                    return new Variable(result);
-            }
-
-            return new Variable(-1);
-        }
-    }
-
     // Append a string to another string
     class AppendFunction : ParserFunction, IStringFunction
     {
@@ -333,61 +260,8 @@ namespace AliceScript
         }
     }
 
-    class SignalWaitFunction : ParserFunction, INumericFunction
-    {
-        static AutoResetEvent waitEvent = new AutoResetEvent(false);
-        bool m_isSignal;
-
-        public SignalWaitFunction(bool isSignal)
-        {
-            m_isSignal = isSignal;
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            bool result = m_isSignal ? waitEvent.Set() :
-                                       waitEvent.WaitOne();
-            return new Variable(result);
-        }
-    }
-
-    class ThreadFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string body = script.TryPrev() == Constants.START_GROUP ?
-                          Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP) :
-                          Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
-            ThreadPool.QueueUserWorkItem(ThreadProc, body);
-            return Variable.EmptyInstance;
-        }
-
-        static void ThreadProc(Object stateInfo)
-        {
-            string body = (string)stateInfo;
-            ParsingScript threadScript = new ParsingScript(body);
-            threadScript.ExecuteAll();
-        }
-    }
-    class ThreadIDFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            int threadID = Thread.CurrentThread.ManagedThreadId;
-            return new Variable(threadID.ToString());
-        }
-    }
-    class SleepFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Variable sleepms = Utils.GetItem(script);
-            Utils.CheckPosInt(sleepms, script);
-
-            Thread.Sleep((int)sleepms.Value);
-
-            return Variable.EmptyInstance;
-        }
-    }
+ 
+   
     class LockFunction : ParserFunction
     {
         static Object lockObject = new Object();
@@ -499,70 +373,9 @@ namespace AliceScript
     }
 
   
-    // Returns an environment variable
-    class GetEnvFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string varName = Utils.GetToken(script, Constants.END_ARG_ARRAY);
-            string res = Environment.GetEnvironmentVariable(varName);
-
-            return new Variable(res);
-        }
-    }
-
-    // Sets an environment variable
-    class SetEnvFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            Variable varValue = Utils.GetItem(script);
-            string strValue = varValue.AsString();
-            Environment.SetEnvironmentVariable(varName, strValue);
-
-            return new Variable(varName);
-        }
-    }
+   
 
     
-
-    class RegexFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-
-            Utils.CheckArgs(args.Count, 2, m_name);
-            string pattern = Utils.GetSafeString(args, 0);
-            string text = Utils.GetSafeString(args, 1);
-
-            Variable result = new Variable(Variable.VarType.ARRAY);
-
-            Regex rx = new Regex(pattern,
-                        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-            MatchCollection matches = rx.Matches(text);
-
-            foreach (Match match in matches)
-            {
-                result.AddVariableToHash("matches", new Variable(match.Value));
-
-                var groups = match.Groups;
-                foreach (var group in groups)
-                {
-                    result.AddVariableToHash("groups", new Variable(group.ToString()));
-                }
-            }
-
-            return result;
-        }
-    }
-
-  
-  
 
   
 }

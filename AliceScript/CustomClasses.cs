@@ -83,16 +83,28 @@ namespace AliceScript
     {
         public static void Init()
         {
+            /*
             RegisterClass("CompiledTest", new TestCompiledClass());
             RegisterClass("CompiledTestAsync", new TestCompiledClassAsync());
 
             RegisterFunction("TestObject",
                 new GetVarFunction(new Variable(new TestScriptObject())), true);
-
-            RegisterFunction("Event", new GetVarFunction(new Variable(new EventObject())), true);
+            */
+           
         }
 
         public abstract ScriptObject GetImplementation(List<Variable> args);
+    }
+    public static class ClassManerger
+    {
+        public static void Add(ObjectBase obj)
+        {
+            ParserFunction.RegisterFunction(obj.Name,new GetVarFunction(new Variable(obj)),true);
+        }
+        public static void Remove(ObjectBase obj)
+        {
+            ParserFunction.UnregisterFunction(obj.Name);
+        }
     }
 
     public abstract class CompiledClassAsync : AliceScriptClass

@@ -55,6 +55,39 @@ namespace AliceScript.NameSpaces
             e.Return = new Variable(Math.E);
         }
     }
+    class math_isPrimeFunc : FunctionBase
+    {
+        public math_isPrimeFunc()
+        {
+            this.Name = "math_isPrime";
+            this.MinimumArgCounts = 1;
+            this.Run += Math_isPrimeFunc_Run;
+        }
+
+        private void Math_isPrimeFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(IsPrime(e.Args[0].AsInt()));
+        }
+        bool IsPrime(int num)
+        {
+            if (num < 2) return false;
+            else if (num == 2) return true;
+            else if (num % 2 == 0) return false; // 偶数はあらかじめ除く
+
+            double sqrtNum = Math.Sqrt(num);
+            for (int i = 3; i <= sqrtNum; i += 2)
+            {
+                if (num % i == 0)
+                {
+                    // 素数ではない
+                    return false;
+                }
+            }
+
+            // 素数である
+            return true;
+        }
+    }
     class math_tauFunc : FunctionBase
     {
         public math_tauFunc()

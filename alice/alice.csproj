@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>WSOFT</Authors>
+    <Product>AliceScript</Product>
+    <Description>AliceScriptの実行環境です</Description>
+    <Copyright>(c)Copylight WSOFT 2021</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AliceScript\AliceScript.csproj" />
+  </ItemGroup>
+
+</Project>

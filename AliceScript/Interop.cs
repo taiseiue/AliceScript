@@ -9,9 +9,7 @@ namespace AliceScript.Interop
     {
         public static void LoadLibrary(string path)
         {
-            
-            {
-                try
+            try
                 {
                     string ipluginName = typeof(ILibrary).FullName;
                     //アセンブリとして読み込む
@@ -35,8 +33,7 @@ namespace AliceScript.Interop
                 catch
                 {
                 }
-            }
-
+           
         }
         public static void LoadLibrary(byte[] rawassembly)
         {
@@ -70,7 +67,7 @@ namespace AliceScript.Interop
 
         }
     }
-    static class GCManerger
+   public static class GCManerger
     {
         public static bool CollectAfterExecute = false;
     }
