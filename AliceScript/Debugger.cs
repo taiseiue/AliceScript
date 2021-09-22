@@ -204,13 +204,6 @@ namespace AliceScript
             return filename;
         }
 
-        async Task<string> ProcessRepl(string repl, string filename = "")
-        {
-            
-            return "";
-        }
-
-        
 
         async Task<Variable> ProcessNext()
         {

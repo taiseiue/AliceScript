@@ -84,7 +84,7 @@ namespace AliceScript
         }
         private static MemoryStream FileDecrypt(string FilePath, string Password)
         {
-            int i, len;
+            int len;
             byte[] buffer = new byte[4096];
 
          
@@ -169,7 +169,7 @@ namespace AliceScript
     {
         internal static bool FileDecrypt(string FilePath, string OutFilePath, string Password)
         {
-            int i, len;
+            int  len;
             byte[] buffer = new byte[4096];
 
 
@@ -238,7 +238,7 @@ namespace AliceScript
         internal static bool FileEncrypt(string FilePath, string OutFilePath, string Password)
         {
 
-            int i, len;
+            int len;
             byte[] buffer = new byte[4096];
 
 

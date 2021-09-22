@@ -203,9 +203,6 @@ namespace AliceScript
         public const string UPPER         = "Upper";
 
         
-
-        public const string CONSOLE_LOG   = "console.log";
-
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
         // Special property for converting an object to a string:
@@ -246,8 +243,8 @@ namespace AliceScript
 #if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
-            APPENDLINE, CD, CLASS, CONNECTSRV, COPY, DELETE, DIR, EXISTS, FINDFILES, FINDSTR,
-            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP, MKDIR, MORE, MOVE, NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV,
+            APPENDLINE,  CLASS, 
+            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV,
             TAIL, THREAD, TRANSLATE, WRITE, WRITELINE, WRITENL
         };
 #else

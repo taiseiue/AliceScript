@@ -188,7 +188,7 @@ namespace AliceScript
             while (true);
 
             if (to.Contains(Constants.END_ARRAY) && ch == Constants.END_ARRAY &&
-                item[item.Length-1] != Constants.END_ARRAY &&
+                item[item.Length - 1] != Constants.END_ARRAY &&
                 item.ToString().Contains(Constants.START_ARRAY))
             {
                 item.Append(ch);
@@ -208,19 +208,19 @@ namespace AliceScript
             result = result.Replace("\\t", "\t");
             result = result.Replace("\\v", "\v");
             //UTF-16文字コードを文字に置き換えます
-            MatchCollection mc =Regex.Matches(result, @"\\u[0-9a-f]{4}");
-            foreach(Match match in mc)
+            MatchCollection mc = Regex.Matches(result, @"\\u[0-9a-f]{4}");
+            foreach (Match match in mc)
             {
-                result = result.Replace(match.Value,ConvertUnicodeToChar(match.Value.TrimStart('\\','u')));
+                result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'u')));
             }
             //UTF-32文字コードを文字に置き換えます
             mc = Regex.Matches(result, @"\\U[0-9A-F]{8}");
             foreach (Match match in mc)
             {
-                result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'U'),false));
+                result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'U'), false));
             }
             //[\\]を\に置き換えます(装置制御1から[\]に置き換えます)
-            result = result.Replace("\u0011","\\");
+            result = result.Replace("\u0011", "\\");
 
             if (throwExc && string.IsNullOrWhiteSpace(result) && action != "++" && action != "--" &&
                 Utils.IsAction(script.Prev) && Utils.IsAction(script.PrevPrev))
@@ -231,7 +231,7 @@ namespace AliceScript
 
             return result;
         }
-        static string ConvertUnicodeToChar(string charCode,bool mode=true)
+        static string ConvertUnicodeToChar(string charCode, bool mode = true)
         {
             if (mode)
             {
@@ -245,7 +245,7 @@ namespace AliceScript
                 int charCode32 = Convert.ToInt32(charCode, 16);  // 16進数文字列 -> 数値
                 return Char.ConvertFromUtf32(charCode32);
             }
-         
+
         }
         static bool UpdateResult(ParsingScript script, char[] to, List<Variable> listToMerge, string token, bool negSign,
                                  ref Variable current, ref int negated, ref string action)
@@ -296,17 +296,17 @@ namespace AliceScript
             char next = script.TryCurrent(); // we've already moved forward
             bool done = listToMerge.Count == 0 &&
                         (next == Constants.END_STATEMENT ||
-                        ((action == Constants.NULL_ACTION)&& (current.Type != Variable.VarType.BOOLEAN)) ||
+                        ((action == Constants.NULL_ACTION) && (current.Type != Variable.VarType.BOOLEAN)) ||
                          current.IsReturn);
             if (done)
             {
-                
+
                 if (action != null && action != Constants.END_ARG_STR && token != Constants.DEFAULT)
                 {
                     throw new ArgumentException("Action [" +
                               action + "] without an argument.");
                 }
-                
+
                 // If there is no numerical result, we are not in a math expression.
                 listToMerge.Add(current);
                 return true;
@@ -526,7 +526,7 @@ namespace AliceScript
                     needToAdd = false;
                 }
             }
-            
+
             //[&&]'かつ'演算なのに左辺がすでにFalseであったり[||]'または'演算なのに左辺がすでにTrueのとき、これ以上演算の必要がない。
             if ((current.Action == "&&" && !current.Bool) ||
                 (current.Action == "||" && current.Bool))
@@ -603,7 +603,7 @@ namespace AliceScript
                     Merge(next, ref index, listToMerge, script, true /* mergeOneOnly */);
                 }
 
-                current=MergeCells(current, next, script);
+                current = MergeCells(current, next, script);
                 if (mergeOneOnly)
                 {
                     break;
@@ -627,10 +627,10 @@ namespace AliceScript
                 // Done!
                 return Variable.EmptyInstance;
             }
-            if (leftCell.Type  == Variable.VarType.NUMBER &&
+            if (leftCell.Type == Variable.VarType.NUMBER &&
                 rightCell.Type == Variable.VarType.NUMBER)
             {
-              leftCell= MergeNumbers(leftCell, rightCell, script);
+                leftCell = MergeNumbers(leftCell, rightCell, script);
             }
             else if (leftCell.Type == Variable.VarType.BOOLEAN &&
                     rightCell.Type == Variable.VarType.BOOLEAN)
@@ -641,24 +641,24 @@ namespace AliceScript
             {
                 OperatorAssignFunction.DateOperator(leftCell, rightCell, leftCell.Action, script);
             }
-            else if(leftCell.Type==Variable.VarType.STRING||rightCell.Type==Variable.VarType.STRING)
+            else if (leftCell.Type == Variable.VarType.STRING || rightCell.Type == Variable.VarType.STRING)
             {
                 MergeStrings(leftCell, rightCell, script);
             }
             else if (leftCell.Type == Variable.VarType.ARRAY)
             {
-                leftCell = MergeArray(leftCell,rightCell,script);
+                leftCell = MergeArray(leftCell, rightCell, script);
             }
             else
             {
-                leftCell=MergeObjects(leftCell,rightCell,script);
+                leftCell = MergeObjects(leftCell, rightCell, script);
             }
             leftCell.Action = rightCell.Action;
             return leftCell;
         }
-        private static Variable MergeBooleans(Variable leftCell,Variable rightCell,ParsingScript script)
+        private static Variable MergeBooleans(Variable leftCell, Variable rightCell, ParsingScript script)
         {
-            if(rightCell.Type != Variable.VarType.BOOLEAN)
+            if (rightCell.Type != Variable.VarType.BOOLEAN)
             {
                 rightCell = new Variable(rightCell.AsBool());
             }
@@ -667,27 +667,21 @@ namespace AliceScript
                 case "==":
                 case "===":
                     return new Variable(leftCell.Bool == rightCell.Bool);
-                    break;
                 case "!=":
                 case "!==":
                     return new Variable(leftCell.Bool != rightCell.Bool);
-                    break;
                 case "&&":
-                    return  new Variable(
+                    return new Variable(
                         leftCell.Bool && rightCell.Bool);
-                    break;
                 case "||":
-                   return new Variable(
-                        leftCell.Bool || rightCell.Bool);
-                    break;
+                    return new Variable(
+                         leftCell.Bool || rightCell.Bool);
                 case ")":
                     return leftCell;
-                    break;
                 default:
-                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] in the expression.",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
                          script, leftCell.Action);
                     return leftCell;
-                    break;
             }
         }
         private static Variable MergeNumbers(Variable leftCell, Variable rightCell, ParsingScript script)
@@ -700,13 +694,10 @@ namespace AliceScript
             {
                 case "%":
                     return new Variable(leftCell.Value % rightCell.Value);
-                    break;
                 case "*":
                     return new Variable(leftCell.Value * rightCell.Value);
-                    break;
                 case "/":
                     return new Variable(leftCell.Value / rightCell.Value);
-                    break;
                 case "+":
                     if (rightCell.Type != Variable.VarType.NUMBER)
                     {
@@ -716,54 +707,38 @@ namespace AliceScript
                     {
                         return new Variable(leftCell.Value + rightCell.Value);
                     }
-                    break;
                 case "-":
                     return new Variable(leftCell.Value - rightCell.Value);
-                    break;
                 case "<":
                     return new Variable(leftCell.Value < rightCell.Value);
-                    break;
                 case ">":
                     return new Variable(leftCell.Value > rightCell.Value);
-                    break;
                 case "<=":
                     return new Variable(leftCell.Value <= rightCell.Value);
-                    break;
                 case ">=":
                     return new Variable(leftCell.Value >= rightCell.Value);
-                    break;
                 case "==":
                 case "===":
                     return new Variable(leftCell.Value == rightCell.Value);
-                    break;
                 case "!=":
                 case "!==":
                     return new Variable(leftCell.Value != rightCell.Value);
-                    break;
                 case "&":
-                    return  new Variable((int)leftCell.Value & (int)rightCell.Value);
-                    break;
+                    return new Variable((int)leftCell.Value & (int)rightCell.Value);
                 case "^":
                     return new Variable((int)leftCell.Value ^ (int)rightCell.Value);
-                    break;
                 case "|":
                     return new Variable((int)leftCell.Value | (int)rightCell.Value);
-                    break;
-                
-                    break;
                 case "**":
                     return new Variable(Math.Pow(leftCell.Value, rightCell.Value));
-                    break;
                 case ")":
                     // Utils.ThrowErrorMsg("Can't process last token [" + rightCell.Value + "] in the expression.",
                     //      script, script.Current.ToString());
                     return leftCell;
-                    break;
                 default:
-                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] in the expression.",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
                          script, leftCell.Action);
                     return leftCell;
-                    break;
             }
         }
 
@@ -819,9 +794,9 @@ namespace AliceScript
                 case ")":
                     break;
                 default:
-                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] on strings.",
+                    Utils.ThrowErrorMsg("String型演算で次の演算子を処理できませんでした。[" + leftCell.Action + "]",
                          script, leftCell.Action);
-                    break; 
+                    break;
             }
         }
         private static Variable MergeArray(Variable leftCell, Variable rightCell, ParsingScript script)
@@ -831,23 +806,37 @@ namespace AliceScript
                 case "==":
                 case "===":
                     return new Variable(leftCell.Equals(rightCell));
-                    break;
                 case "!=":
                 case "!==":
                     return new Variable(!leftCell.Equals(rightCell));
-                    break;
+                case "+=":
+                    {
+                        leftCell.Tuple.Add(rightCell);
+                        return leftCell;
+                    }
+                case "-=":
+                    {
+                        if (leftCell.Tuple.Remove(rightCell))
+                        {
+                            return leftCell;
+                        }
+                        else
+                        {
+                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",
+                         script, leftCell.Action);
+                            return leftCell;
+                        }
+                    }
                 case ")":
                     return leftCell;
-                    break;
                 default:
-                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] in the expression.",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
                          script, leftCell.Action);
                     return leftCell;
-                    break;
             }
-            
+
         }
-        
+
         private static Variable MergeObjects(Variable leftCell, Variable rightCell, ParsingScript script)
         {
             switch (leftCell.Action)
@@ -855,19 +844,15 @@ namespace AliceScript
                 case "==":
                 case "===":
                     return new Variable(leftCell.Equals(rightCell));
-                    break;
                 case "!=":
                 case "!==":
                     return new Variable(!leftCell.Equals(rightCell));
-                    break;
                 case ")":
                     return leftCell;
-                    break;
                 default:
-                    Utils.ThrowErrorMsg("Can't process operation [" + leftCell.Action + "] in the expression.",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
                          script, leftCell.Action);
                     return leftCell;
-                    break;
             }
         }
         static bool CanMergeCells(Variable leftCell, Variable rightCell)
@@ -884,18 +869,18 @@ namespace AliceScript
                 case "--": return 11;
                 case "%":
                 case "*":
-                case "/":  return 10;
+                case "/": return 10;
                 case "+":
-                case "-":  return 9;
+                case "-": return 9;
                 case "<":
                 case ">":
                 case ">=":
                 case "<=": return 8;
                 case "==":
                 case "!=": return 7;
-                case "&":  return 6;
-                case "|":  return 5;
-                case "^":  return 4;
+                case "&": return 6;
+                case "|": return 5;
+                case "^": return 4;
                 case "&&": return 2;
                 case "||": return 2;
                 case "+=":
@@ -903,7 +888,7 @@ namespace AliceScript
                 case "*=":
                 case "/=":
                 case "%=":
-                case "=":  return 1;
+                case "=": return 1;
             }
             return 0; // NULL action has priority 0.
         }
