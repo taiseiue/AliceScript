@@ -320,7 +320,7 @@ namespace AliceScript
         {
             try
             {
-                string lines = File.ReadAllText(filename);
+                string lines = SafeReader.ReadAllText(filename,out _);
                 return lines;
             }
             catch (Exception ex)
@@ -821,6 +821,10 @@ namespace AliceScript
                 Console.WriteLine("Exception getting current directory: {0}", exc.Message);
             }
             return "";
+        }
+        public static string ReadFile(string filaname)
+        {
+            return SafeReader.ReadAllText(filaname,out _);
         }
 
         public static void ExtendArrayIfNeeded<T>(List<T> array, int count, T defaultValue)

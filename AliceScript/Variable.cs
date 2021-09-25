@@ -12,8 +12,8 @@ namespace AliceScript
         public enum VarType
         {
             NONE, UNDEFINED, NUMBER, STRING, ARRAY,
-            ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTE_ARRAY,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME, CUSTOM, POINTER,DELEGATE,BOOLEAN
+            ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTES,
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE,  CUSTOM, POINTER,DELEGATE,BOOLEAN
         };
       
         public static Variable True
@@ -122,10 +122,7 @@ namespace AliceScript
         {
             String = s;
         }
-        public Variable(DateTime dt)
-        {
-            DateTime = dt;
-        }
+        
         public Variable(ParsingScript script,string[] args)
         {
 
@@ -143,6 +140,7 @@ namespace AliceScript
         public Variable(byte[] ba)
         {
             ByteArray = ba;
+            Type = VarType.BYTES;
         }
         public Variable(List<Variable> a)
         {
@@ -154,6 +152,15 @@ namespace AliceScript
             for (int i = 0; i < a.Count; i++)
             {
                 tuple.Add(new Variable(a[i]));
+            }
+            this.Tuple = tuple;
+        }
+        public Variable(string[] a)
+        {
+            List<Variable> tuple = new List<Variable>();
+            foreach(string s in a)
+            {
+                tuple.Add(new Variable(s));
             }
             this.Tuple = tuple;
         }
@@ -308,7 +315,7 @@ namespace AliceScript
             {
                 return Object == other.Object;
             }
-            if (Type == VarType.BYTE_ARRAY)
+            if (Type == VarType.BYTES)
             {
                 return ByteArray == other.ByteArray;
             }
@@ -705,10 +712,7 @@ namespace AliceScript
 
             return result;
         }
-        public virtual DateTime AsDateTime()
-        {
-            return m_datetime;
-        }
+        
         public virtual CustomFunction AsDelegate()
         {
             return m_delegate;
@@ -733,7 +737,6 @@ namespace AliceScript
             {
                 case VarType.BOOLEAN: return AsBool();
                 case VarType.NUMBER: return AsDouble();
-                case VarType.DATETIME: return AsDateTime();
                 case VarType.OBJECT: return Object;
                 case VarType.ARRAY:
                 case VarType.ARRAY_NUM:
@@ -750,11 +753,7 @@ namespace AliceScript
         
         public virtual string AsString(string format)
         {
-            if (Type == VarType.DATETIME && !string.IsNullOrWhiteSpace(format))
-            {
-                return DateTime.ToString(format);
-            }
-
+           
             return AsString();
         }
 
@@ -781,15 +780,11 @@ namespace AliceScript
             {
                 return m_string == null ? "" : m_string;
             }
-            if (Type == VarType.DATETIME)
-            {
-                return DateTime.ToString();
-            }
             if (Type == VarType.OBJECT)
             {
                 return ObjectToString();
             }
-            if (Type == VarType.BYTE_ARRAY)
+            if (Type == VarType.BYTES)
             {
                 return Encoding.Unicode.GetString(m_byteArray, 0, m_byteArray.Length);
             }
@@ -1364,10 +1359,6 @@ namespace AliceScript
                 {
                     Value += var.AsDouble();
                 }
-                else if (Type == VarType.DATETIME)
-                {
-                    DateTime = DateTimeFunction.Add(DateTime, var.AsString());
-                }
                 else
                 {
                     String += var.AsString();
@@ -1715,52 +1706,7 @@ namespace AliceScript
             Tuple = newTuple;
         }
 
-        public virtual void AddToDate(Variable valueB, int sign)
-        {
-            var dt = AsDateTime();
-            if (valueB.Type == Variable.VarType.NUMBER)
-            {
-                var delta = valueB.Value * sign;
-                if (dt.Date == DateTime.MinValue)
-                {
-                    DateTime = dt.AddSeconds(delta);
-                }
-                else
-                {
-                    DateTime = dt.AddDays(delta);
-                }
-            }
-            else if (valueB.Type == Variable.VarType.DATETIME)
-            {
-                if (dt.Date == DateTime.MinValue)
-                {
-                    if (sign < 0)
-                    {
-                        Value = DateTime.Subtract(valueB.DateTime).TotalSeconds;
-                    }
-                    else
-                    {
-                        DateTime = DateTime.AddSeconds(valueB.DateTime.Second);
-                    }
-                }
-                else
-                {
-                    if (sign < 0)
-                    {
-                        Value = DateTime.Subtract(valueB.DateTime).TotalDays;
-                    }
-                    else
-                    {
-                        DateTime = DateTime.AddDays(valueB.DateTime.Day);
-                    }
-                }
-            }
-            else
-            {
-                char ch = sign > 0 ? '+' : '-';
-                DateTime = DateTimeFunction.Add(DateTime, ch + valueB.AsString());
-            }
-        }
+        
 
         public virtual double Value
         {
@@ -1783,14 +1729,6 @@ namespace AliceScript
             get { return m_object; }
             set { m_object = value; Type = VarType.OBJECT; }
         }
-
-        public DateTime DateTime
-        {
-            get { return m_datetime; }
-            set { m_datetime = value; Type = VarType.DATETIME; }
-        }
-
-        
         public CustomFunction Delegate
         {
             get { return m_delegate; }
@@ -1804,7 +1742,7 @@ namespace AliceScript
         public byte[] ByteArray
         {
             get { return m_byteArray; }
-            set { m_byteArray = value; Type = VarType.BYTE_ARRAY; }
+            set { m_byteArray = value; Type = VarType.BYTES; }
         }
 
         public string Pointer

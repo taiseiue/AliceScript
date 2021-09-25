@@ -50,25 +50,25 @@ namespace AliceScript
             public CustomFunction Delegate { get; set; }
             public List<Variable> Args { get; set; }
         }
-        public override void Operator(Variable left, Variable right, string action)
+        public override Variable Operator(Variable left, Variable right, string action,ParsingScript script)
         {
             switch (action)
             {
                 case "+=":
-                    if (left == null || right==null) { return; }
-            if (right.Type != Variable.VarType.DELEGATE) { return; }
+                    if (left == null || right==null) { return left; }
+            if (right.Type != Variable.VarType.DELEGATE) { return left; }
                     
                Event.Add(right.AsDelegate());
                     break;
                 case "-=":
-                    if (left == null || right == null) { return; }
-                    if (right.Type != Variable.VarType.DELEGATE) { return; }
+                    if (left == null || right == null) { return left; }
+                    if (right.Type != Variable.VarType.DELEGATE) { return left; }
                     if (Event.Contains(right.AsDelegate())) { Event.Remove(right.AsDelegate()); }
                    
                     break;
             }
-           
-            
+
+            return left;
         }
       
         private void AddVars(List<Variable> args)

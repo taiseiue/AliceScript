@@ -33,9 +33,10 @@ namespace AliceScript
         internal static bool GETTING = false;
         public static List<Variable> LaskVariable;
 
-        public virtual void Operator(Variable left, Variable right, string action)
+        public virtual Variable Operator(Variable left, Variable right, string action, ParsingScript script)
         {
             //継承先によって定義されます
+            throw new NotImplementedException();
         }
         public virtual Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {

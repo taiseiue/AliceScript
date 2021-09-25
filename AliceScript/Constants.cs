@@ -238,36 +238,31 @@ namespace AliceScript
         public static char[] TOKEN_SEPARATION = TOKEN_SEPARATION_STR.ToCharArray();
         public static char[] TOKENS_SEPARATION = ",;)".ToCharArray();
 
-        // Functions that allow a space separator after them, on top of parentheses. The
-        // function arguments may have spaces as well, e.g. copy a.txt b.txt
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
+        // 関数呼び出し時に丸括弧が不要な関数
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
             APPENDLINE,  CLASS, 
-            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV,
-            TAIL, THREAD, TRANSLATE, WRITE, WRITELINE, WRITENL
+            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV, THREAD, TRANSLATE, WRITE, WRITELINE, WRITENL
         };
-#else
-        public static List<string> FUNCT_WITH_SPACE = new List<string> {
-            CLASS, FUNCTION, COMPILED_FUNCTION, HELP, NEW, NAMESPACE, SHOW, THREAD
-        };
-#endif
-        // Functions that allow a space separator after them, on top of parentheses but
-        // only once, i.e. function arguments are not allowed to have spaces
-        // between them e.g. return a*b;
+        //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>
         {
             CASE, RETURN, THROW, TYPE_OF, VAR
         };
 
-        // The Control Flow Functions. It doesn't make sense to merge them or
-        // use in calculation of a result.
+        // 言語構造の予約。これらを演算したり返すことは無意味
         public static List<string> CONTROL_FLOW = new List<string>
         {
             BREAK, CATCH, CLASS, COMPILED_FUNCTION, CONTINUE, ELSE, ELSE_IF, ELSE, FOR, FUNCTION, IF, INCLUDE, NEW,
             RETURN, THROW, TRY, WHILE
         };
 
+        //型変換を行うことができる変数の型
+        public static List<Variable.VarType> CAN_CONVERT_VARIABLE_TYPES = new List<Variable.VarType>() 
+        {
+            Variable.VarType.ARRAY,Variable.VarType.BOOLEAN,Variable.VarType.BYTES,Variable.VarType.NUMBER,Variable.VarType.STRING
+        };
+        //予約語
         public static List<string> RESERVED = new List<string>
         {
             BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
@@ -275,10 +270,20 @@ namespace AliceScript
             ASSIGNMENT, AND, OR, EQUAL, NOT_EQUAL, LESS, LESS_EQ, GREATER, GREATER_EQ,
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
             SWITCH, CASE, DEFAULT, NAN, UNDEFINED,
-            NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString(), "math"
+            NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
         };
+        //インタプリタに最初から定義される定数
         public static Dictionary<string, Variable> CONSTS = new Dictionary<string, Variable> {
-            { TRUE,Variable.True},{ FALSE,Variable.False},{ NULL,Variable.EmptyInstance},{ INFINITY,new Variable(double.PositiveInfinity)},{ NEG_INFINITY,new Variable(double.NegativeInfinity)}
+            //Trueを表します
+            { TRUE,Variable.True},
+            //Falseを表します
+            { FALSE,Variable.False},
+            //nullを表します
+            { NULL,Variable.EmptyInstance},
+            //無限を表します
+            { INFINITY,new Variable(double.PositiveInfinity)},
+            //負の無限を表します
+            { NEG_INFINITY,new Variable(double.NegativeInfinity)}
         };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
@@ -348,6 +353,7 @@ namespace AliceScript
                 case Variable.VarType.CONTINUE: return "CONTINUE";
                 case Variable.VarType.DELEGATE: return "DELEGATE";
                 case Variable.VarType.BOOLEAN:  return "BOOLEAN";
+                case Variable.VarType.BYTES: return "BYTES";
                 case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }

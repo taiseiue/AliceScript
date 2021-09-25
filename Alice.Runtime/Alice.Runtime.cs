@@ -17,6 +17,7 @@ namespace AliceScript.NameSpaces
         public void Main()
         {
             Alice_Initer.Init();
+            Alice_Regex_Initer.Init();
             Alice_Diagnostics_Initer.Init();
             Alice_Interpreter_Initer.Init();
             Alice_Drawing_Initer.Init();

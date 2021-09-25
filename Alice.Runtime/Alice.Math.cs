@@ -36,6 +36,7 @@ namespace AliceScript.NameSpaces
             space.Add(new math_tanFunc());
             space.Add(new math_tanhFunc());
             space.Add(new math_truncateFunc());
+            space.Add(new math_isPrimeFunc());
 
             NameSpaceManerger.Add(space);
         }

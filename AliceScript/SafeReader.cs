@@ -6,14 +6,14 @@ namespace AliceScript
 {
     public static class SafeReader
     {
-        public static string ReadAllText(string filename)
+        public static string ReadAllText(string filename,out string charcode)
         {
             FileInfo file = new FileInfo(filename);
             if (!file.Exists) throw new FileNotFoundException();
-
             using (FileReader reader = new FileReader(file))
             {
                 CharCode c = reader.Read(file);
+                charcode = c.Name;
                 return reader.Text;
             }
         }

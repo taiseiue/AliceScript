@@ -11,6 +11,10 @@ namespace AliceScript
         {
             //総合関数(VariableFunction.csに本体あり)
             Variable.AddFunc(new DisposeFunc());
+            Variable.AddFunc(new EqualsFunc());
+            Variable.AddFunc(new CloneFunc());
+            Variable.AddFunc(new ResetFunc());
+            Variable.AddFunc(new DeepCloneFunc());
             //String関数
             Variable.AddFunc(new string_TrimFunc(0), "Trim");
             Variable.AddFunc(new string_TrimFunc(1), "TrimStart");
@@ -80,6 +84,59 @@ namespace AliceScript
         }
        
     }
+    class ResetFunc : FunctionBase
+    {
+        public ResetFunc()
+        {
+            this.Name = "Reset";
+            this.Run += ResetFunc_Run;
+        }
+
+        private void ResetFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.CurentVariable.Reset();
+        }
+    }
+    class DeepCloneFunc : FunctionBase
+    {
+        public DeepCloneFunc()
+        {
+            this.Name = "DeepClone";
+            this.Run += DeepCloneFunc_Run;
+        }
+
+        private void DeepCloneFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = e.CurentVariable.DeepClone();
+        }
+    }
+    class CloneFunc : FunctionBase
+    {
+        public CloneFunc()
+        {
+            this.Name = "Clone";
+            this.Run += FinalizeFunc_Run;
+        }
+
+        private void FinalizeFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return=e.CurentVariable.Clone();
+        }
+    }
+    class EqualsFunc : FunctionBase
+    {
+        public EqualsFunc()
+        {
+            this.Name = "Equals";
+            this.MinimumArgCounts = 1;
+            this.Run += EqualsFunc_Run;
+        }
+
+        private void EqualsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.Equals(e.Args[0]));
+        }
+    }
     class BeginInvokeFunc : FunctionBase
     {
         public BeginInvokeFunc()
@@ -135,7 +192,7 @@ namespace AliceScript
         public toBase64Func()
         {
             this.FunctionName = "ToBase64";
-            this.RequestType = Variable.VarType.BYTE_ARRAY;
+            this.RequestType = Variable.VarType.BYTES;
             this.Run += ToBase64Func_Run;
         }
 
@@ -737,6 +794,7 @@ namespace AliceScript
             }
         }
     }
+  
     class list_marge2Func : FunctionBase
     {
         public list_marge2Func()

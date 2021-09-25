@@ -17,12 +17,8 @@ namespace AliceScript
 
         private void WsverFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            //自分自身のAssemblyを取得
-            System.Reflection.Assembly asm =
-                System.Reflection.Assembly.GetExecutingAssembly();
-            //バージョンの取得
-            System.Version ver = asm.GetName().Version;
-            e.Return = new Variable(ver.ToString());
+            
+            e.Return = new Variable(Alice.Version.ToString());
         }
     }
     

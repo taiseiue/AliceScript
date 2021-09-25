@@ -1351,69 +1351,175 @@ namespace AliceScript
             e.Return = new Variable(Variable.VarType.UNDEFINED);
         }
     }
-
-    class ToDoubleFunction : ParserFunction, INumericFunction
+    class TypeConvertFunc : FunctionBase
     {
-        protected override Variable Evaluate(ParsingScript script)
+        public TypeConvertFunc(Variable.VarType type)
         {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
-            Variable arg = args[0];
-
-            double result = Utils.ConvertToDouble(arg.AsString());
-            return new Variable(result);
+            this.Type = type;
+            this.Name = Type.ToString();
+            this.Run += TypeConvertFunc_Run;
         }
-    }
-    class ToIntFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
+
+        private void TypeConvertFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
-            Variable arg = args[0];
-
-            int result = Utils.ConvertToInt(arg.AsString());
-            return new Variable(result);
+            if (e.Args.Count == 0)
+            {
+                //引数がない場合、その型の変数の初期化のみ行い返す
+                e.Return = new Variable(Type);
+                return;
+            }
+            if (e.Args.Count == 1 && e.Args[0].Type == Type)
+            {
+                //引数が一つのみで、型も同じ場合その変数をそのまま返す
+                e.Return = e.Args[0];
+                return;
+            }
+            switch (Type)
+            {
+                case Variable.VarType.ARRAY:
+                    {
+                        Variable tuple = new Variable(Variable.VarType.ARRAY);
+                        foreach (Variable v in e.Args)
+                        {
+                            if (v.Type == Variable.VarType.ARRAY)
+                            {
+                                foreach (Variable v2 in v.Tuple)
+                                {
+                                    tuple.Tuple.Add(v2);
+                                }
+                            }
+                            else
+                            {
+                                tuple.Tuple.Add(v);
+                            }
+                        }
+                        e.Return = tuple;
+                        break;
+                    }
+                case Variable.VarType.BOOLEAN:
+                    {
+                        switch (e.Args[0].Type)
+                        {
+                            case Variable.VarType.NUMBER:
+                                {
+                                    e.Return = new Variable(e.Args[0].Value == 1.0);
+                                    break;
+                                }
+                            case Variable.VarType.BYTES:
+                                {
+                                    e.Return = new Variable(BitConverter.ToBoolean(e.Args[0].ByteArray));
+                                    break;
+                                }
+                            case Variable.VarType.STRING:
+                                {
+                                    e.Return = new Variable(e.Args[0].String.ToLower()=="true");
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+                case Variable.VarType.BYTES:
+                    {
+                        switch (e.Args[0].Type)
+                        {
+                            case Variable.VarType.BOOLEAN:
+                                {
+                                    e.Return = new Variable(BitConverter.GetBytes(e.Args[0].Bool));
+                                    break;
+                                }
+                            case Variable.VarType.NUMBER:
+                                {
+                                    e.Return = new Variable(BitConverter.GetBytes(e.Args[0].Value));
+                                    break;
+                                }
+                            case Variable.VarType.STRING:
+                                {
+                                    if (e.Args.Count > 1 && e.Args[1].Type == Variable.VarType.STRING)
+                                    {
+                                        e.Return = new Variable(System.Text.Encoding.GetEncoding(e.Args[1].AsString()).GetBytes(e.Args[0].AsString()));
+                                    }
+                                    else
+                                    {
+                                        e.Return = new Variable(System.Text.Encoding.Unicode.GetBytes(e.Args[0].AsString()));
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    e.Return = new Variable(Variable.VarType.BYTES);
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+                case Variable.VarType.NUMBER:
+                    {
+                        switch (e.Args[0].Type)
+                        {
+                            case Variable.VarType.BOOLEAN:
+                                {
+                                    double d = 0.0;
+                                    if (e.Args[0].Bool)
+                                    {
+                                        d = 1.0;
+                                    }
+                                    e.Return = new Variable(d);
+                                    break;
+                                }
+                            case Variable.VarType.BYTES:
+                                {
+                                    e.Return = new Variable(BitConverter.ToDouble(e.Args[0].ByteArray));
+                                    break;
+                                }
+                            case Variable.VarType.STRING:
+                                {
+                                    double d = 0.0;
+                                    if(double.TryParse(e.Args[0].String,out d))
+                                    {
+                                        e.Return = new Variable(d);
+                                    }
+                                    else
+                                    {
+                                        ThrowErrorManerger.OnThrowError("引数である"+e.Args[0].String+"は有効な数値の形式ではありません");
+                                    }
+                                    break;
+                                }
+                            
+                        }
+                        break;
+                    }
+                case Variable.VarType.STRING:
+                    {
+                        if (e.Args[0].Type == Variable.VarType.BYTES)
+                        {
+                            if (e.Args.Count > 1 && e.Args[1].Type == Variable.VarType.STRING)
+                            {
+                                System.Text.Encoding.GetEncoding(e.Args[1].AsString()).GetString(e.Args[0].ByteArray);
+                            }
+                            else
+                            {
+                                System.Text.Encoding.Unicode.GetString(e.Args[0].ByteArray);
+                            }
+                        }
+                        else
+                        {
+                            e.Return = new Variable(e.Args[0].AsString());
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        //これら以外(通常は起こりえないはず)の場合、nullを返す。
+                        e.Return = Variable.EmptyInstance;
+                        break;
+                    }
+            }
         }
-    }
-    class ToBoolFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
-            Variable arg = args[0];
 
-            double result = Utils.ConvertToBool(arg.AsString()) ? 1 : 0;
-            return new Variable(result);
-        }
+        private Variable.VarType Type;
     }
-    class ToDecimalFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name, true);
-            Variable arg = args[0];
-
-            string result = Decimal.Parse(arg.AsString(), NumberStyles.Any).ToString();
-            return new Variable(result);
-        }
-    }
-    class ToStringFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name);
-
-            Variable arg = args[0];
-            string format = Utils.GetSafeString(args, 1);
-
-            string result = arg.AsString(format);
-            return new Variable(result);
-        }
-    }
+   
+   
     class IdentityFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -1459,6 +1565,7 @@ namespace AliceScript
         public ForStatement()
         {
             this.Name = Constants.FOR;
+            this.Attribute = FunctionAttribute.LANGUAGE_STRUCTURE;
         }
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -1469,12 +1576,29 @@ namespace AliceScript
             return await Interpreter.Instance.ProcessForAsync(script);
         }
     }
+    class ForeachStatement : FunctionBase
+    {
+        public ForeachStatement()
+        {
+            this.Name = Constants.FOREACH;
+            this.Attribute = FunctionAttribute.LANGUAGE_STRUCTURE;
+        }
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            return Interpreter.Instance.ProcessForeach(script);
+        }
+        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
+        {
+            return await Interpreter.Instance.ProcessForeachAsync(script);
+        }
+    }
 
     class WhileStatement : FunctionBase
     {
         public WhileStatement()
         {
             this.Name = Constants.WHILE;
+            this.Attribute = FunctionAttribute.LANGUAGE_STRUCTURE;
         }
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -1485,26 +1609,13 @@ namespace AliceScript
             return await Interpreter.Instance.ProcessWhileAsync(script);
         }
     }
-    class NWhileStatement : FunctionBase
-    {
-        public NWhileStatement()
-        {
-            this.Name = "until";
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            return Interpreter.Instance.ProcessNWhile(script);
-        }
-        protected override async Task<Variable> EvaluateAsync(ParsingScript script)
-        {
-            return await Interpreter.Instance.ProcessNWhileAsync(script);
-        }
-    }
+
     class DoWhileStatement : FunctionBase
     {
         public DoWhileStatement()
         {
             this.Name = Constants.DO;
+            this.Attribute = FunctionAttribute.LANGUAGE_STRUCTURE;
         }
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -1841,21 +1952,17 @@ namespace AliceScript
             {
                 NumberOperator(left, right, m_action);
             }
-            else if (left.Object is ObjectBase ob)
+            else if (left.Type == Variable.VarType.ARRAY)
             {
-                ob.Operator(left, right, m_action);
+                ArrayOperator(left, right, m_action,script);
             }
-            else if (left.Type == Variable.VarType.DATETIME)
+            else if (left.Type == Variable.VarType.OBJECT && left.Object is ObjectBase obj)
             {
-                DateOperator(left, right, m_action, script, m_name);
-            }
-            else if (left.Type == Variable.VarType.DELEGATE)
-            {
-                DelegateOperator(left, right, m_action, script, m_name);
+                obj.Operator(left,right,m_action, script);
             }
             else
             {
-                StringOperator(left, right, m_action);
+                StringOperator(left,right,m_action);
             }
 
             if (arrayIndices.Count > 0)
@@ -1872,26 +1979,6 @@ namespace AliceScript
             return left;
         }
 
-        public static void DateOperator(Variable valueA,
-                          Variable valueB, string action, ParsingScript script, string name = "")
-        {
-            int sign = 1;
-            char ch = action.Length > 0 ? action[0] : '\0';
-            switch (ch)
-            {
-                case '+':
-                    sign = 1;
-                    break;
-                case '-':
-                    sign = -1;
-                    break;
-                default:
-                    Utils.ThrowErrorMsg("Not a valid action [" + action + "] on a date.",
-                                         script, name);
-                    break;
-            }
-            valueA.AddToDate(valueB, sign);
-        }
         static void DelegateOperator(Variable valueA, Variable valueB, string action, ParsingScript script, string token)
         {
             switch (action)
@@ -1902,11 +1989,42 @@ namespace AliceScript
                     }
                 default:
                     {
-                        Utils.ThrowErrorMsg("Not a valid action [" + action + "] on a date.",
+                        Utils.ThrowErrorMsg(token+"は有効な演算子ではありません",
                                         script, token);
                         break;
                     }
             }
+        }
+        static void ArrayOperator(Variable valueA,Variable valueB,string action,ParsingScript script)
+        {
+            switch (action)
+            {
+                case "+=":
+                    {
+                        valueA.Tuple.Add(valueB);
+                        return;
+                    }
+                case "-=":
+                    {
+                        if (valueA.Tuple.Remove(valueB))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            ThrowErrorManerger.OnThrowError("配列に対象の変数が見つかりませんでした",
+                         script);
+                            return;
+                        }
+                    }
+                default:
+                    {
+                        Utils.ThrowErrorMsg(action+ "は有効な演算子ではありません",
+                                        script, action);
+                        return;
+                    }
+            }
+            
         }
         static void NumberOperator(Variable valueA,
                                    Variable valueB, string action)

@@ -637,10 +637,6 @@ namespace AliceScript
             {
                 leftCell = MergeBooleans(leftCell, rightCell, script);
             }
-            else if (leftCell.Type == Variable.VarType.DATETIME)
-            {
-                OperatorAssignFunction.DateOperator(leftCell, rightCell, leftCell.Action, script);
-            }
             else if (leftCell.Type == Variable.VarType.STRING || rightCell.Type == Variable.VarType.STRING)
             {
                 MergeStrings(leftCell, rightCell, script);
@@ -648,6 +644,10 @@ namespace AliceScript
             else if (leftCell.Type == Variable.VarType.ARRAY)
             {
                 leftCell = MergeArray(leftCell, rightCell, script);
+            }
+            else if(leftCell.Type==Variable.VarType.OBJECT&&leftCell.Object is ObjectBase obj)
+            {
+                leftCell=obj.Operator(leftCell,rightCell,leftCell.Action,script);
             }
             else
             {

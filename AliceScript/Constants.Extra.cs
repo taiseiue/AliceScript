@@ -27,7 +27,6 @@ namespace AliceScript
         public const string STOPWATCH_ELAPSED = "StopWatchElapsed";
         public const string STOPWATCH_START = "StartStopWatch";
         public const string STOPWATCH_STOP = "StopStopWatch";
-        public const string TAIL = "tail";
         public const string TIMESTAMP = "Timestamp";
         public const string TRANSLATE = "translate";
         public const string WRITELINE = "writeline";
