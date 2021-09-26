@@ -60,8 +60,9 @@ namespace AliceScript
             }
 
             string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。下の式は将来使用するために残されています。
             //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
-            body = body.Substring(2);
+            
             if (!KnownLines.Contains(script.OriginalLine))
             {
                 KnownLines.Add(script.OriginalLine);

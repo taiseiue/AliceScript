@@ -123,18 +123,9 @@ namespace AliceScript
             String = s;
         }
         
-        public Variable(ParsingScript script,string[] args)
+        public Variable(CustomFunction func)
         {
-
-            string body = script.OriginalLine;
-
-            CustomFunction customFunc = new CustomFunction(" ", body, args, null);
-            this.Delegate = customFunc;
-            this.Type = VarType.DELEGATE;
-        }
-        public Variable(CustomFunction function)
-        {
-            this.Delegate = function;
+            this.Delegate = new DelegateObject(func);
             this.Type = VarType.DELEGATE;
         }
         public Variable(byte[] ba)
@@ -325,7 +316,7 @@ namespace AliceScript
             }
             if(Type == VarType.DELEGATE)
             {
-                return Delegate.Body == other.Delegate.Body;
+                return Delegate.Equals(other.Delegate);
             }
             if(Type == VarType.BOOLEAN)
             {
@@ -713,7 +704,7 @@ namespace AliceScript
             return result;
         }
         
-        public virtual CustomFunction AsDelegate()
+        public virtual DelegateObject AsDelegate()
         {
             return m_delegate;
         }
@@ -1729,7 +1720,7 @@ namespace AliceScript
             get { return m_object; }
             set { m_object = value; Type = VarType.OBJECT; }
         }
-        public CustomFunction Delegate
+        public DelegateObject Delegate
         {
             get { return m_delegate; }
             set
@@ -1802,7 +1793,7 @@ namespace AliceScript
         protected object m_object;
         protected bool m_bool;
         protected DateTime m_datetime;
-        protected CustomFunction m_delegate;
+        protected DelegateObject m_delegate;
         CustomFunction m_customFunctionGet;
         CustomFunction m_customFunctionSet;
         protected List<Variable> m_tuple;

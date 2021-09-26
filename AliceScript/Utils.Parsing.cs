@@ -1315,6 +1315,7 @@ namespace AliceScript
 
             return sb.ToString();
         }
+        //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。この関数は将来使用するために残されています。
         public static string GetBodyArrowBetween(ParsingScript script, char open = Constants.START_ARG,
                                             char close = Constants.END_ARG, char end = '\0')
         {
@@ -1380,8 +1381,17 @@ namespace AliceScript
                     break;
                 }
             }
-
-            return sb.ToString();
+            //delegate()=>{};の形では、=>{実際のコード};のようになっている場合がある。
+            string s = sb.ToString();
+            if (s.Length > 5)
+            {
+                if (s.StartsWith("=>{")&&s.EndsWith("};"))
+                {
+                    //その場合、実際のコード部分を切り出す
+                    s = s.Substring(3,s.Length-5);
+                }
+            }
+            return s;
         }
         
 

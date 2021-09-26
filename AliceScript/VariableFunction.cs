@@ -78,7 +78,7 @@ namespace AliceScript
         {
             if (e.CurentVariable.Delegate != null)
             {
-                e.Return = e.CurentVariable.Delegate.Run(e.Args);
+                e.Return = e.CurentVariable.Delegate.Invoke(e.Args,e.Script);
             }
 
         }
@@ -148,25 +148,9 @@ namespace AliceScript
 
         private void BeginInvokeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.CurentVariable.Delegate != null)
-            {
-                m_BeginInvokeMessanger mb = new m_BeginInvokeMessanger();
-                mb.Delegate = e.CurentVariable.Delegate;
-                mb.Args = e.Args;
-                ThreadPool.QueueUserWorkItem(ThreadProc, mb);
-            }
+            e.CurentVariable.Delegate.BeginInvoke(e.Args,e.Script);
         }
-        static void ThreadProc(Object stateInfo)
-        {
-            m_BeginInvokeMessanger mb = (m_BeginInvokeMessanger)stateInfo;
-            mb.Delegate.Run(mb.Args);
-        }
-
-        private class m_BeginInvokeMessanger
-        {
-            public CustomFunction Delegate { get; set; }
-            public List<Variable> Args { get; set; }
-        }
+      
         
     }
     class DisposeFunc : FunctionBase

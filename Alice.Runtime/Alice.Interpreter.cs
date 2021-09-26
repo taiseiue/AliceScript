@@ -316,7 +316,7 @@ namespace AliceScript.NameSpaces
                 e.Return = Variable.EmptyInstance;
             }
             int timeout = e.Args[0].AsInt();
-            CustomFunction delAction = e.Args[3].AsDelegate();
+            DelegateObject delAction = e.Args[3].AsDelegate();
             string timerId = Utils.GetSafeString(e.Args, 1);
             bool autoReset = (Utils.GetSafeBool(e.Args, 2));
 
@@ -337,7 +337,7 @@ namespace AliceScript.NameSpaces
                     pauseTimer.Dispose();
                     m_timers.Remove(timerId);
                 }
-                delAction.Run(args, e.Script);
+                delAction.Invoke(args, e.Script);
             };
             pauseTimer.AutoReset = autoReset;
             m_timers[timerId] = pauseTimer;

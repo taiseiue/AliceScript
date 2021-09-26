@@ -1017,7 +1017,7 @@ namespace AliceScript
             Variable result = null;
             ParsingScript tempScript = Utils.GetTempScript(m_body, m_stackLevel, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
-
+            
             Debugger debugger = script != null && script.Debugger != null ? script.Debugger : Debugger.MainInstance;
             if (script != null && debugger != null)
             {
@@ -1956,6 +1956,10 @@ namespace AliceScript
             {
                 ArrayOperator(left, right, m_action,script);
             }
+            else if (left.Type == Variable.VarType.DELEGATE)
+            {
+                DelegateOperator(left,right,m_action,script);
+            }
             else if (left.Type == Variable.VarType.OBJECT && left.Object is ObjectBase obj)
             {
                 obj.Operator(left,right,m_action, script);
@@ -1979,18 +1983,48 @@ namespace AliceScript
             return left;
         }
 
-        static void DelegateOperator(Variable valueA, Variable valueB, string action, ParsingScript script, string token)
+        static void DelegateOperator(Variable valueA, Variable valueB, string action, ParsingScript script)
         {
             switch (action)
             {
-                case "=>":
+                case "+=":
                     {
+                        valueA.Delegate.Add(valueB.Delegate);
+                        break;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(valueA.Delegate);
+                        v.Delegate.Add(valueB.Delegate);
+                        valueA.Delegate = v.Delegate;
+                        break;
+                    }
+                case "-=":
+                    {
+                        if (valueA.Delegate.Remove(valueB.Delegate))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",
+                         script, action);
+                            break;
+                        }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(valueA.Delegate);
+                        v.Delegate.Remove(valueB.Delegate);
+                        valueA.Delegate = v.Delegate;
                         break;
                     }
                 default:
                     {
-                        Utils.ThrowErrorMsg(token+"は有効な演算子ではありません",
-                                        script, token);
+                        Utils.ThrowErrorMsg(action+"は有効な演算子ではありません",
+                                        script, action);
                         break;
                     }
             }
@@ -2001,21 +2035,52 @@ namespace AliceScript
             {
                 case "+=":
                     {
-                        valueA.Tuple.Add(valueB);
-                        return;
+                        if (valueB.Type == Variable.VarType.ARRAY)
+                        {
+                            valueA.Tuple.AddRange(valueB.Tuple);
+                        }
+                        else
+                        {
+                            valueA.Tuple.Add(valueB);
+                        }
+                        break;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+                        if (valueB.Type == Variable.VarType.ARRAY)
+                        {
+                            v.Tuple.AddRange(valueA.Tuple);
+                            v.Tuple.AddRange(valueB.Tuple);
+                        }
+                        else
+                        {
+                            v.Tuple.AddRange(valueA.Tuple);
+                            v.Tuple.Add(valueB);
+                        }
+                        break;
                     }
                 case "-=":
                     {
                         if (valueA.Tuple.Remove(valueB))
                         {
-                            return;
+                            break;
                         }
                         else
                         {
-                            ThrowErrorManerger.OnThrowError("配列に対象の変数が見つかりませんでした",
-                         script);
-                            return;
+                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",
+                         script, action);
+                            break;
                         }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+
+                        v.Tuple.AddRange(valueA.Tuple);
+                        v.Tuple.Remove(valueB);
+
+                        break;
                     }
                 default:
                     {

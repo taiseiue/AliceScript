@@ -16,14 +16,14 @@ namespace AliceScript
             this.Functions.Add("Invoke",new e_doFunc(this));
             
         }
-        public List<CustomFunction> Event = new List<CustomFunction>();
+        public List<DelegateObject> Event = new List<DelegateObject>();
         public void Invoke(List<Variable> args)
         {
             //とりあえずイベントポンプ中は変数無効エラーを抑制
             EventObject.overDDerror = true;
-          foreach(CustomFunction cf in Event)
+          foreach(DelegateObject cf in Event)
             {
-                cf.Run(args);
+                cf.Invoke(args);
             }
             EventObject.overDDerror = false;
         }
@@ -31,12 +31,9 @@ namespace AliceScript
         {
             //とりあえずイベントポンプ中は変数無効エラーを抑制
             EventObject.overDDerror = true;
-            foreach (CustomFunction cf in Event)
+            foreach (DelegateObject cf in Event)
             {
-                m_BeginInvokeMessanger mb = new m_BeginInvokeMessanger();
-                mb.Args = args;
-                mb.Delegate = cf;
-                ThreadPool.QueueUserWorkItem(ThreadProc, mb);
+                cf.BeginInvoke(args);
             }
             EventObject.overDDerror = false;
         }
@@ -52,6 +49,7 @@ namespace AliceScript
         }
         public override Variable Operator(Variable left, Variable right, string action,ParsingScript script)
         {
+            
             switch (action)
             {
                 case "+=":
@@ -69,6 +67,8 @@ namespace AliceScript
             }
 
             return left;
+            
+            return Variable.EmptyInstance;
         }
       
         private void AddVars(List<Variable> args)
