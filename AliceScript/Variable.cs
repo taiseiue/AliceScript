@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 namespace AliceScript
 {
 
-    public class Variable:ScriptObject
+    public class Variable : ScriptObject
     {
         public enum VarType
         {
             NONE, UNDEFINED, NUMBER, STRING, ARRAY,
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTES,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE,  CUSTOM, POINTER,DELEGATE,BOOLEAN
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, CUSTOM, POINTER, DELEGATE, BOOLEAN
         };
-      
+
         public static Variable True
         {
             get
@@ -43,7 +43,7 @@ namespace AliceScript
             name = name.ToLower();
             Functions.Add(name, fb);
         }
-    
+
         public static Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
 
         List<string> ScriptObject.GetProperties()
@@ -53,12 +53,8 @@ namespace AliceScript
 
             return v;
         }
-
-
-
         public static bool GETTING = false;
         public static List<Variable> LaskVariable;
-
 
         Task<Variable> ScriptObject.GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {
@@ -122,7 +118,7 @@ namespace AliceScript
         {
             String = s;
         }
-        
+
         public Variable(CustomFunction func)
         {
             this.Delegate = new DelegateObject(func);
@@ -149,7 +145,7 @@ namespace AliceScript
         public Variable(string[] a)
         {
             List<Variable> tuple = new List<Variable>();
-            foreach(string s in a)
+            foreach (string s in a)
             {
                 tuple.Add(new Variable(s));
             }
@@ -200,7 +196,7 @@ namespace AliceScript
             return newVar;
 
         }
-        
+
         public virtual Variable DeepClone()
         {
             //Variable newVar = new Variable();
@@ -230,7 +226,6 @@ namespace AliceScript
         {
             return new Variable();
         }
-
         public static Variable ConvertToVariable(object obj)
         {
             if (obj == null)
@@ -310,23 +305,23 @@ namespace AliceScript
             {
                 return ByteArray == other.ByteArray;
             }
-            if(Type == VarType.BOOLEAN)
+            if (Type == VarType.BOOLEAN)
             {
                 return Bool == other.Bool;
             }
-            if(Type == VarType.DELEGATE)
+            if (Type == VarType.DELEGATE)
             {
                 return Delegate.Equals(other.Delegate);
             }
-            if(Type == VarType.BOOLEAN)
+            if (Type == VarType.BOOLEAN)
             {
                 return Bool == other.Bool;
             }
-            if(Type == VarType.ARRAY)
+            if (Type == VarType.ARRAY)
             {
-                return EqualsArray(Tuple,other.Tuple);
+                return EqualsArray(Tuple, other.Tuple);
             }
-            if(Type == VarType.NONE)
+            if (Type == VarType.NONE)
             {
                 return other.Type == VarType.NONE;
             }
@@ -358,7 +353,7 @@ namespace AliceScript
             return AsString() == other.AsString();
         }
 
-        private bool EqualsArray(List<Variable> ary1,List<Variable> ary2)
+        private bool EqualsArray(List<Variable> ary1, List<Variable> ary2)
         {
             //結果を格納する変数
             bool isEqual = true;
@@ -525,8 +520,9 @@ namespace AliceScript
 
         public int GetArrayIndex(Variable indexVar)
         {
-            if (this.Type != VarType.ARRAY)
+            if (!Constants.CAN_GET_ARRAYELEMENT_VARIABLE_TYPES.Contains(this.Type))
             {
+                //変換不可
                 return -1;
             }
 
@@ -595,14 +591,14 @@ namespace AliceScript
             return m_dictionary.ContainsKey(lower);
         }
 
-        
+
         public int FindIndex(Variable val)
         {
             if (this.Type != VarType.ARRAY)
             {
                 return -1;
             }
-            return m_tuple.FindIndex(item=>item==val);
+            return m_tuple.FindIndex(item => item == val);
         }
 
         public bool Exists(Variable indexVar, bool notEmpty = false)
@@ -629,14 +625,14 @@ namespace AliceScript
             string hash = indexVar.AsString();
             return Exists(hash);
         }
-       
+
         public virtual bool AsBool()
         {
             if (Type == VarType.BOOLEAN)
             {
                 return m_bool;
             }
-            
+
             return false;
         }
 
@@ -703,7 +699,7 @@ namespace AliceScript
 
             return result;
         }
-        
+
         public virtual DelegateObject AsDelegate()
         {
             return m_delegate;
@@ -741,10 +737,10 @@ namespace AliceScript
             }
             return AsString();
         }
-        
+
         public virtual string AsString(string format)
         {
-           
+
             return AsString();
         }
 
@@ -779,7 +775,7 @@ namespace AliceScript
             {
                 return Encoding.Unicode.GetString(m_byteArray, 0, m_byteArray.Length);
             }
-            
+
 
             StringBuilder sb = new StringBuilder();
             if (Type == VarType.ENUM)
@@ -1082,7 +1078,7 @@ namespace AliceScript
 
             int ind = propName.IndexOf('.');
             if (ind > 0)
-            { // The case x = a.b.c ... is dealt here recursively
+            { //x=a.b.cの場合はここで再帰的に処理
                 string varName = propName.Substring(0, ind);
                 string actualPropName = propName.Substring(ind + 1);
                 Variable property = GetProperty(varName, script);
@@ -1592,14 +1588,35 @@ namespace AliceScript
 
         public int GetSize()
         {
-            int size = Type == Variable.VarType.ARRAY ? Tuple.Count : 0;
-            return size;
+            return GetLength();
         }
 
         public int GetLength()
         {
-            int len = Type == Variable.VarType.ARRAY ?
-                  Tuple.Count : AsString().Length;
+            int len = 0;
+            switch (Type)
+            {
+                case VarType.ARRAY:
+                    {
+                        len = Tuple.Count;
+                        break;
+                    }
+                case VarType.DELEGATE:
+                    {
+                        len = Delegate.Length;
+                        break;
+                    }
+                case VarType.BYTES:
+                    {
+                        len = ByteArray.Length;
+                        break;
+                    }
+                case VarType.STRING:
+                    {
+                        len = String.Length;
+                        break;
+                    }
+            }
             return len;
         }
 
@@ -1630,6 +1647,18 @@ namespace AliceScript
             if (Type == VarType.ARRAY)
             {
                 return m_tuple[index];
+            }
+            else if (Type == VarType.BYTES)
+            {
+                return new Variable(ByteArray[index]);
+            }
+            else if (Type == VarType.DELEGATE)
+            {
+                return new Variable(Delegate.Functions[index]);
+            }
+            else if (Type == VarType.STRING)
+            {
+                return new Variable(String[index].ToString());
             }
             return this;
         }
@@ -1697,7 +1726,7 @@ namespace AliceScript
             Tuple = newTuple;
         }
 
-        
+
 
         public virtual double Value
         {

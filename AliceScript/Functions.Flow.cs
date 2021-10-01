@@ -1702,10 +1702,39 @@ namespace AliceScript
             // First check if this element is part of an array:
             if (script.TryPrev() == Constants.START_ARRAY)
             {
-                // There is an index given - it must be for an element of the tuple.
-                if (m_value.Tuple == null || m_value.Tuple.Count == 0)
+                
+                //配列添え字演算子を使用できないケースではじく処理を記述
+                switch (m_value.Type)
                 {
-                    throw new ArgumentException("No tuple exists for the index");
+                    case Variable.VarType.ARRAY:
+                        {
+                            if (m_value.Tuple == null || m_value.Tuple.Count == 0)
+                            {
+                                throw new ArgumentException("指定された配列には要素がありません");
+                            }
+                            break;
+                        }
+                        
+                    case Variable.VarType.DELEGATE:
+                        {
+                            if(m_value.Delegate == null || m_value.Delegate.Length == 0)
+                            {
+                                throw new ArgumentException("指定されたデリゲートには要素がありません");
+                            }
+                            break;
+                        }
+                    case Variable.VarType.STRING:
+                        {
+                            if (string.IsNullOrEmpty(m_value.String))
+                            {
+                                throw new ArgumentException("指定された文字列は空です");
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            throw new ArgumentException("指定された変数で、配列添え字演算子を使用することができません");
+                        }
                 }
 
                 if (m_arrayIndices == null)
@@ -2164,7 +2193,7 @@ namespace AliceScript
 
             if (script.Current == ' ' || script.Prev == ' ')
             {
-                Utils.ThrowErrorMsg("Can't process expression [" + script.Rest + "].",
+                Utils.ThrowErrorMsg("[" + script.Rest + "]は無効なトークンです",
                                     script, m_name);
             }
 

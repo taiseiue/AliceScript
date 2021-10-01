@@ -1558,16 +1558,36 @@ namespace AliceScript
                 Variable index = indices[i];
                 int arrayIndex = currLevel.GetArrayIndex(index);
 
-                int tupleSize = currLevel.Tuple != null ? currLevel.Tuple.Count : 0;
+                int tupleSize = currLevel.GetSize();
+                
                 if (arrayIndex < 0 || arrayIndex >= tupleSize)
                 {
-                    ThrowErrorMsg("Unknown index [" + index.AsString() +
-                                  "] for tuple of size " + tupleSize, script, index.AsString());
+                    ThrowErrorMsg("インデックス: [" + index.AsString() +
+                                  "] は配列の長さ" + tupleSize+"の中に存在しません", script, index.AsString());
+                    return currLevel;
                 }
-                currLevel = currLevel.Tuple[arrayIndex];
+                switch (currLevel.Type)
+                {
+                    case Variable.VarType.ARRAY:
+                        {
+                            currLevel = currLevel.Tuple[arrayIndex];
+                            break;
+                        }
+                    case Variable.VarType.DELEGATE:
+                        {
+                            currLevel = new Variable(currLevel.Delegate.Functions[arrayIndex]);
+                            break;
+                        }
+                    case Variable.VarType.STRING:
+                        {
+                            currLevel = new Variable(currLevel.String[arrayIndex].ToString());
+                            break;
+                        }
+                }
             }
             return currLevel;
         }
+      
 
         public static string GetLinesFromList(ParsingScript script)
         {

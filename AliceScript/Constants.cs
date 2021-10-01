@@ -262,6 +262,11 @@ namespace AliceScript
         {
             Variable.VarType.ARRAY,Variable.VarType.BOOLEAN,Variable.VarType.BYTES,Variable.VarType.NUMBER,Variable.VarType.STRING
         };
+        //配列添え字演算子を使用できる変数の型
+        public static List<Variable.VarType> CAN_GET_ARRAYELEMENT_VARIABLE_TYPES = new List<Variable.VarType>() 
+        {
+            Variable.VarType.ARRAY,Variable.VarType.DELEGATE,Variable.VarType.STRING
+        };
         //予約語
         public static List<string> RESERVED = new List<string>
         {

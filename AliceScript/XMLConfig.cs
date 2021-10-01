@@ -268,23 +268,19 @@ namespace AliceScript
 
     /// <summary>
     /// 設定の変更時に発生するイベントの引数
-    /// (実際は[root/Plugin/%GUID%/設定へのパス]へ書き込み/読み込みされます。Pluginより上の階層への書き込み/読み込みは許可されていません)
     /// </summary>
     public class WritedEventArgs : EventArgs
 
     { /// <summary>
       /// 変更された設定のパス
-      /// (実際は[root/Plugin/%GUID%/設定へのパス]へ書き込み/読み込みされます。Pluginより上の階層への書き込み/読み込みは許可されていません)
       /// </summary>
         public string Path { get; set; }
         /// <summary>
         /// 変更された設定の中身(String)
-        /// (実際は[root/Plugin/%GUID%/設定へのパス]へ書き込み/読み込みされます。Pluginより上の階層への書き込み/読み込みは許可されていません)
         /// </summary>
         public string Value { get; set; }
     } /// <summary>
       /// 設定の変更時に発生するイベントハンドラーです
-      /// (実際は[root/Plugin/%GUID%/設定へのパス]へ書き込み/読み込みされます。Pluginより上の階層への書き込み/読み込みは許可されていません)
       /// </summary>
     public delegate void WritedEventHandler(object sender, WritedEventArgs e);
 }
