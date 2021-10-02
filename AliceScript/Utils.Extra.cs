@@ -343,7 +343,7 @@ namespace AliceScript
                 {
                     string token = item.ToString();
                     ParserFunction func = ParserFunction.GetFunction(token, parentSript);
-                    bool isNative = Translation.IsNativeWord(token);
+                    bool isNative = false;
                     if (func != null || isNative)
                     {
                         ConsoleColor col = isNative || func.isNative ? ConsoleColor.Green :

@@ -260,7 +260,7 @@ namespace AliceScript
             string result = arg.AsString();
 
             // 3. Throw it!
-            throw new ArgumentException(result);
+            ThrowErrorManerger.OnThrowError(result,e.Script);
         }
     }
 
@@ -321,6 +321,11 @@ namespace AliceScript
 
     class FunctionCreator : ParserFunction
     {
+        public FunctionCreator(bool? mode=null)
+        {
+            m_mode = mode;
+        }
+        bool? m_mode = null;
         protected override Variable Evaluate(ParsingScript script)
         {
             string funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
@@ -356,6 +361,7 @@ namespace AliceScript
             }
             else
             {
+                
                 ParserFunction.RegisterFunction(funcName, customFunc, false /* not native */);
             }
 
@@ -1786,10 +1792,38 @@ namespace AliceScript
             // First check if this element is part of an array:
             if (script.TryPrev() == Constants.START_ARRAY)
             {
-                // There is an index given - it must be for an element of the tuple.
-                if (m_value.Tuple == null || m_value.Tuple.Count == 0)
+                //配列添え字演算子を使用できないケースではじく処理を記述
+                switch (m_value.Type)
                 {
-                    throw new ArgumentException("No tuple exists for the index");
+                    case Variable.VarType.ARRAY:
+                        {
+                            if (m_value.Tuple == null || m_value.Tuple.Count == 0)
+                            {
+                                throw new ArgumentException("指定された配列には要素がありません");
+                            }
+                            break;
+                        }
+
+                    case Variable.VarType.DELEGATE:
+                        {
+                            if (m_value.Delegate == null || m_value.Delegate.Length == 0)
+                            {
+                                throw new ArgumentException("指定されたデリゲートには要素がありません");
+                            }
+                            break;
+                        }
+                    case Variable.VarType.STRING:
+                        {
+                            if (string.IsNullOrEmpty(m_value.String))
+                            {
+                                throw new ArgumentException("指定された文字列は空です");
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            throw new ArgumentException("指定された変数で、配列添え字演算子を使用することができません");
+                        }
                 }
 
                 if (m_arrayIndices == null)
@@ -1976,8 +2010,18 @@ namespace AliceScript
                 left = Utils.ExtractArrayElement(currentValue, arrayIndices, script);
                 script.MoveForwardIf(Constants.END_ARRAY);
             }
-
-            if (left.Type == Variable.VarType.NUMBER)
+            if(m_action == "??")
+            {
+                if(left.Type == Variable.VarType.NONE)
+                {
+                    return right;
+                }
+                else
+                {
+                    return left;
+                }
+            }
+            else if (left.Type == Variable.VarType.NUMBER)
             {
                 NumberOperator(left, right, m_action);
             }

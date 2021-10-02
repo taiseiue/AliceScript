@@ -623,7 +623,7 @@ namespace AliceScript
                 leftCell.Type == Variable.VarType.BREAK ||
                 leftCell.Type == Variable.VarType.CONTINUE)
             {
-                // Done!
+                //処理は不要
                 return Variable.EmptyInstance;
             }
             if (leftCell.Type == Variable.VarType.NUMBER &&

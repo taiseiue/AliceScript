@@ -15,7 +15,7 @@ namespace AliceScript
 
         public Dictionary<string, PropertyBase> Properties = new Dictionary<string, PropertyBase>();
         public Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
-        public Dictionary<string, EventObject> Events = new Dictionary<string, EventObject>();
+        public Dictionary<string, Variable> Events = new Dictionary<string, Variable>();
 
         public ObjectBase(string name = "")
         {
@@ -63,7 +63,7 @@ namespace AliceScript
                 }
                 else if (Events.ContainsKey(sPropertyName))
                 {
-                    return Task.FromResult(new Variable(Events[sPropertyName]));
+                    return Task.FromResult(Events[sPropertyName]);
                 }
                 else
                 {
@@ -83,14 +83,14 @@ namespace AliceScript
                 }
                 else if (Events.ContainsKey(sPropertyName))
                 {
-                    if (argValue.Object is EventObject e)
+                    if (argValue.Type==Variable.VarType.DELEGATE && argValue.Delegate != null)
                     {
-                        Events[sPropertyName] = e;
+                        Events[sPropertyName] = argValue;
                     }
                 }
                 else
                 {
-                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはイベントは存在しません。");
+                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはデリゲートは存在しません。");
                 }
             
             return Task.FromResult(Variable.EmptyInstance);

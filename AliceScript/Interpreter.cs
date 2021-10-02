@@ -121,6 +121,7 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
+            ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator(true));
             ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
@@ -174,11 +175,10 @@ namespace AliceScript
                 FunctionBaseManerger.Add(new TypeConvertFunc(type));
             }
 
-            ClassManerger.Add(new EventObject());
 
             if (File.Exists(Alice.Runtime_File_Path))
             {
-                AliceScript.Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
+                Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
             }
 
             VariableFunctionIniter.Init();

@@ -189,6 +189,7 @@ namespace AliceScript
         {
             Object = o;
         }
+        
 
         public virtual Variable Clone()
         {

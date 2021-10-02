@@ -394,40 +394,24 @@ namespace AliceScript
         public static void ThrowException(ParsingScript script, string excName1,
                                           string errorToken = "", string excName2 = "")
         {
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-            string msg = Translation.GetErrorString(excName1);
-#else
+
             string msg = excName1;
-#endif
             if (!string.IsNullOrWhiteSpace(errorToken))
             {
                 msg = string.Format(msg, errorToken);
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-                string candidate = Translation.TryFindError(errorToken, script);
-#else
                 string candidate = null;
-#endif
-
 
                 if (!string.IsNullOrWhiteSpace(candidate) &&
                     !string.IsNullOrWhiteSpace(excName2))
                 {
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-                    string extra = Translation.GetErrorString(excName2);
-#else
                     string extra = excName2;
-#endif
                     msg += " " + string.Format(extra, candidate);
                 }
             }
 
             if (!string.IsNullOrWhiteSpace(script.Filename))
             {
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-                string fileMsg = Translation.GetErrorString("errorFile");
-#else
                 string fileMsg = "File: {0}.";
-#endif
                 msg += Environment.NewLine + string.Format(fileMsg, script.Filename);
             }
 
@@ -435,11 +419,7 @@ namespace AliceScript
             string line = script.GetOriginalLine(out lineNumber);
             if (lineNumber >= 0)
             {
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-                string lineMsg = Translation.GetErrorString("errorLine");
-#else
                 string lineMsg = "Line {0}: [{1}]";
-#endif
                 msg += string.IsNullOrWhiteSpace(script.Filename) ? Environment.NewLine : " ";
                 msg += string.Format(lineMsg, lineNumber + 1, line.Trim());
             }
