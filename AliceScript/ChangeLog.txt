@@ -38,3 +38,12 @@ AliceScript1002の変更点
 ・ObjectBase型クラスでイベントの代用にデリゲートが使用可能になりました。
 ・Translationクラスは削除されました。
 ・Null合体演算子'??'が実装されました。
+
+Alicescript1003の変更点
+・一部例外の表現を変更しました。
+・throw関数でThrowErrorイベントを発生させることができるようになりました。
+・関数にvirtual属性、override属性を実装しました。
+・function関数でvirtual、override属性を定義可能になりました。
+・すでに定義されている関数がvirtualまたはoverride属性を持っていない限り、オーバーライド不可能になりました。
+
+以上で、AliceScript1への機能追加を終了します。変更はAliceSisterにマージされます。

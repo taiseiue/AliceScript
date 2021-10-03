@@ -321,14 +321,28 @@ namespace AliceScript
 
     class FunctionCreator : ParserFunction
     {
-        public FunctionCreator(bool? mode=null)
+        public FunctionCreator()
         {
-            m_mode = mode;
+
         }
-        bool? m_mode = null;
         protected override Variable Evaluate(ParsingScript script)
         {
             string funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            bool? mode = null;
+            if (funcName.ToLower() == "override")
+            {
+                //属性はOverride
+                mode = true;
+                //次のトークンを関数名にする
+                funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            }
+            else if(funcName.ToLower() == "virtual")
+            {
+                //属性はVirtual
+                mode = false;
+                //次のトークンを関数名にする
+                funcName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            }
             funcName = Constants.ConvertName(funcName);
 
             string[] args = Utils.GetFunctionSignature(script);
@@ -354,6 +368,10 @@ namespace AliceScript
             CustomFunction customFunc = new CustomFunction(funcName, body, args, script);
             customFunc.ParentScript = script;
             customFunc.ParentOffset = parentOffset;
+            if (mode == false)
+            {
+                customFunc.IsVirtual = true;
+            }
 
             if (script.CurrentClass != null)
             {
@@ -361,8 +379,14 @@ namespace AliceScript
             }
             else
             {
-                
-                ParserFunction.RegisterFunction(funcName, customFunc, false /* not native */);
+                if (!ParserFunction.s_functions.ContainsKey(funcName) || (ParserFunction.s_functions.ContainsKey(funcName) && mode == true))
+                {
+                    ParserFunction.RegisterFunction(funcName, customFunc, false /* not native */);
+                }
+                else
+                {
+                    ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されています。関数にoverride属性を付与することを検討してください。");
+                }
             }
 
             return Variable.EmptyInstance;
@@ -2726,7 +2750,7 @@ namespace AliceScript
             }
             else if (script.CurrentClass != null)
             {
-                Utils.ThrowErrorMsg(m_name + " function can't be defined inside of a class.",
+                Utils.ThrowErrorMsg(m_name + "をクラス内で定義することはできません",
                                     script, m_name);
             }
             else

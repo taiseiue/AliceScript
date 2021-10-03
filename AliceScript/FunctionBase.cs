@@ -6,10 +6,19 @@ namespace AliceScript
 {
     public class FunctionBase : ParserFunction
     {
+        /// <summary>
+        /// 関数の名前を取得または設定します
+        /// </summary>
         public string FunctionName { get; set; }
 
+        /// <summary>
+        /// この関数に必要な引数の数を取得または設定します
+        /// </summary>
         public int MinimumArgCounts { get; set; }
 
+        /// <summary>
+        /// この関数の属性を取得または設定します
+        /// </summary>
         public FunctionAttribute Attribute { get
             {
                 return m_Attribute;
@@ -19,6 +28,9 @@ namespace AliceScript
                 m_Attribute = value;
             }
         }
+        /// <summary>
+        /// この関数の名前を取得または設定します
+        /// </summary>
         public new string Name
         {
             get
@@ -31,6 +43,9 @@ namespace AliceScript
             }
         }
         private FunctionAttribute m_Attribute = FunctionAttribute.GENERAL;
+        /// <summary>
+        /// この関数が変数のプロパティとして呼び出される場合、その変数の種類を取得または設定します
+        /// </summary>
         public Variable.VarType RequestType { get; set; }
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -111,7 +126,9 @@ namespace AliceScript
         {
             MinimumArgCounts = 0;
         }
-
+        /// <summary>
+        /// この関数が呼び出されたときに発生するイベント
+        /// </summary>
         public event FunctionBaseEventHandler Run;
         public  Variable GetVaruableFromArgs(List<Variable> args)
         {
@@ -155,11 +172,20 @@ namespace AliceScript
         /// <summary>
         /// 言語構造です。これらの関数では引数の自動チェックなどが実行されず、Script以外の要素はすべてNullになります
         /// </summary>
-        LANGUAGE_STRUCTURE=4
+        LANGUAGE_STRUCTURE=4,
+        /// <summary>
+        /// オーバーライド可能です。CanOverrideプロパティもしくはこの属性が定義のいずれかが定義されている場合、オーバーライド可能です。
+        /// </summary>
+        VIRTUAL=5
     }
     
     public static class FunctionBaseManerger
     {
+        /// <summary>
+        /// 関数をインタプリタに登録し、必要に応じて属性を設定します
+        /// </summary>
+        /// <param name="func">登録される関数</param>
+        /// <param name="name">登録される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
         public static void Add(FunctionBase func,string name="")
         {
 
@@ -181,11 +207,23 @@ namespace AliceScript
             {
                 Constants.CONTROL_FLOW.Add(fname) ;
             }
+            if (func.Attribute.HasFlag(FunctionAttribute.VIRTUAL))
+            {
+                func.IsVirtual = true;
+            }
         }
+        /// <summary>
+        /// 関数をインタプリタから登録解除し、必要に応じて属性を解除します
+        /// </summary>
+        /// <param name="func">登録解除される関数</param>
+        /// <param name="name">登録解除される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
         public static void Remove(FunctionBase func,string name="")
         {
             string fname = name;
-            if (fname == "") { fname = func.FunctionName; }
+            if (!string.IsNullOrEmpty(name))
+            {
+                fname = name;
+            }
             ParserFunction.UnregisterFunction(fname);
             if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
             {
@@ -201,14 +239,27 @@ namespace AliceScript
             }
             
         }
+        /// <summary>
+        /// インタプリタに関数が登録されているかどうかを調べます
+        /// </summary>
+        /// <param name="func">調べたい関数</param>
+        /// <returns>インタプリタに登録されているかどうかを示す値</returns>
         public static bool Exists(FunctionBase func)
         {
             return ParserFunction.s_functions.ContainsValue(func);
         }
+        /// <summary>
+        /// インタプリタに関数が登録されているかどうかを調べます
+        /// </summary>
+        /// <param name="func">調べたい関数の名前</param>
+        /// <returns>インタプリタに登録されているかどうかを示す値</returns>
         public static bool Exists(string name)
         {
             return ParserFunction.s_functions.ContainsKey(name);
         }
+        /// <summary>
+        /// 現在インタプリタに登録されている関数の名前の一覧を取得します
+        /// </summary>
         public static List<string> Functions
         {
             get { return new List<string>(ParserFunction.s_functions.Keys); }

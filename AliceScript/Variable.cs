@@ -1224,15 +1224,7 @@ namespace AliceScript
             {
                 return new Variable(GetLength());
             }
-            else if (propName.Equals(Constants.UPPER, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(AsString().ToUpper());
-            }
-            else if (propName.Equals(Constants.LOWER, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(AsString().ToLower());
-            }
-            else if (propName.Equals(Constants.STRING, StringComparison.OrdinalIgnoreCase) || propName.Equals("To" + Constants.STRING, StringComparison.OrdinalIgnoreCase) || propName.Equals("As" + Constants.STRING, StringComparison.OrdinalIgnoreCase))
+            else if (propName.Equals("To" + Constants.STRING, StringComparison.OrdinalIgnoreCase))
             {
                 return new Variable(AsString());
             }

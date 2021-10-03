@@ -121,7 +121,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
-            ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator(true));
             ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
             ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());

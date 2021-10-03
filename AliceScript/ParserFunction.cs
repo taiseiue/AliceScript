@@ -17,7 +17,7 @@ namespace AliceScript
         /// <summary>
         /// オーバーライド可能かどうかを表す値
         /// </summary>
-        public bool CanOverride { get; set; }
+        public bool IsVirtual { get; set; }
 
         public ParserFunction()
         {
@@ -594,9 +594,21 @@ namespace AliceScript
                     name = s_namespacePrefix + name;
                 }
             }
-
-            s_functions[name] = function;
-            function.isNative = isNative;
+            if (!s_functions.ContainsKey(name)||(s_functions.ContainsKey(name)&&s_functions[name].IsVirtual))
+            {
+                //まだ登録されていないか、すでに登録されていて、オーバーライド可能な場合
+                s_functions[name] = function;
+                function.isNative = isNative;
+                if((s_functions.ContainsKey(name) && s_functions[name].IsVirtual))
+                {
+                    //Overrideした関数にもVirtual属性を引き継ぐ
+                    function.IsVirtual = true;
+                }
+            }
+            else
+            {
+                ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません。");
+            }
         }
 
         public static bool UnregisterFunction(string name)
