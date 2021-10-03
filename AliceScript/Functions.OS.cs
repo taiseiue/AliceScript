@@ -21,16 +21,20 @@ namespace AliceScript
     {
         public PrintFunction()
         {
-           
-                this.Name = "print";
-           
-            this.MinimumArgCounts = 1;
+            this.Name = "print";
+
+            //AliceScript925から、Print関数は引数を持つ必要がなくなりました。
+            //this.MinimumArgCounts = 1;
             this.Run += PrintFunction_Run;
         }
 
         private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count == 1)
+            if(e.Args.Count == 0)
+            {
+                AddOutput("", e.Script, true);
+            }
+            else if (e.Args.Count == 1)
             {
                 AddOutput(e.Args[0].AsString(), e.Script,true);
             }
@@ -43,7 +47,7 @@ namespace AliceScript
                     int mn = -1;
                     if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'), out mn))
                     {
-                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); break; }
+                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); return; }
                         if (e.Args.Count > mn + 1)
                         {
                             text = text.Replace(match.Value, e.Args[mn + 1].AsString());
@@ -51,13 +55,13 @@ namespace AliceScript
                         else
                         {
                             ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
-                            break;
+                            return;
                         }
                     }
                     else
                     {
                         ThrowErrorManerger.OnThrowError("複合書式指定\"" + match.Value + "\"は無効です", e.Script);
-                        break;
+                        return;
                     }
                 }
                 AddOutput(text,e.Script,true);
@@ -281,101 +285,4 @@ namespace AliceScript
             return Variable.EmptyInstance;
         }
     }
-
-    class DateTimeFunction : ParserFunction, IStringFunction
-    {
-        bool m_stringVersion;
-
-        public DateTimeFunction(bool stringVersion = true)
-        {
-            m_stringVersion = stringVersion;
-        }
-
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            string strFormat = m_stringVersion ? Utils.GetSafeString(args, 0, "HH:mm:ss.fff") :
-                                          Utils.GetSafeString(args, 1, "yyyy/MM/dd HH:mm:ss");
-            Utils.CheckNotEmpty(strFormat, m_name);
-
-
-            if (m_stringVersion)
-            {
-                return new Variable(DateTime.Now.ToString(strFormat));
-            }
-
-            var date = DateTime.Now;
-            string when = Utils.GetSafeString(args, 0);
-
-            if (!string.IsNullOrWhiteSpace(when) && !DateTime.TryParseExact(when, strFormat,
-                CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out date))
-            {
-                throw new ArgumentException("Couldn't parse [" + when + "] using format [" +
-                                            strFormat + "].");
-            }
-            if (!strFormat.Contains("yy") && !strFormat.Contains("MM") && !strFormat.Contains("dd"))
-            {
-                date = date.Subtract(new TimeSpan(date.Date.Ticks));
-            }
-
-            return new Variable(date);
-        }
-
-        public static DateTime Add(DateTime current, string delta)
-        {
-            int sign = 1;
-            string part = "";
-            int partInt;
-            for (int i = 0; i < delta.Length; i++)
-            {
-                switch (delta[i])
-                {
-                    case '-':
-                        sign *= -1;
-                        continue;
-                    case 'y':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddYears(partInt * sign);
-                        break;
-                    case 'M':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddMonths(partInt * sign);
-                        break;
-                    case 'd':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddDays(partInt * sign);
-                        break;
-                    case 'H':
-                    case 'h':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddHours(partInt * sign);
-                        break;
-                    case 'm':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddMinutes(partInt * sign);
-                        break;
-                    case 's':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddSeconds(partInt * sign);
-                        break;
-                    case 'f':
-                        partInt = string.IsNullOrWhiteSpace(part) ? 1 : !int.TryParse(part, out partInt) ? 0 : partInt;
-                        current = current.AddTicks(partInt * sign);
-                        break;
-                    default:
-                        part += delta[i];
-                        continue;
-                }
-                part = "";
-            }
-            return current;
-        }
-    }
-
-  
-   
-
-    
-
-  
 }

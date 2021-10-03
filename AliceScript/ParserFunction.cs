@@ -14,6 +14,11 @@ namespace AliceScript
     {
         public static Action<string, Variable, bool> OnVariableChange;
 
+        /// <summary>
+        /// オーバーライド可能かどうかを表す値
+        /// </summary>
+        public bool IsVirtual { get; set; }
+
         public ParserFunction()
         {
             m_impl = this;
@@ -589,9 +594,21 @@ namespace AliceScript
                     name = s_namespacePrefix + name;
                 }
             }
-
-            s_functions[name] = function;
-            function.isNative = isNative;
+            if (!s_functions.ContainsKey(name)||(s_functions.ContainsKey(name)&&s_functions[name].IsVirtual))
+            {
+                //まだ登録されていないか、すでに登録されていて、オーバーライド可能な場合
+                s_functions[name] = function;
+                function.isNative = isNative;
+                if((s_functions.ContainsKey(name) && s_functions[name].IsVirtual))
+                {
+                    //Overrideした関数にもVirtual属性を引き継ぐ
+                    function.IsVirtual = true;
+                }
+            }
+            else
+            {
+                ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません。");
+            }
         }
 
         public static bool UnregisterFunction(string name)
@@ -663,12 +680,6 @@ namespace AliceScript
             s_variables[name] = function;
 
             function.Name = Constants.GetRealName(name);
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-            if (!isNative)
-            {
-                Translation.AddTempKeyword(name);
-            }
-#endif
             if (handle != null && function is GetVarFunction)
             {
                 handle.Invoke(function.Name, ((GetVarFunction)function).Value, exists);
@@ -813,9 +824,7 @@ namespace AliceScript
             bool exists = handle != null && s_lastExecutionLevel.Variables.ContainsKey(name);
 
             s_lastExecutionLevel.Variables[name] = local;
-#if UNITY_EDITOR == false && UNITY_STANDALONE == false && __ANDROID__ == false && __IOS__ == false
-            Translation.AddTempKeyword(name);
-#endif
+
             if (handle != null && local is GetVarFunction)
             {
                 handle.Invoke(local.Name, ((GetVarFunction)local).Value, exists);

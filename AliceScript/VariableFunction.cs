@@ -11,6 +11,10 @@ namespace AliceScript
         {
             //総合関数(VariableFunction.csに本体あり)
             Variable.AddFunc(new DisposeFunc());
+            Variable.AddFunc(new EqualsFunc());
+            Variable.AddFunc(new CloneFunc());
+            Variable.AddFunc(new ResetFunc());
+            Variable.AddFunc(new DeepCloneFunc());
             //String関数
             Variable.AddFunc(new string_TrimFunc(0), "Trim");
             Variable.AddFunc(new string_TrimFunc(1), "TrimStart");
@@ -74,11 +78,64 @@ namespace AliceScript
         {
             if (e.CurentVariable.Delegate != null)
             {
-                e.Return = e.CurentVariable.Delegate.Run(e.Args);
+                e.Return = e.CurentVariable.Delegate.Invoke(e.Args,e.Script);
             }
 
         }
        
+    }
+    class ResetFunc : FunctionBase
+    {
+        public ResetFunc()
+        {
+            this.Name = "Reset";
+            this.Run += ResetFunc_Run;
+        }
+
+        private void ResetFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.CurentVariable.Reset();
+        }
+    }
+    class DeepCloneFunc : FunctionBase
+    {
+        public DeepCloneFunc()
+        {
+            this.Name = "DeepClone";
+            this.Run += DeepCloneFunc_Run;
+        }
+
+        private void DeepCloneFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = e.CurentVariable.DeepClone();
+        }
+    }
+    class CloneFunc : FunctionBase
+    {
+        public CloneFunc()
+        {
+            this.Name = "Clone";
+            this.Run += FinalizeFunc_Run;
+        }
+
+        private void FinalizeFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return=e.CurentVariable.Clone();
+        }
+    }
+    class EqualsFunc : FunctionBase
+    {
+        public EqualsFunc()
+        {
+            this.Name = "Equals";
+            this.MinimumArgCounts = 1;
+            this.Run += EqualsFunc_Run;
+        }
+
+        private void EqualsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.Equals(e.Args[0]));
+        }
     }
     class BeginInvokeFunc : FunctionBase
     {
@@ -91,25 +148,9 @@ namespace AliceScript
 
         private void BeginInvokeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.CurentVariable.Delegate != null)
-            {
-                m_BeginInvokeMessanger mb = new m_BeginInvokeMessanger();
-                mb.Delegate = e.CurentVariable.Delegate;
-                mb.Args = e.Args;
-                ThreadPool.QueueUserWorkItem(ThreadProc, mb);
-            }
+            e.CurentVariable.Delegate.BeginInvoke(e.Args,e.Script);
         }
-        static void ThreadProc(Object stateInfo)
-        {
-            m_BeginInvokeMessanger mb = (m_BeginInvokeMessanger)stateInfo;
-            mb.Delegate.Run(mb.Args);
-        }
-
-        private class m_BeginInvokeMessanger
-        {
-            public CustomFunction Delegate { get; set; }
-            public List<Variable> Args { get; set; }
-        }
+      
         
     }
     class DisposeFunc : FunctionBase
@@ -135,7 +176,7 @@ namespace AliceScript
         public toBase64Func()
         {
             this.FunctionName = "ToBase64";
-            this.RequestType = Variable.VarType.BYTE_ARRAY;
+            this.RequestType = Variable.VarType.BYTES;
             this.Run += ToBase64Func_Run;
         }
 
@@ -737,6 +778,7 @@ namespace AliceScript
             }
         }
     }
+  
     class list_marge2Func : FunctionBase
     {
         public list_marge2Func()

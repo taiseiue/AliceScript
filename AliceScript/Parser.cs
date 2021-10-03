@@ -446,7 +446,7 @@ namespace AliceScript
                 return false;
             }
 
-            // Case of a negative number, or a pointer, or starting with the closing bracket:
+            // 負の数またはポインタまたは]または)で始まる場合
             if (item.Length == 0 &&
                ((ch == '-' && next != '-') || ch == '&'
                                            || ch == Constants.END_ARRAY
@@ -455,7 +455,7 @@ namespace AliceScript
                 return true;
             }
 
-            // Case of a scientific notation 1.2e+5 or 1.2e-5 or 1e5:
+            // eを用いた数値記法の場合
             if (Char.ToUpper(prev) == 'E' &&
                (ch == '-' || ch == '+' || Char.IsDigit(ch)) &&
                item.Length > 1 && Char.IsDigit(item[item.Length - 2]))
@@ -463,8 +463,7 @@ namespace AliceScript
                 return true;
             }
 
-            // Otherwise if it's an action (+, -, *, etc.) or a space
-            // we're done collecting current token.
+            //それ以外の場合完了
             if ((action = Utils.ValidAction(script.FromPrev())) != null ||
                 (item.Length > 0 && ch == Constants.SPACE))
             {
@@ -489,8 +488,8 @@ namespace AliceScript
             Variable result;
             Variable arg1 = MergeList(listInput, script);
             script.MoveForwardIf(Constants.TERNARY_OPERATOR);
-            double condition = arg1.AsDouble();
-            if (condition != 0)
+            bool condition = arg1.AsBool();
+            if (condition)
             {
                 result = script.Execute(Constants.TERNARY_SEPARATOR);
                 script.MoveForwardIf(Constants.TERNARY_SEPARATOR);
@@ -624,7 +623,7 @@ namespace AliceScript
                 leftCell.Type == Variable.VarType.BREAK ||
                 leftCell.Type == Variable.VarType.CONTINUE)
             {
-                // Done!
+                //処理は不要
                 return Variable.EmptyInstance;
             }
             if (leftCell.Type == Variable.VarType.NUMBER &&
@@ -637,10 +636,6 @@ namespace AliceScript
             {
                 leftCell = MergeBooleans(leftCell, rightCell, script);
             }
-            else if (leftCell.Type == Variable.VarType.DATETIME)
-            {
-                OperatorAssignFunction.DateOperator(leftCell, rightCell, leftCell.Action, script);
-            }
             else if (leftCell.Type == Variable.VarType.STRING || rightCell.Type == Variable.VarType.STRING)
             {
                 MergeStrings(leftCell, rightCell, script);
@@ -648,6 +643,14 @@ namespace AliceScript
             else if (leftCell.Type == Variable.VarType.ARRAY)
             {
                 leftCell = MergeArray(leftCell, rightCell, script);
+            }
+            else if(leftCell.Type == Variable.VarType.DELEGATE && rightCell.Type == Variable.VarType.DELEGATE)
+            {
+                leftCell = MergeDelegate(leftCell,rightCell,script);
+            }
+            else if(leftCell.Type==Variable.VarType.OBJECT&&leftCell.Object is ObjectBase obj)
+            {
+                leftCell=obj.Operator(leftCell,rightCell,leftCell.Action,script);
             }
             else
             {
@@ -676,6 +679,9 @@ namespace AliceScript
                 case "||":
                     return new Variable(
                          leftCell.Bool || rightCell.Bool);
+                case "^":
+                    return new Variable(
+                        leftCell.Bool ^ rightCell.Bool);
                 case ")":
                     return leftCell;
                 default:
@@ -811,8 +817,30 @@ namespace AliceScript
                     return new Variable(!leftCell.Equals(rightCell));
                 case "+=":
                     {
-                        leftCell.Tuple.Add(rightCell);
+                        if (rightCell.Type == Variable.VarType.ARRAY)
+                        {
+                            leftCell.Tuple.AddRange(rightCell.Tuple);
+                        }
+                        else
+                        {
+                            leftCell.Tuple.Add(rightCell);
+                        }
                         return leftCell;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+                        if (rightCell.Type == Variable.VarType.ARRAY)
+                        {
+                            v.Tuple.AddRange(leftCell.Tuple);
+                            v.Tuple.AddRange(rightCell.Tuple);
+                        }
+                        else
+                        {
+                            v.Tuple.AddRange(leftCell.Tuple);
+                            v.Tuple.Add(rightCell);
+                        }
+                        return v;
                     }
                 case "-=":
                     {
@@ -826,6 +854,67 @@ namespace AliceScript
                          script, leftCell.Action);
                             return leftCell;
                         }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+                        
+                            v.Tuple.AddRange(leftCell.Tuple);
+                            v.Tuple.Remove(rightCell);
+                        
+                        return v;
+                    }
+                case ")":
+                    return leftCell;
+                default:
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                         script, leftCell.Action);
+                    return leftCell;
+            }
+
+        }
+        private static Variable MergeDelegate(Variable leftCell, Variable rightCell, ParsingScript script)
+        {
+            switch (leftCell.Action)
+            {
+                case "==":
+                case "===":
+                    return new Variable(leftCell.Equals(rightCell));
+                case "!=":
+                case "!==":
+                    return new Variable(!leftCell.Equals(rightCell));
+                case "+=":
+                    {
+                        leftCell.Delegate.Add(rightCell.Delegate);
+                        return leftCell;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(leftCell.Delegate);
+                        v.Delegate.Add(rightCell.Delegate);
+                        return v;
+                    }
+                case "-=":
+                    {
+                        if (leftCell.Delegate.Remove(rightCell.Delegate))
+                        {
+                            return leftCell;
+                        }
+                        else
+                        {
+                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",
+                         script, leftCell.Action);
+                            return leftCell;
+                        }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(leftCell.Delegate);
+                        v.Delegate.Remove(rightCell.Delegate);
+
+                        return v;
                     }
                 case ")":
                     return leftCell;

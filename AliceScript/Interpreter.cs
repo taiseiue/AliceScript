@@ -101,11 +101,11 @@ namespace AliceScript
             FunctionBaseManerger.Add(new IfStatement());
             FunctionBaseManerger.Add(new DoWhileStatement());
             FunctionBaseManerger.Add(new WhileStatement());
-            FunctionBaseManerger.Add(new NWhileStatement());
             FunctionBaseManerger.Add(new SwitchStatement());
             FunctionBaseManerger.Add(new CaseStatement());
             FunctionBaseManerger.Add(new CaseStatement(), Constants.DEFAULT);
             FunctionBaseManerger.Add(new ForStatement());
+            FunctionBaseManerger.Add(new ForeachStatement());
             FunctionBaseManerger.Add(new BreakStatement());
             FunctionBaseManerger.Add(new GotoGosubFunction(true));
             FunctionBaseManerger.Add(new GotoGosubFunction(false));
@@ -142,14 +142,12 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
             ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
             ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
-            ParserFunction.RegisterFunction(Constants.DATE_TIME, new DateTimeFunction(false));
             ParserFunction.RegisterFunction(Constants.DEEP_COPY, new DeepCopyFunction());
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
             ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
-            ParserFunction.RegisterFunction(Constants.NOW, new DateTimeFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE, new RemoveFunction());
             ParserFunction.RegisterFunction(Constants.REMOVE_AT, new RemoveAtFunction());
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
@@ -157,13 +155,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.TOKENIZE, new TokenizeFunction());
             ParserFunction.RegisterFunction(Constants.TOKENIZE_LINES, new TokenizeLinesFunction());
             ParserFunction.RegisterFunction(Constants.TOKEN_COUNTER, new TokenCounterFunction());
-            ParserFunction.RegisterFunction(Constants.TO_BOOL, new ToBoolFunction());
-            ParserFunction.RegisterFunction(Constants.TO_DECIMAL, new ToDecimalFunction());
-            ParserFunction.RegisterFunction(Constants.TO_DOUBLE, new ToDoubleFunction());
-            ParserFunction.RegisterFunction(Constants.TO_INT, new ToIntFunction());
-            //ParserFunction.RegisterFunction(Constants.TO_INTEGER, new ToIntFunction());
-            ParserFunction.RegisterFunction(Constants.TO_NUMBER, new ToDoubleFunction());
-            ParserFunction.RegisterFunction(Constants.TO_STRING, new ToStringFunction());
             ParserFunction.RegisterFunction(Constants.VAR, new VarFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD_DATA, new DataFunction(DataFunction.DataMode.ADD));
@@ -177,11 +168,16 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
-            ClassManerger.Add(new EventObject());
+            //型変換の関数群
+            foreach (Variable.VarType type in Constants.CAN_CONVERT_VARIABLE_TYPES)
+            {
+                FunctionBaseManerger.Add(new TypeConvertFunc(type));
+            }
+
 
             if (File.Exists(Alice.Runtime_File_Path))
             {
-                AliceScript.Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
+                Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
             }
 
             VariableFunctionIniter.Init();
@@ -281,50 +277,51 @@ namespace AliceScript
         {
             string forString = Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
             script.Forward();
-            if (forString.Contains(Constants.END_STATEMENT.ToString()))
-            {
-                // Looks like: "for(i = 0; i < 10; i++)".
-                ProcessCanonicalFor(script, forString);
-            }
-            else
-            {
-                // Otherwise looks like: "for(item : array)"
-                ProcessArrayFor(script, forString);
-            }
-
+            //for(init; condition; loopStatemen;)の形式です
+            ProcessCanonicalFor(script, forString);
             return Variable.EmptyInstance;
         }
         public async Task<Variable> ProcessForAsync(ParsingScript script)
         {
             string forString = Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
             script.Forward();
-            if (forString.Contains(Constants.END_STATEMENT.ToString()))
-            {
-                // Looks like: "for(i = 0; i < 10; i++)".
-                await ProcessCanonicalForAsync(script, forString);
-            }
-            else
-            {
-                // Otherwise looks like: "for(item : array)"
-                await ProcessArrayForAsync(script, forString);
-            }
-
+            //for(init; condition; loopStatemen;)の形式です
+            await ProcessCanonicalForAsync(script, forString);
             return Variable.EmptyInstance;
         }
+        public Variable ProcessForeach(ParsingScript script)
+        {
+            string forString = Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
+            script.Forward();
+            //foreach(var in ary)の形式です
+            //AliceScript925からforeach(var : ary)またはforeach(var of ary)の形は使用できなくなりました。同じ方法をとるとき、複数の方法が存在するのは好ましくありません。
+            ProcessArrayFor(script, forString);
+            return Variable.EmptyInstance;
+        }
+        public async Task<Variable> ProcessForeachAsync(ParsingScript script)
+        {
+            string forString = Utils.GetBodyBetween(script, Constants.START_ARG, Constants.END_ARG);
+            script.Forward();
 
+            //foreach(var in ary)の形式です
+            //AliceScript925からforeach(var : ary)またはforeach(var of ary)の形は使用できなくなりました。同じ方法をとるとき、複数の方法が存在するのは好ましくありません。
+            await ProcessArrayForAsync(script, forString);
+            return Variable.EmptyInstance;
+        }
         void ProcessArrayFor(ParsingScript script, string forString)
         {
             var tokens = forString.Split(' ');
             var sep = tokens.Length > 2 ? tokens[1] : "";
             string varName = tokens[0];
+            //AliceScript925からforeach(var : ary)またはforeach(var of ary)の形は使用できなくなりました。同じ方法をとるとき、複数の方法が存在するのは好ましくありません。
 
-            if (sep != Constants.FOR_EACH && sep != Constants.FOR_IN && sep != Constants.FOR_OF)
+            if (sep != Constants.FOR_IN)
             {
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("for(-in-)の形で入力してください",
-                                     script, Constants.FOR);
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
+                                     script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
             }
@@ -371,14 +368,15 @@ namespace AliceScript
             var tokens = forString.Split(' ');
             var sep = tokens.Length > 2 ? tokens[1] : "";
             string varName = tokens[0];
+            //AliceScript925からforeach(var : ary)またはforeach(var of ary)の形は使用できなくなりました。同じ方法をとるとき、複数の方法が存在するのは好ましくありません。
 
-            if (sep != Constants.FOR_EACH && sep != Constants.FOR_IN && sep != Constants.FOR_OF)
+            if (sep != Constants.FOR_IN)
             {
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("Expecting: for(item :/in/of array)",
-                                     script, Constants.FOR);
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
+                                     script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
             }
@@ -425,7 +423,8 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                throw new ArgumentException("Expecting: for(init; condition; loopStatement)");
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                                     script, Constants.FOR);
             }
 
             int startForCondition = script.Pointer;
@@ -450,8 +449,8 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("Looks like an infinite loop after " +
-                                                  cycles + " cycles.");
+                    ThrowErrorManerger.OnThrowError("このインタプリタでは"+MAX_LOOPS+"以上の繰り返しを行うことはできません",script);
+                    return;
                 }
 
                 script.Pointer = startForCondition;
@@ -474,7 +473,8 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                throw new ArgumentException("Expecting: for(init; condition; loopStatement)");
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                                     script, Constants.FOR);
             }
 
             int startForCondition = script.Pointer;
@@ -499,8 +499,8 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("Looks like an infinite loop after " +
-                                                  cycles + " cycles.");
+                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    return;
                 }
 
                 script.Pointer = startForCondition;
@@ -523,7 +523,7 @@ namespace AliceScript
         {
             int startWhileCondition = script.Pointer;
 
-            // A check against an infinite loop.
+            // 無限ループを抑制するための変数
             int cycles = 0;
             bool stillValid = true;
             Variable result = Variable.EmptyInstance;
@@ -540,11 +540,11 @@ namespace AliceScript
                     break;
                 }
 
-                // Check for an infinite loop if we are comparing same values:
+                // 無限ループを抑制するための判定
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    throw new ArgumentException("Looks like an infinite loop after " +
-                        cycles + " cycles.");
+                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    return Variable.EmptyInstance;
                 }
 
                 result = ProcessBlock(script);
@@ -555,51 +555,11 @@ namespace AliceScript
                 }
             }
 
-            // The while condition is not true anymore: must skip the whole while
-            // block before continuing with next statements.
+            //whileステートメントの条件がtrueでなくなったためこのブロックをスキップ
             SkipBlock(script);
             return result.IsReturn ? result : Variable.EmptyInstance;
         }
-        internal Variable ProcessNWhile(ParsingScript script)
-        {
-            int startWhileCondition = script.Pointer;
-
-            // A check against an infinite loop.
-            int cycles = 0;
-            bool stillValid = true;
-            Variable result = Variable.EmptyInstance;
-
-            while (!stillValid)
-            {
-                script.Pointer = startWhileCondition;
-
-                //int startSkipOnBreakChar = from;
-                Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
-                stillValid = condResult.AsBool();
-                if (stillValid)
-                {
-                    break;
-                }
-
-                // Check for an infinite loop if we are comparing same values:
-                if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
-                {
-                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
-                }
-
-                result = ProcessBlock(script);
-                if (result.IsReturn || result.Type == Variable.VarType.BREAK)
-                {
-                    script.Pointer = startWhileCondition;
-                    break;
-                }
-            }
-
-            // The while condition is not true anymore: must skip the whole while
-            // block before continuing with next statements.
-            SkipBlock(script);
-            return result.IsReturn ? result : Variable.EmptyInstance;
-        }
+        //AliceScript925からNWhileは実装されなくなりました。否定条件のループはwhile(!bool)を使用するべきです
         public async Task<Variable> ProcessWhileAsync(ParsingScript script)
         {
             int startWhileCondition = script.Pointer;
@@ -640,46 +600,7 @@ namespace AliceScript
             SkipBlock(script);
             return result.IsReturn ? result : Variable.EmptyInstance;
         }
-        internal async Task<Variable> ProcessNWhileAsync(ParsingScript script)
-        {
-            int startWhileCondition = script.Pointer;
-
-            // A check against an infinite loop.
-            int cycles = 0;
-            bool stillValid = true;
-            Variable result = Variable.EmptyInstance;
-
-            while (!stillValid)
-            {
-                script.Pointer = startWhileCondition;
-
-                //int startSkipOnBreakChar = from;
-                Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
-                stillValid = condResult.AsBool();
-                if (!stillValid)
-                {
-                    break;
-                }
-
-                // Check for an infinite loop if we are comparing same values:
-                if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
-                {
-                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
-                }
-
-                result = await ProcessBlockAsync(script);
-                if (result.IsReturn || result.Type == Variable.VarType.BREAK)
-                {
-                    script.Pointer = startWhileCondition;
-                    break;
-                }
-            }
-
-            // The while condition is not true anymore: must skip the whole while
-            // block before continuing with next statements.
-            SkipBlock(script);
-            return result.IsReturn ? result : Variable.EmptyInstance;
-        }
+       
 
         public Variable ProcessDoWhile(ParsingScript script)
         {

@@ -50,7 +50,7 @@ namespace AliceScript.NameSpaces
         {
             if (e.Args.Count < 2)
             {
-                e.Return = new Variable(SafeReader.ReadAllText(e.Args[0].AsString()));
+                e.Return = new Variable(SafeReader.ReadAllText(e.Args[0].AsString(),out _));
             }
             else
             {
@@ -466,7 +466,7 @@ namespace AliceScript.NameSpaces
             {
                 Directory.SetCurrentDirectory(e.Args[0].AsString());
             }
-            e.Return = new Variable(Directory.GetCurrentDirectory());
+            e.Return = new Variable(e.Script.PWD);
         }
     }
     class directory_getdirectoriesFunc : FunctionBase

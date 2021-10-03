@@ -26,10 +26,38 @@ namespace alice
             Alice.Exiting += Alice_Exiting;
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e)
             {
+                if (e.SpecialKey.HasFlag(ConsoleSpecialKey.ControlBreak))
+                {
+                    Environment.Exit(0);
+                    return;
+                }
                 Console.WriteLine();
-                Console.WriteLine("何かキーを押して終了します。");
-                Console.ReadKey();
-                Environment.Exit(0);
+                Console.WriteLine("Enterキーを押すとシェルに戻ります。そのほかのキーを押すと終了します。");
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.Enter:
+                        {
+                            e.Cancel = true;
+                            break;
+                        }
+                    case ConsoleKey.Escape:
+                        {
+                            Environment.Exit(0);
+                            break;
+                        }
+                    case ConsoleKey.Spacebar:
+                        {
+                            Console.Clear();
+                            e.Cancel = true;
+                            break;
+                        }
+                    default:
+                        {
+                            e.Cancel = false;
+                            break;
+                        }
+                }
+                
             };
 
             ClearLine();
@@ -40,10 +68,8 @@ namespace alice
             //例外スローを静かにする
             ThrowErrorManerger.HandleError = true;
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
-
-            
-
-            Variable resultprop = Interpreter.Instance.Process("print(\"AliceScript バージョン\"+wsver);\r\nprint(\"(c) 2021 WSOFT All rights reserved.\");");
+            Console.WriteLine("AliceScript バージョン "+Alice.Version.ToString());
+            Console.WriteLine("(c) "+DateTime.Now.Year+" WSOFT All rights reserved.");
 
             Console.WriteLine();
             ParsedArguments pa = new ParsedArguments(args);
@@ -87,7 +113,13 @@ namespace alice
 
         private static void Alice_Exiting(object sender, ExitingEventArgs e)
         {
+            Console.WriteLine("スクリプトによってシェルが終了されようとしています。");
+            Console.WriteLine("Enterキーを押すとシェルに戻ります。そのほかのキーを押すと終了します。");
 
+            if (Console.ReadKey().Key == ConsoleKey.Enter)
+            {
+                e.Cancel = true;
+            }
         }
 
 

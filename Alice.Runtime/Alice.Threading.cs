@@ -76,14 +76,14 @@ namespace AliceScript.NameSpaces
         static void ThreadProc(Object stateInfo)
         {
             ThreadQueueStateInfo tqsi = (ThreadQueueStateInfo)stateInfo;
-            tqsi.Delegate.Run(tqsi.Args,tqsi.Script);
+            tqsi.Delegate.Invoke(tqsi.Args,tqsi.Script);
         }
     }
     class ThreadQueueStateInfo
     {
         public List<Variable> Args { get; set; }
         public ParsingScript Script { get; set; }
-        public CustomFunction Delegate { get; set; }
+        public DelegateObject Delegate { get; set; }
     }
     class task_runFunc : FunctionBase
     {
@@ -102,7 +102,7 @@ namespace AliceScript.NameSpaces
             {
                 args = e.Args.GetRange(1, e.Args.Count - 1);
             }
-            Task.Run(()=> { e.Args[0].Delegate.Run(args,e.Script); });
+            Task.Run(()=> { e.Args[0].Delegate.Invoke(args,e.Script); });
         }
     }
     class SignalWaitFunction : FunctionBase

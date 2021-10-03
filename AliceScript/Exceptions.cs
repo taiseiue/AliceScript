@@ -85,6 +85,22 @@ namespace AliceScript
         /// <summary>
         /// 引数が不足しています
         /// </summary>
-        INSUFFICIENT_ARGUMETS = 0x014
+        INSUFFICIENT_ARGUMETS = 0x014,
+        /// <summary>
+        /// パッケージファイルが壊れています
+        /// </summary>
+        BAD_PACKAGE = 0x015,
+        /// <summary>
+        /// 継承元クラスが存在しません
+        /// </summary>
+        NOT_EXISTS_INHERITANCE_BASE = 0x016,
+        /// <summary>
+        /// 配列に要素がありません
+        /// </summary>
+        ARRAY_IS_DOESNT_HAVE_TUPLE = 0x017,
+        /// <summary>
+        /// 変数がNullです
+        /// </summary>
+        VARIABLE_IS_NULL = 0x018
     }
 }

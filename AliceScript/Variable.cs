@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 namespace AliceScript
 {
 
-    public class Variable:ScriptObject
+    public class Variable : ScriptObject
     {
         public enum VarType
         {
             NONE, UNDEFINED, NUMBER, STRING, ARRAY,
-            ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTE_ARRAY,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, DATETIME, CUSTOM, POINTER,DELEGATE,BOOLEAN
+            ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTES,
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, CUSTOM, POINTER, DELEGATE, BOOLEAN
         };
-      
+
         public static Variable True
         {
             get
@@ -43,7 +43,7 @@ namespace AliceScript
             name = name.ToLower();
             Functions.Add(name, fb);
         }
-    
+
         public static Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
 
         List<string> ScriptObject.GetProperties()
@@ -53,12 +53,8 @@ namespace AliceScript
 
             return v;
         }
-
-
-
         public static bool GETTING = false;
         public static List<Variable> LaskVariable;
-
 
         Task<Variable> ScriptObject.GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {
@@ -122,27 +118,16 @@ namespace AliceScript
         {
             String = s;
         }
-        public Variable(DateTime dt)
-        {
-            DateTime = dt;
-        }
-        public Variable(ParsingScript script,string[] args)
-        {
 
-            string body = script.OriginalLine;
-
-            CustomFunction customFunc = new CustomFunction(" ", body, args, null);
-            this.Delegate = customFunc;
-            this.Type = VarType.DELEGATE;
-        }
-        public Variable(CustomFunction function)
+        public Variable(CustomFunction func)
         {
-            this.Delegate = function;
+            this.Delegate = new DelegateObject(func);
             this.Type = VarType.DELEGATE;
         }
         public Variable(byte[] ba)
         {
             ByteArray = ba;
+            Type = VarType.BYTES;
         }
         public Variable(List<Variable> a)
         {
@@ -154,6 +139,15 @@ namespace AliceScript
             for (int i = 0; i < a.Count; i++)
             {
                 tuple.Add(new Variable(a[i]));
+            }
+            this.Tuple = tuple;
+        }
+        public Variable(string[] a)
+        {
+            List<Variable> tuple = new List<Variable>();
+            foreach (string s in a)
+            {
+                tuple.Add(new Variable(s));
             }
             this.Tuple = tuple;
         }
@@ -195,6 +189,7 @@ namespace AliceScript
         {
             Object = o;
         }
+        
 
         public virtual Variable Clone()
         {
@@ -202,7 +197,7 @@ namespace AliceScript
             return newVar;
 
         }
-        
+
         public virtual Variable DeepClone()
         {
             //Variable newVar = new Variable();
@@ -232,7 +227,6 @@ namespace AliceScript
         {
             return new Variable();
         }
-
         public static Variable ConvertToVariable(object obj)
         {
             if (obj == null)
@@ -308,27 +302,27 @@ namespace AliceScript
             {
                 return Object == other.Object;
             }
-            if (Type == VarType.BYTE_ARRAY)
+            if (Type == VarType.BYTES)
             {
                 return ByteArray == other.ByteArray;
             }
-            if(Type == VarType.BOOLEAN)
+            if (Type == VarType.BOOLEAN)
             {
                 return Bool == other.Bool;
             }
-            if(Type == VarType.DELEGATE)
+            if (Type == VarType.DELEGATE)
             {
-                return Delegate.Body == other.Delegate.Body;
+                return Delegate.Equals(other.Delegate);
             }
-            if(Type == VarType.BOOLEAN)
+            if (Type == VarType.BOOLEAN)
             {
                 return Bool == other.Bool;
             }
-            if(Type == VarType.ARRAY)
+            if (Type == VarType.ARRAY)
             {
-                return EqualsArray(Tuple,other.Tuple);
+                return EqualsArray(Tuple, other.Tuple);
             }
-            if(Type == VarType.NONE)
+            if (Type == VarType.NONE)
             {
                 return other.Type == VarType.NONE;
             }
@@ -360,7 +354,7 @@ namespace AliceScript
             return AsString() == other.AsString();
         }
 
-        private bool EqualsArray(List<Variable> ary1,List<Variable> ary2)
+        private bool EqualsArray(List<Variable> ary1, List<Variable> ary2)
         {
             //結果を格納する変数
             bool isEqual = true;
@@ -527,8 +521,9 @@ namespace AliceScript
 
         public int GetArrayIndex(Variable indexVar)
         {
-            if (this.Type != VarType.ARRAY)
+            if (!Constants.CAN_GET_ARRAYELEMENT_VARIABLE_TYPES.Contains(this.Type))
             {
+                //変換不可
                 return -1;
             }
 
@@ -597,14 +592,14 @@ namespace AliceScript
             return m_dictionary.ContainsKey(lower);
         }
 
-        
+
         public int FindIndex(Variable val)
         {
             if (this.Type != VarType.ARRAY)
             {
                 return -1;
             }
-            return m_tuple.FindIndex(item=>item==val);
+            return m_tuple.FindIndex(item => item == val);
         }
 
         public bool Exists(Variable indexVar, bool notEmpty = false)
@@ -631,14 +626,14 @@ namespace AliceScript
             string hash = indexVar.AsString();
             return Exists(hash);
         }
-       
+
         public virtual bool AsBool()
         {
             if (Type == VarType.BOOLEAN)
             {
                 return m_bool;
             }
-            
+
             return false;
         }
 
@@ -705,11 +700,8 @@ namespace AliceScript
 
             return result;
         }
-        public virtual DateTime AsDateTime()
-        {
-            return m_datetime;
-        }
-        public virtual CustomFunction AsDelegate()
+
+        public virtual DelegateObject AsDelegate()
         {
             return m_delegate;
         }
@@ -733,7 +725,6 @@ namespace AliceScript
             {
                 case VarType.BOOLEAN: return AsBool();
                 case VarType.NUMBER: return AsDouble();
-                case VarType.DATETIME: return AsDateTime();
                 case VarType.OBJECT: return Object;
                 case VarType.ARRAY:
                 case VarType.ARRAY_NUM:
@@ -747,13 +738,9 @@ namespace AliceScript
             }
             return AsString();
         }
-        
+
         public virtual string AsString(string format)
         {
-            if (Type == VarType.DATETIME && !string.IsNullOrWhiteSpace(format))
-            {
-                return DateTime.ToString(format);
-            }
 
             return AsString();
         }
@@ -781,19 +768,15 @@ namespace AliceScript
             {
                 return m_string == null ? "" : m_string;
             }
-            if (Type == VarType.DATETIME)
-            {
-                return DateTime.ToString();
-            }
             if (Type == VarType.OBJECT)
             {
                 return ObjectToString();
             }
-            if (Type == VarType.BYTE_ARRAY)
+            if (Type == VarType.BYTES)
             {
                 return Encoding.Unicode.GetString(m_byteArray, 0, m_byteArray.Length);
             }
-            
+
 
             StringBuilder sb = new StringBuilder();
             if (Type == VarType.ENUM)
@@ -1096,7 +1079,7 @@ namespace AliceScript
 
             int ind = propName.IndexOf('.');
             if (ind > 0)
-            { // The case x = a.b.c ... is dealt here recursively
+            { //x=a.b.cの場合はここで再帰的に処理
                 string varName = propName.Substring(0, ind);
                 string actualPropName = propName.Substring(ind + 1);
                 Variable property = GetProperty(varName, script);
@@ -1241,15 +1224,7 @@ namespace AliceScript
             {
                 return new Variable(GetLength());
             }
-            else if (propName.Equals(Constants.UPPER, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(AsString().ToUpper());
-            }
-            else if (propName.Equals(Constants.LOWER, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(AsString().ToLower());
-            }
-            else if (propName.Equals(Constants.STRING, StringComparison.OrdinalIgnoreCase) || propName.Equals("To" + Constants.STRING, StringComparison.OrdinalIgnoreCase) || propName.Equals("As" + Constants.STRING, StringComparison.OrdinalIgnoreCase))
+            else if (propName.Equals("To" + Constants.STRING, StringComparison.OrdinalIgnoreCase))
             {
                 return new Variable(AsString());
             }
@@ -1363,10 +1338,6 @@ namespace AliceScript
                 else if (Type == VarType.NUMBER)
                 {
                     Value += var.AsDouble();
-                }
-                else if (Type == VarType.DATETIME)
-                {
-                    DateTime = DateTimeFunction.Add(DateTime, var.AsString());
                 }
                 else
                 {
@@ -1610,14 +1581,35 @@ namespace AliceScript
 
         public int GetSize()
         {
-            int size = Type == Variable.VarType.ARRAY ? Tuple.Count : 0;
-            return size;
+            return GetLength();
         }
 
         public int GetLength()
         {
-            int len = Type == Variable.VarType.ARRAY ?
-                  Tuple.Count : AsString().Length;
+            int len = 0;
+            switch (Type)
+            {
+                case VarType.ARRAY:
+                    {
+                        len = Tuple.Count;
+                        break;
+                    }
+                case VarType.DELEGATE:
+                    {
+                        len = Delegate.Length;
+                        break;
+                    }
+                case VarType.BYTES:
+                    {
+                        len = ByteArray.Length;
+                        break;
+                    }
+                case VarType.STRING:
+                    {
+                        len = String.Length;
+                        break;
+                    }
+            }
             return len;
         }
 
@@ -1648,6 +1640,18 @@ namespace AliceScript
             if (Type == VarType.ARRAY)
             {
                 return m_tuple[index];
+            }
+            else if (Type == VarType.BYTES)
+            {
+                return new Variable(ByteArray[index]);
+            }
+            else if (Type == VarType.DELEGATE)
+            {
+                return new Variable(Delegate.Functions[index]);
+            }
+            else if (Type == VarType.STRING)
+            {
+                return new Variable(String[index].ToString());
             }
             return this;
         }
@@ -1715,52 +1719,7 @@ namespace AliceScript
             Tuple = newTuple;
         }
 
-        public virtual void AddToDate(Variable valueB, int sign)
-        {
-            var dt = AsDateTime();
-            if (valueB.Type == Variable.VarType.NUMBER)
-            {
-                var delta = valueB.Value * sign;
-                if (dt.Date == DateTime.MinValue)
-                {
-                    DateTime = dt.AddSeconds(delta);
-                }
-                else
-                {
-                    DateTime = dt.AddDays(delta);
-                }
-            }
-            else if (valueB.Type == Variable.VarType.DATETIME)
-            {
-                if (dt.Date == DateTime.MinValue)
-                {
-                    if (sign < 0)
-                    {
-                        Value = DateTime.Subtract(valueB.DateTime).TotalSeconds;
-                    }
-                    else
-                    {
-                        DateTime = DateTime.AddSeconds(valueB.DateTime.Second);
-                    }
-                }
-                else
-                {
-                    if (sign < 0)
-                    {
-                        Value = DateTime.Subtract(valueB.DateTime).TotalDays;
-                    }
-                    else
-                    {
-                        DateTime = DateTime.AddDays(valueB.DateTime.Day);
-                    }
-                }
-            }
-            else
-            {
-                char ch = sign > 0 ? '+' : '-';
-                DateTime = DateTimeFunction.Add(DateTime, ch + valueB.AsString());
-            }
-        }
+
 
         public virtual double Value
         {
@@ -1783,15 +1742,7 @@ namespace AliceScript
             get { return m_object; }
             set { m_object = value; Type = VarType.OBJECT; }
         }
-
-        public DateTime DateTime
-        {
-            get { return m_datetime; }
-            set { m_datetime = value; Type = VarType.DATETIME; }
-        }
-
-        
-        public CustomFunction Delegate
+        public DelegateObject Delegate
         {
             get { return m_delegate; }
             set
@@ -1804,7 +1755,7 @@ namespace AliceScript
         public byte[] ByteArray
         {
             get { return m_byteArray; }
-            set { m_byteArray = value; Type = VarType.BYTE_ARRAY; }
+            set { m_byteArray = value; Type = VarType.BYTES; }
         }
 
         public string Pointer
@@ -1864,7 +1815,7 @@ namespace AliceScript
         protected object m_object;
         protected bool m_bool;
         protected DateTime m_datetime;
-        protected CustomFunction m_delegate;
+        protected DelegateObject m_delegate;
         CustomFunction m_customFunctionGet;
         CustomFunction m_customFunctionSet;
         protected List<Variable> m_tuple;
