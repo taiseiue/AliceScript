@@ -136,6 +136,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
+            FunctionBaseManerger.Add(new StringFormatFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -423,7 +424,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",
                                      script, Constants.FOR);
             }
 
@@ -449,7 +450,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは"+MAX_LOOPS+"以上の繰り返しを行うことはできません",script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では"+MAX_LOOPS+"以上の繰り返しを行うことはできません",script);
                     return;
                 }
 
@@ -473,7 +474,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",
                                      script, Constants.FOR);
             }
 
@@ -499,7 +500,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
                     return;
                 }
 

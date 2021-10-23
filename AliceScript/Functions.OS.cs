@@ -25,6 +25,7 @@ namespace AliceScript
 
             //AliceScript925から、Print関数は引数を持つ必要がなくなりました。
             //this.MinimumArgCounts = 1;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.Run += PrintFunction_Run;
         }
 
@@ -40,31 +41,10 @@ namespace AliceScript
             }
             else
             {
-                string text = e.Args[0].AsString();
-                MatchCollection mc = Regex.Matches(text, @"{[0-9]+}");
-                foreach (Match match in mc)
-                {
-                    int mn = -1;
-                    if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'), out mn))
-                    {
-                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); return; }
-                        if (e.Args.Count > mn + 1)
-                        {
-                            text = text.Replace(match.Value, e.Args[mn + 1].AsString());
-                        }
-                        else
-                        {
-                            ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        ThrowErrorManerger.OnThrowError("複合書式指定\"" + match.Value + "\"は無効です", e.Script);
-                        return;
-                    }
-                }
-                AddOutput(text,e.Script,true);
+                string text = "";
+                string format = e.Args[0].AsString();
+                e.Args.RemoveAt(0);
+                AddOutput(StringFormatFunction.Format(format,e.Args), e.Script, true);
             }
         }
         
@@ -82,6 +62,125 @@ namespace AliceScript
             {
                 debugger.AddOutput(output, script);
             }
+        }
+    }
+    public class StringFormatFunction:FunctionBase
+    {
+        public StringFormatFunction()
+        {
+            this.Name = "string_format";
+            this.MinimumArgCounts = 1;
+            this.Run += StringFormatFunction_Run;
+        }
+
+        private void StringFormatFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string format = e.Args[0].AsString();
+            e.Args.RemoveAt(0);
+            e.Return = new Variable(Format(format,e.Args));
+        }
+
+        public static string Format(string format,List<Variable> args)
+        {
+            string text = format;
+            MatchCollection mc = Regex.Matches(format, @"{[0-9]+:?[a-z,A-Z]*}");
+            foreach (Match match in mc)
+            {
+                int mn = -1;
+                string indstr = match.Value.TrimStart('{').TrimEnd('}');
+                bool selectSubFormat = false;
+                string subFormat = "";
+                if (indstr.Contains(":"))
+                {
+                    string[] vs = indstr.Split(':');
+                    indstr = vs[0];
+                    if (!string.IsNullOrEmpty(vs[1]))
+                    {
+                        selectSubFormat = true;
+                        subFormat = vs[1];
+                    }
+                }
+                if (int.TryParse(indstr, out mn))
+                {
+                    if(args.Count > mn )
+                    {
+                        if (selectSubFormat)
+                        {
+                            switch (args[mn].Type)
+                            {
+                                case Variable.VarType.NUMBER:
+                                    {
+                                        switch (subFormat.ToLower())
+                                        {
+                                            case "c":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("c"));
+                                                    break;
+                                                }
+                                            case "d":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("d"));
+                                                    break;
+                                                }
+                                            case "e":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("e"));
+                                                    break;
+                                                }
+                                            case "f":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("f"));
+                                                    break;
+                                                }
+                                            case "g":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("g"));
+                                                    break;
+                                                }
+                                            case "n":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("n"));
+                                                    break;
+                                                }
+                                            case "p":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("p"));
+                                                    break;
+                                                }
+                                            case "r":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("r"));
+                                                    break;
+                                                }
+                                            case "x":
+                                                {
+                                                    text = text.Replace(match.Value, ((int)args[mn].Value).ToString("x"));
+                                                    break;
+                                                }
+                                        }
+                                        break;
+                                    }
+                            }
+                        }
+                        else
+                        {
+                            text=text.Replace(match.Value, args[mn].AsString());
+                        }
+                    }
+                    else
+                    {
+                        //範囲外のためスキップ
+                        continue;
+                    }
+                }
+                else
+                {
+                    //数字ではないためスキップ
+                    continue;
+                }
+                
+            }
+            return text;
         }
     }
   

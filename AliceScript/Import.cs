@@ -138,7 +138,7 @@ namespace AliceScript
     {
         public DllImportFunc()
         {
-            this.FunctionName = "Dllimport";
+            this.FunctionName = "Libimport";
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.MinimumArgCounts = 0;
             this.Run += ImportFunc_Run;
@@ -151,14 +151,14 @@ namespace AliceScript
                 if (e.Args[0].Type == Variable.VarType.STRING)
                 {
                     string file = e.Args[0].AsString();
-                    if (!file.EndsWith(".alp") && !file.EndsWith(".dll"))
+                    if (!file.EndsWith(".ice") && !file.EndsWith(".dll"))
                     {
                         //拡張子がありません
 
 
-                        if (File.Exists(Path.ChangeExtension(file, ".alp")))
+                        if (File.Exists(Path.ChangeExtension(file, ".ice")))
                         { //alp形式で存在
-                            file = Path.ChangeExtension(file, ".alp");
+                            file = Path.ChangeExtension(file, ".ice");
                         }
                         else
                             if (File.Exists(Path.ChangeExtension(file, ".dll")))
@@ -178,7 +178,7 @@ namespace AliceScript
                         {
                             switch (Path.GetExtension(file))
                             {
-                                case ".alp":
+                                case ".ice":
                                     {
                                         //alp形式で存在
                                         AlicePackage.LoadPackage(file);

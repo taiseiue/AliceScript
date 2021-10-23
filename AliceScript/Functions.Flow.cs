@@ -855,32 +855,57 @@ namespace AliceScript
             m_body = body;
             m_args = RealArgs = args;
 
+            bool parms = false;
+
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i];
+                if (parms)
+                {
+                    ThrowErrorManerger.OnThrowError("paramsパラメーターより後にパラメーターを追加することはできません",script);
+                    break;
+                }
+                //paramsパラメーターとして認識するにはparams<空白>が必要
+                parms = (arg.ToLower().StartsWith("params "));
                 int ind = arg.IndexOf('=');
                 if (ind > 0)
                 {
-                    RealArgs[i] = arg.Substring(0, ind).Trim();
-                    m_args[i] = RealArgs[i].ToLower();
-                    string defValue = ind >= arg.Length - 1 ? "" : arg.Substring(ind + 1).Trim();
+                    if (parms)
+                    {
+                        ThrowErrorManerger.OnThrowError("paramsパラメータにデフォルトの値を代入することはできません",script);
+                        break;
+                    }
+                    else
+                    {
+                        RealArgs[i] = arg.Substring(0, ind).Trim();
+                        m_args[i] = RealArgs[i].ToLower();
+                        string defValue = ind >= arg.Length - 1 ? "" : arg.Substring(ind + 1).Trim();
 
-                    Variable defVariable = Utils.GetVariableFromString(defValue, script);
-                    defVariable.CurrentAssign = m_args[i];
-                    defVariable.Index = i;
+                        Variable defVariable = Utils.GetVariableFromString(defValue, script);
+                        defVariable.CurrentAssign = m_args[i];
+                        defVariable.Index = i;
 
-                    m_defArgMap[i] = m_defaultArgs.Count;
-                    m_defaultArgs.Add(defVariable);
+                        m_defArgMap[i] = m_defaultArgs.Count;
+                        m_defaultArgs.Add(defVariable);
+                    }
                 }
                 else
                 {
-                    m_args[i] = RealArgs[i].ToLower();
+                    string argName = RealArgs[i].ToLower();
+                    if (parms)
+                    {
+                        parmsindex = i;
+                        argName = argName.TrimStart('p','a','r','a','m','s');
+                        argName = argName.Trim();
+                    }
+                    m_args[i] = argName;
+
                 }
 
                 ArgMap[m_args[i]] = i;
             }
         }
-
+        int parmsindex = -1;
         public void RegisterArguments(List<Variable> args,
                                       List<KeyValuePair<string, Variable>> args2 = null)
         {
@@ -968,11 +993,24 @@ namespace AliceScript
             int maxSize = Math.Min(args.Count, m_args.Length);
             for (int i = 0; i < maxSize; i++)
             {
-                var arg = new GetVarFunction(args[i]);
-                arg.Name = m_args[i];
-                m_stackLevel.Variables[m_args[i]] = arg;
+                if (parmsindex == i)
+                {
+                    Variable parmsarg = new Variable(Variable.VarType.ARRAY);
+                    foreach (Variable argx in args.GetRange(i, args.Count - i))
+                    {
+                        parmsarg.Tuple.Add(argx);
+                    }
+                    var arg = new GetVarFunction(parmsarg);
+                    arg.Name = m_args[i];
+                    m_stackLevel.Variables[m_args[i]] = arg;
+                }
+                else
+                {
+                    var arg = new GetVarFunction(args[i]);
+                    arg.Name = m_args[i];
+                    m_stackLevel.Variables[m_args[i]] = arg;
+                }
             }
-
             for (int i = m_args.Length; i < args.Count; i++)
             {
                 var arg = new GetVarFunction(args[i]);

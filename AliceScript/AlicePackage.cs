@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 namespace AliceScript
 {
-   static class AlicePackage
+   public static class AlicePackage
     {
         public static void LoadPackage(string path)
         {

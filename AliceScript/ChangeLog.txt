@@ -47,3 +47,8 @@ Alicescript1003の変更点
 ・すでに定義されている関数がvirtualまたはoverride属性を持っていない限り、オーバーライド不可能になりました。
 
 以上で、AliceScript1への機能追加を終了します。変更はAliceSisterにマージされます。
+
+AliceScript1023の変更点
+・if文およびDelegate文で可変長個の引数を指定できるparmsパラメータの導入
+・複合書式指定で{0:x}のような記法をサポート
+・複合書式指定を用いて文字列を成形するstring_format関数の実装

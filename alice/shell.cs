@@ -62,6 +62,7 @@ namespace alice
 
             ClearLine();
 
+
             //標準出力
             Interpreter.Instance.OnOutput += Print;
 
