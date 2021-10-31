@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace AliceScript
 {
@@ -21,7 +22,27 @@ namespace AliceScript
             e.Return = new Variable(Alice.Version.ToString());
         }
     }
-    
+    class DelayFunc : FunctionBase
+    {
+        public DelayFunc()
+        {
+            this.Name = "delay";
+            this.MinimumArgCounts = 0;
+            this.Run += DelayFunc_Run;
+        }
+
+        private void DelayFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 0 && e.Args[0].Type == Variable.VarType.NUMBER)
+            {
+                Thread.Sleep((int)e.Args[0].Value);
+            }
+            else
+            {
+                Thread.Sleep(-1);
+            }
+        }
+    }
 
     class LabelFunction : ActionFunction
     {

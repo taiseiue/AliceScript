@@ -10,6 +10,8 @@ namespace alice
     {
         private static bool allow_print = true;
         private static List<string> print_redirect_files = new List<string>();
+        private static bool allow_debug_print = true;
+        private static List<string> debug_print_redirect_files = new List<string>();
         private static bool allow_throw = true;
         private static List<string> throw_redirect_files = new List<string>();
         enum NEXT_CMD
@@ -60,54 +62,81 @@ namespace alice
                 
             };
 
+            ParsedArguments pa = new ParsedArguments(args);
+            if (pa.Values.ContainsKey("print"))
+            {
+                if (pa.Values["print"].ToLower() == "off")
+                {
+                    allow_print = false;
+                }
+                else
+                {
+                    print_redirect_files.Add(pa.Values["print"]);
+                }
+            }
+            if (pa.Values.ContainsKey("debug-print"))
+            {
+                if (pa.Values["debug-print"].ToLower() == "off")
+                {
+                    allow_debug_print = false;
+                }
+                else
+                {
+                    debug_print_redirect_files.Add(pa.Values["debug-print"]);
+                }
+            }
+            if (pa.Values.ContainsKey("throw"))
+            {
+                if (pa.Values["throw"].ToLower() == "off")
+                {
+                    allow_throw = false;
+                }
+                else
+                {
+                    throw_redirect_files.Add(pa.Values["throw"]);
+                }
+            }
+            if (pa.Values.ContainsKey("runtime"))
+            {
+                Alice.Runtime_File_Path = pa.Values["runtime"];
+            }
+            mainfile = pa.Flags.Contains("mainfile");
+            foreach (string fn in pa.Files)
+            {
+                Alice.ExecuteFile(Path.GetFileName(fn), mainfile);
+            }
+
             ClearLine();
 
 
             //標準出力
             Interpreter.Instance.OnOutput += Print;
-
-            //例外スローを静かにする
+            //デバッグ出力
+            Interpreter.Instance.OnDebug += Debug_Print;
+            //例外のハンドル
             ThrowErrorManerger.HandleError = true;
+            //例外出力
             ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
-            Console.WriteLine("AliceScript バージョン "+Alice.Version.ToString());
+
+            string welcome_mes = "AliceScript バージョン " + Alice.Version.ToString();
+            if (!allow_print)
+            {
+                welcome_mes += " [標準出力無効]";
+            }
+            if (!allow_debug_print)
+            {
+                welcome_mes += " [デバッグ出力無効]";
+            }
+            if (!allow_throw)
+            {
+                welcome_mes += " [例外出力無効]";
+            }
+
+            Console.WriteLine(welcome_mes);
             Console.WriteLine("(c) "+DateTime.Now.Year+" WSOFT All rights reserved.");
 
             Console.WriteLine();
-            ParsedArguments pa = new ParsedArguments(args);
             
-                //実行モード
-                if (pa.Values.ContainsKey("print"))
-                {
-                    if (pa.Values["print"].ToLower() == "off")
-                    {
-                        allow_print = false;
-                    }
-                    else
-                    {
-                        print_redirect_files.Add(pa.Values["print"]);
-                    }
-                }
-                if (pa.Values.ContainsKey("throw"))
-                {
-                    if (pa.Values["throw"].ToLower() == "off")
-                    {
-                        allow_throw = false;
-                    }
-                    else
-                    {
-                        throw_redirect_files.Add(pa.Values["throw"]);
-                    }
-                }
-                if (pa.Values.ContainsKey("runtime"))
-                {
-                    Alice.Runtime_File_Path = pa.Values["runtime"];
-                }
-                mainfile = pa.Flags.Contains("mainfile");
-                foreach (string fn in pa.Files)
-                {
-                    Alice.ExecuteFile(Path.GetFileName(fn), mainfile);
-                }
-          
             RunLoop();
         }
         static bool mainfile = false;
@@ -144,8 +173,11 @@ namespace alice
                     {
                         File.AppendAllText(fn, "エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n");
                     }
+                   
                 }
+                s_PrintingCompleted = true;
             }
+
         }
 
         private static void SplitByLast(string str, string sep, ref string a, ref string b)
@@ -420,6 +452,21 @@ namespace alice
             if (print_redirect_files.Count > 0)
             {
                 foreach (string fn in print_redirect_files)
+                {
+                    File.AppendAllText(fn, e.Output);
+                }
+            }
+            s_PrintingCompleted = true;
+        }
+        static void Debug_Print(object sender, OutputAvailableEventArgs e)
+        {
+            if (allow_debug_print)
+            {
+                Console.Write(e.Output);
+            }
+            if (debug_print_redirect_files.Count > 0)
+            {
+                foreach (string fn in debug_print_redirect_files)
                 {
                     File.AppendAllText(fn, e.Output);
                 }

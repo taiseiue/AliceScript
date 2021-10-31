@@ -56,10 +56,21 @@ namespace AliceScript
 
         public event EventHandler<OutputAvailableEventArgs> OnOutput;
         public event EventHandler<OutputAvailableEventArgs> OnData;
+        public event EventHandler<OutputAvailableEventArgs> OnDebug;
 
         public void AppendOutput(string text, bool newLine = false)
         {
             EventHandler<OutputAvailableEventArgs> handler = OnOutput;
+            if (handler != null)
+            {
+                OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
+                                     (newLine ? Environment.NewLine : string.Empty));
+                handler(this, args);
+            }
+        }
+        public void AppendDebug(string text, bool newLine = false)
+        {
+            EventHandler<OutputAvailableEventArgs> handler = OnDebug;
             if (handler != null)
             {
                 OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
@@ -130,6 +141,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new UndefinedFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
+            FunctionBaseManerger.Add(new DelayFunc());
             FunctionBaseManerger.Add(new ImportFunc());
             FunctionBaseManerger.Add(new ImportFunc(true));
             FunctionBaseManerger.Add(new DllImportFunc());

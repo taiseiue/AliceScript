@@ -12,7 +12,6 @@ namespace AliceScript.NameSpaces
         {
             NameSpace space = new NameSpace("Alice.Threading");
 
-            space.Add(new thread_sleepFunc());
             space.Add(new thread_idFunc());
             space.Add(new thread_queueFunc());
             space.Add(new SignalWaitFunction(true));
@@ -20,20 +19,6 @@ namespace AliceScript.NameSpaces
             space.Add(new task_runFunc());
 
             NameSpaceManerger.Add(space);
-        }
-    }
-    class thread_sleepFunc : FunctionBase
-    {
-        public thread_sleepFunc()
-        {
-            this.Name = "thread_sleep";
-            this.MinimumArgCounts = 1;
-            this.Run += Thred_sleepFunc_Run;
-        }
-
-        private void Thred_sleepFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Thread.Sleep(e.Args[0].AsInt());
         }
     }
     class thread_idFunc : FunctionBase
