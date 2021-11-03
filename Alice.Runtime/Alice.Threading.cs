@@ -47,7 +47,7 @@ namespace AliceScript.NameSpaces
 
         private void Thread_queueFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args[0].Type != Variable.VarType.DELEGATE) { ThrowErrorManerger.OnThrowError("不正な引数です",e.Script); }
+            if (e.Args[0].Type != Variable.VarType.DELEGATE) { ThrowErrorManerger.OnThrowError("不正な引数です",Exceptions.WRONG_TYPE_VARIABLE,e.Script); }
             ThreadQueueStateInfo tqsi = new ThreadQueueStateInfo();
             tqsi.Delegate = e.Args[0].Delegate;
             tqsi.Script = e.Script;
@@ -81,7 +81,7 @@ namespace AliceScript.NameSpaces
 
         private void Task_runFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args[0].Type != Variable.VarType.DELEGATE) { ThrowErrorManerger.OnThrowError("不正な引数です",e.Script); }
+            if (e.Args[0].Type != Variable.VarType.DELEGATE) { ThrowErrorManerger.OnThrowError("不正な引数です",Exceptions.WRONG_TYPE_VARIABLE,e.Script); }
             List<Variable> args = new List<Variable>();
             if (e.Args.Count > 1)
             {

@@ -237,7 +237,7 @@ namespace AliceScript
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
             APPENDLINE,  CLASS, 
-            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV, THREAD, TRANSLATE, WRITE, WRITELINE, WRITENL
+            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV, THREAD, WRITE, WRITENL
         };
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>

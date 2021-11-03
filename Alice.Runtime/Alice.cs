@@ -468,7 +468,7 @@ namespace AliceScript.NameSpaces
 
         private void Console_WriteLineFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count == 1)
+            if (e.Args.Count <= 1)
             {
                 if (m_WLine)
                 {
@@ -482,29 +482,8 @@ namespace AliceScript.NameSpaces
             else
             {
                 string text = e.Args[0].AsString();
-                MatchCollection mc = Regex.Matches(text, @"{[0-9]+}");
-                foreach (Match match in mc)
-                {
-                    int mn = -1;
-                    if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'),out mn))
-                    {
-                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); break; }
-                        if (e.Args.Count > mn + 1)
-                        {
-                            text = text.Replace(match.Value, e.Args[mn + 1].AsString());
-                        }
-                        else
-                        {
-                            ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        ThrowErrorManerger.OnThrowError("複合書式指定\""+ match.Value + "\"は無効です", e.Script);
-                        break;
-                    }
-                }
+                e.Args.RemoveAt(0);
+                text=StringFormatFunction.Format(text,e.Args);
                 if (m_WLine)
                 {
                     Console.WriteLine(text);

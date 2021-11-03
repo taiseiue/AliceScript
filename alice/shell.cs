@@ -157,9 +157,19 @@ namespace alice
         {
             if (e.Message != "")
             {
+                string throwmsg = "エラー:AS"+((int)e.ErrorCode).ToString("x");
+                if (!string.IsNullOrEmpty(e.Message))
+                {
+                    throwmsg +=e.Message;
+                }
+                if (e.Script != null)
+                {
+                    throwmsg += " "+e.Script.OriginalLineNumber+"行 コード:"+e.Script.OriginalLine+" ファイル名:"+e.Script.Filename;
+                }
+                throwmsg += "\r\n";
                 if (allow_throw)
                 {
-                    AliceScript.Utils.PrintColor("エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n", ConsoleColor.Red);
+                    AliceScript.Utils.PrintColor(throwmsg, ConsoleColor.Red);
                     Dictionary<string, AliceScript.Variable> dic = AliceScript.Debug.Variables;
                     Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
                     foreach (string s in dic.Keys)
@@ -171,7 +181,7 @@ namespace alice
                 {
                     foreach (string fn in throw_redirect_files)
                     {
-                        File.AppendAllText(fn, "エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n");
+                        File.AppendAllText(fn,throwmsg);
                     }
                    
                 }

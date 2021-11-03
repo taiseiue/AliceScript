@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AliceScript
@@ -247,20 +248,26 @@ namespace AliceScript
         public ThrowFunction()
         {
             this.Name = "throw";
-            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE_ONC|FunctionAttribute.LANGUAGE_STRUCTURE;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE_ONC;
+            this.MinimumArgCounts = 1;
             this.Run += ThrowFunction_Run;
         }
 
         private void ThrowFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            // 1. Extract what to throw.
-            Variable arg =Utils.GetItem(e.Script);
-
-            // 2. Convert it to a string.
-            string result = arg.AsString();
-
-            // 3. Throw it!
-            ThrowErrorManerger.OnThrowError(result,e.Script);
+            switch (e.Args[0].Type)
+            {
+                case Variable.VarType.STRING:
+                    {
+                        ThrowErrorManerger.OnThrowError(e.Args[0].AsString(),Exceptions.USER_DEFINED,e.Script);
+                        break;
+                    }
+                case Variable.VarType.NUMBER:
+                    {
+                        ThrowErrorManerger.OnThrowError(Utils.GetSafeString(e.Args,1),(Exceptions)e.Args[0].AsInt(),e.Script);
+                        break;
+                    }
+            }
         }
     }
 
@@ -862,7 +869,7 @@ namespace AliceScript
                 string arg = args[i];
                 if (parms)
                 {
-                    ThrowErrorManerger.OnThrowError("paramsパラメーターより後にパラメーターを追加することはできません",script);
+                    ThrowErrorManerger.OnThrowError("parmsキーワードより後にパラメータを追加することはできません",Exceptions.COULDNT_ADD_PARAMETERS_AFTER_PARMS_KEYWORD, script);
                     break;
                 }
                 //paramsパラメーターとして認識するにはparams<空白>が必要
@@ -870,13 +877,7 @@ namespace AliceScript
                 int ind = arg.IndexOf('=');
                 if (ind > 0)
                 {
-                    if (parms)
-                    {
-                        ThrowErrorManerger.OnThrowError("paramsパラメータにデフォルトの値を代入することはできません",script);
-                        break;
-                    }
-                    else
-                    {
+                   
                         RealArgs[i] = arg.Substring(0, ind).Trim();
                         m_args[i] = RealArgs[i].ToLower();
                         string defValue = ind >= arg.Length - 1 ? "" : arg.Substring(ind + 1).Trim();
@@ -887,7 +888,7 @@ namespace AliceScript
 
                         m_defArgMap[i] = m_defaultArgs.Count;
                         m_defaultArgs.Add(defVariable);
-                    }
+                    
                 }
                 else
                 {
@@ -1263,7 +1264,35 @@ namespace AliceScript
               ((Item[0] == Constants.QUOTE && Item[Item.Length - 1] == Constants.QUOTE) ||
                (Item[0] == Constants.QUOTE1 && Item[Item.Length - 1] == Constants.QUOTE1)))
             {
-                return new Variable(Item.Substring(1, Item.Length - 2));
+                //文字列型
+                string result = Item.Substring(1, Item.Length - 2);
+                //[\\]は一時的に0x0011(装置制御1)に割り当てられます
+                result = result.Replace("\\\\", "\u0011");
+                result = result.Replace("\\\"", "\"");
+                result = result.Replace("\\'", "'");
+                result = result.Replace("\\n", "\n");
+                result = result.Replace("\\0", "\0");
+                result = result.Replace("\\a", "\a");
+                result = result.Replace("\\b", "\b");
+                result = result.Replace("\\f", "\f");
+                result = result.Replace("\\r", "\r");
+                result = result.Replace("\\t", "\t");
+                result = result.Replace("\\v", "\v");
+                //UTF-16文字コードを文字に置き換えます
+                MatchCollection mc = Regex.Matches(result, @"\\u[0-9a-f]{4}");
+                foreach (Match match in mc)
+                {
+                    result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'u')));
+                }
+                //UTF-32文字コードを文字に置き換えます
+                mc = Regex.Matches(result, @"\\U[0-9A-F]{8}");
+                foreach (Match match in mc)
+                {
+                    result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'U'), false));
+                }
+                //[\\]を\に置き換えます(装置制御1から[\]に置き換えます)
+                result = result.Replace("\u0011", "\\");
+                return new Variable(result);
             }
             //定数に存在するか確認
             
@@ -1279,6 +1308,22 @@ namespace AliceScript
         }
 
         public string Item { private get; set; }
+        static string ConvertUnicodeToChar(string charCode, bool mode = true)
+        {
+            if (mode)
+            {
+                int charCode16 = Convert.ToInt32(charCode, 16);  // 16進数文字列 -> 数値
+                char c = Convert.ToChar(charCode16);  // 数値(文字コード) -> 文字
+                return c.ToString();
+            }
+            else
+            {
+                //UTF-32モード
+                int charCode32 = Convert.ToInt32(charCode, 16);  // 16進数文字列 -> 数値
+                return Char.ConvertFromUtf32(charCode32);
+            }
+
+        }
     }
 
     class AddFunction : ParserFunction

@@ -19,32 +19,39 @@ namespace AliceScript
     // Prints passed list of argumentsand
     class PrintFunction : FunctionBase
     {
-        public PrintFunction()
+        public PrintFunction(bool isWrite=false)
         {
-            this.Name = "print";
+            if (isWrite)
+            {
+                this.Name = "write";
+                m_write = true;
+            }
+            else
+            {
+                this.Name = "print";
+            }
 
             //AliceScript925から、Print関数は引数を持つ必要がなくなりました。
             //this.MinimumArgCounts = 1;
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
             this.Run += PrintFunction_Run;
         }
-
+        private bool m_write;
         private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
         {
             if(e.Args.Count == 0)
             {
-                AddOutput("", e.Script, true);
+                AddOutput("", e.Script, !m_write);
             }
             else if (e.Args.Count == 1)
             {
-                AddOutput(e.Args[0].AsString(), e.Script,true);
+                AddOutput(e.Args[0].AsString(), e.Script,!m_write);
             }
             else
             {
-                string text = "";
                 string format = e.Args[0].AsString();
                 e.Args.RemoveAt(0);
-                AddOutput(StringFormatFunction.Format(format,e.Args), e.Script, true);
+                AddOutput(StringFormatFunction.Format(format,e.Args), e.Script,!m_write);
             }
         }
         
@@ -53,7 +60,6 @@ namespace AliceScript
         {
             
             string output = text + (addLine ? Environment.NewLine : string.Empty);
-            output = output.Replace("\\t", "\t").Replace("\\n", "\n");
             Interpreter.Instance.AppendOutput(output);
 
             Debugger debugger = script != null && script.Debugger != null ?

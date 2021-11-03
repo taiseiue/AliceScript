@@ -538,7 +538,7 @@ namespace AliceScript
                         }
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
                         }
                         else
                         {
@@ -560,7 +560,7 @@ namespace AliceScript
                         }
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
                         }
                         else
                         {

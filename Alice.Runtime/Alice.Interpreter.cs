@@ -152,7 +152,6 @@ namespace AliceScript.NameSpaces
                 indents += indent;
             }
             string output = indents+text + (addLine ? Environment.NewLine : string.Empty);
-            output = output.Replace("\\t", "\t").Replace("\\n", "\n");
             Interpreter.Instance.AppendDebug(output);
 
             Debugger debugger = script != null && script.Debugger != null ?
@@ -409,7 +408,7 @@ namespace AliceScript.NameSpaces
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("指定された変数名の変数は定義されていません",e.Script);
+                ThrowErrorManerger.OnThrowError("指定された変数名の変数は定義されていません",Exceptions.COULDNT_FIND_VARIABLE,e.Script);
             }
         }
     }

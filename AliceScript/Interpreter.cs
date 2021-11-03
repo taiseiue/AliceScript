@@ -148,6 +148,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
+            FunctionBaseManerger.Add(new PrintFunction(true));
             FunctionBaseManerger.Add(new StringFormatFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
@@ -206,7 +207,7 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.ASSIGNMENT, new AssignFunction());
             ParserFunction.AddAction(Constants.INCREMENT, new IncrementDecrementFunction());
             ParserFunction.AddAction(Constants.DECREMENT, new IncrementDecrementFunction());
-
+            
             for (int i = 0; i < Constants.OPER_ACTIONS.Length; i++)
             {
                 ParserFunction.AddAction(Constants.OPER_ACTIONS[i], new OperatorAssignFunction());
@@ -462,7 +463,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("現在の設定では"+MAX_LOOPS+"以上の繰り返しを行うことはできません",script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では"+MAX_LOOPS+"以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS,script);
                     return;
                 }
 
@@ -512,7 +513,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("現在の設定では" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では" + MAX_LOOPS + "以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS, script);
                     return;
                 }
 
@@ -556,7 +557,7 @@ namespace AliceScript
                 // 無限ループを抑制するための判定
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS, script);
                     return Variable.EmptyInstance;
                 }
 
@@ -843,7 +844,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
+                ThrowErrorManerger.OnThrowError("Catchステートメントがありません",Exceptions.MISSING_CATCH_STATEMENT, script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -908,7 +909,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
+                ThrowErrorManerger.OnThrowError("Catchステートメントがありません",Exceptions.MISSING_CATCH_STATEMENT, script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -1065,7 +1066,7 @@ namespace AliceScript
                 if (!script.StillValid())
                 {
                     ThrowErrorManerger.OnThrowError("次のブロックを実行できませんでした [" +
-                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]", script);
+                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]",Exceptions.COULDNT_EXECUTE_BLOCK, script);
                 }
                 char currentChar = script.CurrentAndForward();
                 switch (currentChar)
@@ -1100,10 +1101,10 @@ namespace AliceScript
             }
             if(startCount > endCount)
             {
-                ThrowErrorManerger.OnThrowError("終端にはかっこが必要です",script);
+                ThrowErrorManerger.OnThrowError("括弧が必要です",Exceptions.NEED_BRACKETS,script);
             }else if(startCount < endCount)
             {
-                ThrowErrorManerger.OnThrowError("終端のかっこは不要です",script);
+                ThrowErrorManerger.OnThrowError("終端のかっこは不要です",Exceptions.UNNEED_TO_BRACKETS,script);
             }
         }
 

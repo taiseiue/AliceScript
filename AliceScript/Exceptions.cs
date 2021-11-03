@@ -4,8 +4,12 @@ using System.Text;
 
 namespace AliceScript
 {
-    enum Exceptions
+   public enum Exceptions
     {
+        /// <summary>
+        /// 既定のエラーコード
+        /// </summary>
+        NONE=0x000,
         /// <summary>
         /// 関数が見つかりません
         /// </summary>
@@ -53,7 +57,7 @@ namespace AliceScript
         /// <summary>
         /// 変数または関数が存在しません
         /// </summary>
-        VARIABLE_OF_FUNCTION_DOESNT_EXIST=0x00c,
+        PROPERTY_OR_METHOD_NOT_FOUND=0x00c,
         /// <summary>
         /// 引数が不完全です
         /// </summary>
@@ -101,6 +105,50 @@ namespace AliceScript
         /// <summary>
         /// 変数がNullです
         /// </summary>
-        VARIABLE_IS_NULL = 0x018
+        VARIABLE_IS_NULL = 0x018,
+        /// <summary>
+        /// ユーザー定義の例外です
+        /// </summary>
+        USER_DEFINED = 0x019,
+        /// <summary>
+        /// parmsキーワードより後にパラメータを追加することはできません
+        /// </summary>
+        COULDNT_ADD_PARAMETERS_AFTER_PARMS_KEYWORD=0x01a,
+        /// <summary>
+        /// ファイルが見つかりません
+        /// </summary>
+        FILE_NOT_FOUND=0x01b,
+        /// <summary>
+        /// 名前空間が存在しません
+        /// </summary>
+        NAMESPACE_NOT_FOUND=0x01c,
+        /// <summary>
+        /// 名前空間が読み込まれていません
+        /// </summary>
+        NAMESPACE_NOT_LOADED=0x01d,
+        /// <summary>
+        /// 繰り返しが多すぎます
+        /// </summary>
+        TOO_MANY_REPETITIONS=0x01e,
+        /// <summary>
+        /// Catchステートメントがありません
+        /// </summary>
+        MISSING_CATCH_STATEMENT=0x01f,
+        /// <summary>
+        /// ブロックを実行できませんでした
+        /// </summary>
+        COULDNT_EXECUTE_BLOCK=0x020,
+        /// <summary>
+        /// 括弧が必要です
+        /// </summary>
+        NEED_BRACKETS=0x021,
+        /// <summary>
+        /// 括弧は不要です
+        /// </summary>
+        UNNEED_TO_BRACKETS=0x022,
+        /// <summary>
+        /// その型の変数は使用できません
+        /// </summary>
+        WRONG_TYPE_VARIABLE=0x023
     }
 }

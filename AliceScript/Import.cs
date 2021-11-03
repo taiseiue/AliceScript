@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 
 namespace AliceScript
@@ -67,9 +68,18 @@ namespace AliceScript
         {
             Functions.Clear();
         }
+        public event EventHandler<CancelEventArgs> Loading;
+        public event EventHandler<CancelEventArgs> UnLoading;
         public virtual void Load()
         {
             int ecount = 0;
+            CancelEventArgs e = new CancelEventArgs();
+            e.Cancel = false;
+            Loading?.Invoke(this,e);
+            if (e.Cancel)
+            {
+                return;
+            }
             foreach (FunctionBase func in Functions)
             {
                 try
@@ -94,11 +104,19 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
+            
             if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
         public virtual void UnLoad()
         {
             int ecount = 0;
+            CancelEventArgs e = new CancelEventArgs();
+            e.Cancel = false;
+            UnLoading?.Invoke(this, e);
+            if (e.Cancel)
+            {
+                return;
+            }
             foreach (FunctionBase func in Functions)
             {
                 try
@@ -169,7 +187,7 @@ namespace AliceScript
                         else
                         {
                             //いずれでもない場合
-                            ThrowErrorManerger.OnThrowError("該当するライブラリが見つかりません",e.Script);
+                            ThrowErrorManerger.OnThrowError("該当するライブラリが見つかりません",Exceptions.FILE_NOT_FOUND,e.Script);
                         }
                     }
                     else if (File.Exists(file))
@@ -236,7 +254,7 @@ namespace AliceScript
                                 NameSpaceManerger.UnLoad(file);
                             }
                             else {
-                                ThrowErrorManerger.OnThrowError("該当する名前空間は読み込まれていません",e.Script);
+                                ThrowErrorManerger.OnThrowError("該当する名前空間は読み込まれていません",Exceptions.NAMESPACE_NOT_LOADED,e.Script);
                             }
                         }
                         else
@@ -247,7 +265,7 @@ namespace AliceScript
                     }
                     else
                     {
-                        ThrowErrorManerger.OnThrowError("該当する名前空間がありません",e.Script);
+                        ThrowErrorManerger.OnThrowError("該当する名前空間がありません",Exceptions.NAMESPACE_NOT_FOUND,e.Script);
                     }
 
                 }

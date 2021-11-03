@@ -9,13 +9,14 @@ namespace AliceScript
         public string Message { get; set; }
         public ParsingScript Script { get; set; }
         public ParsingException Exception { get; set; }
+        public Exceptions ErrorCode { get; set; }
     }
     public delegate void ThrowErrorEventhandler(object sender, ThrowErrorEventArgs e);
     public static class ThrowErrorManerger
     {
         public static event ThrowErrorEventhandler ThrowError;
         public static bool HandleError = false;
-        public static void OnThrowError(string message,  ParsingScript script = null,ParsingException exception=null)
+        public static void OnThrowError(string message,Exceptions errorcode=Exceptions.NONE,  ParsingScript script = null,ParsingException exception=null)
         {
 
             ThrowErrorEventArgs ex = new ThrowErrorEventArgs(); ex.Message = message;

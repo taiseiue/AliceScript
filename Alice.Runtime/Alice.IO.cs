@@ -18,7 +18,7 @@ namespace AliceScript.NameSpaces
             space.Add(new file_copyFunc());
             space.Add(new file_deleteFunc());
             space.Add(new file_encryptFunc());
-            space.Add(new file_deleteFunc());
+            space.Add(new file_decrypt());
             space.Add(new file_read_dataFunc());
             space.Add(new file_read_textFunc());
             space.Add(new file_write_dataFunc());
@@ -222,7 +222,7 @@ namespace AliceScript.NameSpaces
         public file_encryptFunc()
         {
             this.Name = "file_encrypt";
-            this.MinimumArgCounts = 2;
+            this.MinimumArgCounts = 3;
             this.Run += File_encrypt_Run;
         }
 
@@ -236,7 +236,7 @@ namespace AliceScript.NameSpaces
         public file_decrypt()
         {
             this.Name = "file_decrypt";
-            this.MinimumArgCounts = 2;
+            this.MinimumArgCounts = 3;
             this.Run += File_encrypt_Run;
         }
 
@@ -455,7 +455,7 @@ namespace AliceScript.NameSpaces
     {
         public directory_currentdirectoryFunc()
         {
-            this.Name = "directory_currentdirectory";
+            this.Name = "directory_current";
             this.MinimumArgCounts = 0;
             this.Run += File_exists_Run;
         }

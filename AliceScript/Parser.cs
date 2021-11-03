@@ -195,32 +195,6 @@ namespace AliceScript
             }
 
             string result = item.ToString();
-            //[\\]は一時的に0x0011(装置制御1)に割り当てられます
-            result = result.Replace("\\\\", "\u0011");
-            result = result.Replace("\\\"", "\"");
-            result = result.Replace("\\'", "'");
-            result = result.Replace("\\n", "\n");
-            result = result.Replace("\\0", "\0");
-            result = result.Replace("\\a", "\a");
-            result = result.Replace("\\b", "\b");
-            result = result.Replace("\\f", "\f");
-            result = result.Replace("\\r", "\r");
-            result = result.Replace("\\t", "\t");
-            result = result.Replace("\\v", "\v");
-            //UTF-16文字コードを文字に置き換えます
-            MatchCollection mc = Regex.Matches(result, @"\\u[0-9a-f]{4}");
-            foreach (Match match in mc)
-            {
-                result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'u')));
-            }
-            //UTF-32文字コードを文字に置き換えます
-            mc = Regex.Matches(result, @"\\U[0-9A-F]{8}");
-            foreach (Match match in mc)
-            {
-                result = result.Replace(match.Value, ConvertUnicodeToChar(match.Value.TrimStart('\\', 'U'), false));
-            }
-            //[\\]を\に置き換えます(装置制御1から[\]に置き換えます)
-            result = result.Replace("\u0011", "\\");
 
             if (throwExc && string.IsNullOrWhiteSpace(result) && action != "++" && action != "--" &&
                 Utils.IsAction(script.Prev) && Utils.IsAction(script.PrevPrev))
@@ -231,22 +205,7 @@ namespace AliceScript
 
             return result;
         }
-        static string ConvertUnicodeToChar(string charCode, bool mode = true)
-        {
-            if (mode)
-            {
-                int charCode16 = Convert.ToInt32(charCode, 16);  // 16進数文字列 -> 数値
-                char c = Convert.ToChar(charCode16);  // 数値(文字コード) -> 文字
-                return c.ToString();
-            }
-            else
-            {
-                //UTF-32モード
-                int charCode32 = Convert.ToInt32(charCode, 16);  // 16進数文字列 -> 数値
-                return Char.ConvertFromUtf32(charCode32);
-            }
-
-        }
+        
         static bool UpdateResult(ParsingScript script, char[] to, List<Variable> listToMerge, string token, bool negSign,
                                  ref Variable current, ref int negated, ref string action)
         {
