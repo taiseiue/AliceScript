@@ -980,7 +980,7 @@ namespace AliceScript
             {
                 if (!result.Writable)
                 {
-                    Utils.ThrowErrorMsg("Property [" + propName + "] is not writable.",
+                    Utils.ThrowErrorMsg("プロパティ:[" + propName + "]は読み取り専用です",Exceptions.PROPERTY_IS_READ_ONLY,
                         script, propName);
                 }
                 if (result.CustomFunctionSet != null)
@@ -1174,12 +1174,12 @@ namespace AliceScript
             }
             if (customFunc == null)
             {
-                Utils.ThrowErrorMsg("No function found for [" + Constants.FOREACH + "].",
+                Utils.ThrowErrorMsg("関数:[" + Constants.FOREACH + "]は定義されていないか、存在しません",Exceptions.COULDNT_FIND_FUNCTION,
                                     script, token);
             }
             if (Tuple == null)
             {
-                Utils.ThrowErrorMsg("No array found for [" + Constants.FOREACH + "].",
+                Utils.ThrowErrorMsg("ForEach文で、配列が見つかりません",Exceptions.COULDNT_FIND_ARRAY,
                                     script, token);
             }
 

@@ -334,8 +334,8 @@ namespace AliceScript
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
-                                     script, Constants.FOREACH);
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",Exceptions.INVALID_SYNTAX
+                                     ,script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
             }
@@ -389,7 +389,7 @@ namespace AliceScript
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
@@ -437,7 +437,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOR);
             }
 
@@ -487,7 +487,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOR);
             }
 
@@ -598,7 +598,7 @@ namespace AliceScript
                 // Check for an infinite loop if we are comparing same values:
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
+                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます",Exceptions.TOO_MANY_REPETITIONS);
                 }
 
                 result = await ProcessBlockAsync(script);

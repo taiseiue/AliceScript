@@ -157,7 +157,7 @@ namespace alice
         {
             if (e.Message != "")
             {
-                string throwmsg = "エラー:AS"+((int)e.ErrorCode).ToString("x");
+                string throwmsg = "エラーコード:0x"+((int)e.ErrorCode).ToString("x3")+" ";
                 if (!string.IsNullOrEmpty(e.Message))
                 {
                     throwmsg +=e.Message;

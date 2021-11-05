@@ -240,7 +240,7 @@ namespace AliceScript
         {
             if (string.IsNullOrWhiteSpace(token) || (token[0] == '"' && token[token.Length-1] != '"'))
             {
-                Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                Utils.ThrowErrorMsg("値を混合して取得/設定することはできません",Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
             }
             if (customFunc != null)
             {
@@ -300,7 +300,7 @@ namespace AliceScript
                     case "value":
                         if (setgetProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET,script, funcName);
                         }
                         valueProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -308,7 +308,7 @@ namespace AliceScript
                     case "set":
                         if (valueProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
                         }
                         setgetProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -316,7 +316,7 @@ namespace AliceScript
                     case "get":
                         if (valueProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません",Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
                         }
                         setgetProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -1563,7 +1563,7 @@ namespace AliceScript
                 if (arrayIndex < 0 || arrayIndex >= tupleSize)
                 {
                     ThrowErrorMsg("インデックス: [" + index.AsString() +
-                                  "] は配列の長さ" + tupleSize+"の中に存在しません", script, index.AsString());
+                                  "] は配列の長さ[" + tupleSize+"]を超えています",Exceptions.INDEX_OUT_OF_RANGE,script, index.AsString());
                     return currLevel;
                 }
                 switch (currLevel.Type)

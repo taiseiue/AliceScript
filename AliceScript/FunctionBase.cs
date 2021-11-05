@@ -87,7 +87,7 @@ namespace AliceScript
             if (currentVariable == null) { return Variable.EmptyInstance; }
             if (this.RequestType != Variable.VarType.NONE)
             {
-                if (!currentVariable.Type.HasFlag(this.RequestType)) { ThrowErrorManerger.OnThrowError("関数[" + FunctionName + "]は無効または定義されていません"); return Variable.EmptyInstance; }
+                if (!currentVariable.Type.HasFlag(this.RequestType)) { ThrowErrorManerger.OnThrowError("関数[" + FunctionName + "]は無効または定義されていません",Exceptions.COULDNT_FIND_FUNCTION); return Variable.EmptyInstance; }
             }
             List<Variable> args=null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))

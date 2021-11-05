@@ -223,7 +223,7 @@ namespace AliceScript
                     }
                 }else
                 {
-                    ThrowErrorManerger.OnThrowError("このプロパティには変数を代入することはできません");
+                    ThrowErrorManerger.OnThrowError("このプロパティに代入できません",Exceptions.COULDNT_ASSIGN_THIS_PROPERTY);
                 }
             }
         }

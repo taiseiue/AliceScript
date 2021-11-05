@@ -392,7 +392,7 @@ namespace AliceScript
                 }
                 else
                 {
-                    ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されています。関数にoverride属性を付与することを検討してください。");
+                    ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されています。関数にoverride属性を付与することを検討してください。",Exceptions.FUNCTION_IS_ALREADY_DEFINED);
                 }
             }
 
@@ -1593,7 +1593,7 @@ namespace AliceScript
                                     }
                                     else
                                     {
-                                        ThrowErrorManerger.OnThrowError("引数である"+e.Args[0].String+"は有効な数値の形式ではありません");
+                                        ThrowErrorManerger.OnThrowError("引数である"+e.Args[0].String+"は有効な数値の形式ではありません",Exceptions.INVALID_NUMERIC_REPRESENTATION);
                                     }
                                     break;
                                 }
@@ -2188,7 +2188,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",
+                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
                          script, action);
                             break;
                         }
@@ -2203,7 +2203,7 @@ namespace AliceScript
                     }
                 default:
                     {
-                        Utils.ThrowErrorMsg(action+"は有効な演算子ではありません",
+                        Utils.ThrowErrorMsg(action+"は有効な演算子ではありません",Exceptions.INVALID_OPERAND,
                                         script, action);
                         break;
                     }
@@ -2248,7 +2248,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",
+                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
                          script, action);
                             break;
                         }
@@ -2264,7 +2264,7 @@ namespace AliceScript
                     }
                 default:
                     {
-                        Utils.ThrowErrorMsg(action+ "は有効な演算子ではありません",
+                        Utils.ThrowErrorMsg(action+ "は有効な演算子ではありません",Exceptions.INVALID_OPERAND,
                                         script, action);
                         return;
                     }
@@ -2344,7 +2344,7 @@ namespace AliceScript
 
             if (script.Current == ' ' || script.Prev == ' ')
             {
-                Utils.ThrowErrorMsg("[" + script.Rest + "]は無効なトークンです",
+                Utils.ThrowErrorMsg("[" + script.Rest + "]は無効なトークンです",Exceptions.INVALID_TOKEN,
                                     script, m_name);
             }
 
@@ -2398,7 +2398,7 @@ namespace AliceScript
 
             if (script.Current == ' ' || script.Prev == ' ')
             {
-                Utils.ThrowErrorMsg("Can't process expression [" + script.Rest + "].",
+                Utils.ThrowErrorMsg("[" + script.Rest + "]は無効なトークンです", Exceptions.INVALID_TOKEN,
                                     script, m_name);
             }
 
@@ -2833,7 +2833,7 @@ namespace AliceScript
             }
             else if (script.CurrentClass != null)
             {
-                Utils.ThrowErrorMsg(m_name + "をクラス内で定義することはできません",
+                Utils.ThrowErrorMsg(m_name + "をクラス内で定義することはできません",Exceptions.COULDNT_DEFINE_IN_CLASS,
                                     script, m_name);
             }
             else

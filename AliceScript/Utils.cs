@@ -14,9 +14,8 @@ namespace AliceScript
         {
             if (args < expected || (exactMatch && args != expected))
             {
-                //Insufficient arguments
-                throw new ArgumentException("Expecting " + expected +
-                    " arguments but got " + args + " in " + msg);
+                //引数の不足
+                ThrowErrorManerger.OnThrowError(msg+"には引数が"+expected+"個必要ですが、"+args+"個しか指定されていません",Exceptions.INSUFFICIENT_ARGUMETS);
             }
         }
         public static void CheckPosInt(Variable variable, ParsingScript script)
@@ -24,8 +23,8 @@ namespace AliceScript
             CheckInteger(variable, script);
             if (variable.Value <= 0)
             {
-                ThrowErrorMsg("Expected natural number instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                ThrowErrorMsg("次の数の代わりに自然数である必要があります [" +
+                              variable.Value + "]",Exceptions.EXPECTED_NATURAL_NUMBER, script, script.Current.ToString());
             }
         }
 
@@ -34,8 +33,8 @@ namespace AliceScript
             CheckInteger(variable, script);
             if (variable.Value < 0)
             {
-                ThrowErrorMsg("Expected a non-negative integer instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                ThrowErrorMsg("次の数の代わりに負でない整数である必要があります [" +
+                              variable.Value + "]",Exceptions.EXPECTED_NON_NEGATIVE_INTEGER, script, script.Current.ToString());
             }
         }
         public static void CheckInteger(Variable variable, ParsingScript script)
@@ -43,16 +42,16 @@ namespace AliceScript
             CheckNumber(variable, script);
             if (variable.Value % 1 != 0.0)
             {
-                ThrowErrorMsg("Expected an integer instead of [" +
-                              variable.Value + "].", script, script.Current.ToString());
+                ThrowErrorMsg("次の数の代わりに整数である必要があります  [" +
+                              variable.Value + "]",Exceptions.EXPECTED_INTEGER, script, script.Current.ToString());
             }
         }
         public static void CheckNumber(Variable variable, ParsingScript script)
         {
             if (variable.Type != Variable.VarType.NUMBER)
             {
-                ThrowErrorMsg("Expected a number instead of [" +
-                              variable.AsString() + "].", script, script.Current.ToString());
+                ThrowErrorMsg("次の代わりに数値型である必要があります  [" +
+                              variable.AsString() + "]",Exceptions.WRONG_TYPE_VARIABLE, script, script.Current.ToString());
             }
         }
         public static void CheckArray(Variable variable, string name)
@@ -69,7 +68,7 @@ namespace AliceScript
             if (!script.StillValid() || string.IsNullOrWhiteSpace(varName))
             {
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Incomplete arguments for [" + realName + "].", script, name);
+                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, script, name);
             }
         }
 
@@ -77,10 +76,10 @@ namespace AliceScript
         {
             if (obj == null)
             {
-                string indexStr = index >= 0 ? " in position " + (index + 1) : "";
+                string indexStr = index >= 0 ? " の " + (index + 1) : "";
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Invalid argument " + indexStr +
-                                            " in function [" + realName + "].", script, name);
+                ThrowErrorMsg("次の引数は無効です " + indexStr +
+                                            " 関数:[" + realName + "]",Exceptions.INVAILD_ARGUMENT, script, name);
             }
         }
         public static void CheckNotNull(string name, ParserFunction func, ParsingScript script)
@@ -88,7 +87,7 @@ namespace AliceScript
             if (func == null)
             {
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Variable or function [" + realName + "] doesn't exist.", script, name);
+                ThrowErrorMsg("次の変数または関数は存在しません [" + realName + "]",Exceptions.PROPERTY_OR_METHOD_NOT_FOUND, script, name);
             }
         }
         public static void CheckNotNull(object obj, string name, ParsingScript script)
@@ -96,7 +95,7 @@ namespace AliceScript
             if (obj == null)
             {
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Object [" + realName + "] doesn't exist.", script, name);
+                ThrowErrorMsg("次のオブジェクトは存在しません [" + realName + "]",Exceptions.OBJECT_DOESNT_EXIST, script, name);
             }
         }
 
@@ -105,14 +104,14 @@ namespace AliceScript
             if (!script.StillValid())
             {
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Incomplete arguments for [" + realName + "]", script, script.Prev.ToString());
+                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, script, script.Prev.ToString());
             }
         }
         public static void CheckNotEnd(ParsingScript script)
         {
             if (!script.StillValid())
             {
-                ThrowErrorMsg("Incomplete function definition.", script, script.Prev.ToString());
+                ThrowErrorMsg("関数の定義が不完全です", Exceptions.INCOMPLETE_FUNCTION_DEFINITION,script, script.Prev.ToString());
             }
         }
 
@@ -121,7 +120,7 @@ namespace AliceScript
             if (string.IsNullOrEmpty(varName))
             {
                 string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("Incomplete arguments for [" + realName + "]", null, name);
+                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, null, name);
             }
         }
 
@@ -129,7 +128,7 @@ namespace AliceScript
         {
             if (string.IsNullOrWhiteSpace(name) || (!Char.IsLetter(name[0]) && name[0] != '_'))
             {
-                ThrowErrorMsg("Illegal variable name: [" + name + "]",
+                ThrowErrorMsg("変数名として次の名前は使用できません: [" + name + "]",Exceptions.ILLEGAL_VARIABLE_NAME,
                               script, name);
             }
 
@@ -145,7 +144,7 @@ namespace AliceScript
                         char ch = illegals[i];
                         if (name.Contains(ch))
                         {
-                            ThrowErrorMsg("Variable [" + name + "] contains illegal character [" + ch + "]",
+                            ThrowErrorMsg("[" + name + "]のうち、変数名として [" + ch + "]は使用できません",Exceptions.CONTAINS_ILLEGAL_CHARACTER,
                                           script, name);
                         }
                     }
@@ -153,14 +152,18 @@ namespace AliceScript
             }
         }
 
-        public static void ThrowErrorMsg(string msg, ParsingScript script, string token)
+        public static void ThrowErrorMsg(string msg,Exceptions errorcode, ParsingScript script, string token)
         {
+            /*
+             * TODO:ThrowErrorMSGの引継ぎ等
             string code     = script == null || string.IsNullOrWhiteSpace(script.OriginalScript) ? "" : script.OriginalScript;
             int lineNumber  = script == null ? 0 : script.OriginalLineNumber;
             string filename = script == null || string.IsNullOrWhiteSpace(script.Filename) ? "" : script.Filename;
             int minLines    = script == null || script.OriginalLine.ToLower().Contains(token.ToLower()) ? 1 : 2;
 
             ThrowErrorMsg(msg, code, lineNumber, filename, minLines);
+            */
+            ThrowErrorManerger.OnThrowError(msg,errorcode,script);
         }
 
         static void ThrowErrorMsg(string msg, string script, int lineNumber, string filename = "", int minLines = 1)
@@ -214,7 +217,7 @@ namespace AliceScript
                 {
                     return false;
                 }
-                Utils.ThrowErrorMsg(name + " is a reserved name.", script, name);
+                Utils.ThrowErrorMsg(name + "は予約語のため使用できません", Exceptions.ITS_RESERVED_NAME,script, name);
             }
             if (Char.IsDigit(name[0]) || name[0] == '-')
             {
@@ -222,7 +225,7 @@ namespace AliceScript
                 {
                     return false;
                 }
-                Utils.ThrowErrorMsg(name + " has illegal first character " + name[0], null, name);
+                Utils.ThrowErrorMsg(name + "として定義されていますが、[" + name[0]+"]を変数名の先端に使用することはできません",Exceptions.ITHAS_ILLEGAL_FIRST_CHARACTER, null, name);
             }
 
             return true;
@@ -609,15 +612,21 @@ namespace AliceScript
         public static void ProcessErrorMsg(string str, ParsingScript script)
         {
             char ch = script.TryPrev();
-            string entity = ch == '(' ? "function":
-                            ch == '[' ? "array"   :
-                            ch == '{' ? "operand" :
-                                        "variable";
+            string entity = ch == '(' ? "関数":
+                            ch == '[' ? "配列"   :
+                            ch == '{' ? "演算子" :
+                                        "変数";
+            Exceptions ex = ch == '(' ? Exceptions.COULDNT_FIND_FUNCTION :
+                            ch == '[' ? Exceptions.COULDNT_FIND_ARRAY :
+                            ch == '{' ? Exceptions.COULDNT_FIND_OPERATOR :
+                                        Exceptions.COULDNT_FIND_VARIABLE;
             string token    = Constants.GetRealName(str);
 
-            string msg = "Couldn't find " + entity + " [" + token + "].";
+            string msg = entity+":["+token+"]は定義されていないか、存在しません";
 
-            ThrowErrorMsg(msg, script, str);
+            ThrowErrorMsg(msg,ex, script, str);
+
+
         }
 
         public static bool ConvertToBool(object obj)

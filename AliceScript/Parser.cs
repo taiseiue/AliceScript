@@ -199,8 +199,8 @@ namespace AliceScript
             if (throwExc && string.IsNullOrWhiteSpace(result) && action != "++" && action != "--" &&
                 Utils.IsAction(script.Prev) && Utils.IsAction(script.PrevPrev))
             {
-                Utils.ThrowErrorMsg("Can't process  token [" + script.PrevPrev + script.Prev + script.Current +
-                                    "].", script, script.Current.ToString());
+                Utils.ThrowErrorMsg("次のトークンを実行できませんでした [" + script.PrevPrev + script.Prev + script.Current +
+                                    "].",Exceptions.INVALID_TOKEN, script, script.Current.ToString());
             }
 
             return result;
@@ -644,7 +644,7 @@ namespace AliceScript
                 case ")":
                     return leftCell;
                 default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
                          script, leftCell.Action);
                     return leftCell;
             }
@@ -701,7 +701,7 @@ namespace AliceScript
                     //      script, script.Current.ToString());
                     return leftCell;
                 default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
                          script, leftCell.Action);
                     return leftCell;
             }
@@ -759,8 +759,8 @@ namespace AliceScript
                 case ")":
                     break;
                 default:
-                    Utils.ThrowErrorMsg("String型演算で次の演算子を処理できませんでした。[" + leftCell.Action + "]",
-                         script, leftCell.Action);
+                    Utils.ThrowErrorMsg("String型演算で次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND
+                         ,script, leftCell.Action);
                     break;
             }
         }
@@ -809,7 +809,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",
+                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
                          script, leftCell.Action);
                             return leftCell;
                         }
@@ -826,7 +826,7 @@ namespace AliceScript
                 case ")":
                     return leftCell;
                 default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
                          script, leftCell.Action);
                     return leftCell;
             }
@@ -862,7 +862,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",
+                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
                          script, leftCell.Action);
                             return leftCell;
                         }
@@ -878,7 +878,7 @@ namespace AliceScript
                 case ")":
                     return leftCell;
                 default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
                          script, leftCell.Action);
                     return leftCell;
             }
@@ -898,7 +898,7 @@ namespace AliceScript
                 case ")":
                     return leftCell;
                 default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",
+                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
                          script, leftCell.Action);
                     return leftCell;
             }

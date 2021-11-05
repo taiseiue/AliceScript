@@ -607,7 +607,7 @@ namespace AliceScript
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません。");
+                ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません",Exceptions.FUNCTION_IS_ALREADY_DEFINED);
             }
         }
 

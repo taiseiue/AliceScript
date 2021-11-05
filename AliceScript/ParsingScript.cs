@@ -528,6 +528,10 @@ namespace AliceScript
                 {
                     result = Parser.AliceScript(this, toArray);
                 }
+                catch (HandledErrorException)
+                {
+
+                }
                 catch (ParsingException parseExc)
                 {
                     if (!this.InTryBlock)

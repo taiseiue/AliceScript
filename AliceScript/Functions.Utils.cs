@@ -178,7 +178,7 @@ namespace AliceScript
             if (script.AllLabels == null || script.LabelToFile == null |
                !script.AllLabels.TryGetValue(script.FunctionName, out labels))
             {
-                Utils.ThrowErrorMsg("Couldn't find labels in function [" + script.FunctionName + "].",
+                Utils.ThrowErrorMsg("次のラベルは関数内に存在しません [" + script.FunctionName + "]",Exceptions.COULDNT_FIND_LABEL_IN_FUNCTION,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }
@@ -186,7 +186,7 @@ namespace AliceScript
             int gotoPointer;
             if (!labels.TryGetValue(labelName, out gotoPointer))
             {
-                Utils.ThrowErrorMsg("Couldn't find label [" + labelName + "].",
+                Utils.ThrowErrorMsg("ラベル:[" + labelName + "]は定義されていません",Exceptions.COULDNT_FIND_LABEL,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }
