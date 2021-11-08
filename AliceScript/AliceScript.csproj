@@ -13,4 +13,8 @@
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="VariableFunction.cs~RF7f8c5.TMP" />
+  </ItemGroup>
+
 </Project>

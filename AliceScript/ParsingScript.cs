@@ -520,7 +520,10 @@ namespace AliceScript
            
             if (InTryBlock)
             {
+                bool before = ThrowErrorManerger.InTryBlock;
+                ThrowErrorManerger.InTryBlock = true;
                 result = Parser.AliceScript(this, toArray);
+                ThrowErrorManerger.InTryBlock = before;
             }
             else
             {

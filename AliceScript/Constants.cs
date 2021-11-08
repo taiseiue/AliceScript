@@ -58,7 +58,6 @@ namespace AliceScript
         public const string CATCH = "catch";
         public const string CANCEL = "cancel_operation";
         public const string COMMENT = "//";
-        public const string COMPILED_FUNCTION = "cfunction";
         public const string CONTINUE = "continue";
         public const string DEFAULT = "default";
         public const string DO = "do";
@@ -70,6 +69,7 @@ namespace AliceScript
         public const string ENUM = "enum";
         public const string IF = "if";
         public const string INCLUDE = "include";
+        public const string IMPORT = "import";
         public const string NEW = "new";
         public const string RETURN = "return";
         public const string SWITCH = "switch";
@@ -83,84 +83,42 @@ namespace AliceScript
         public const string TRUE = "true";
         public const string FALSE = "false";
 
-        public const string ABS = "abs";
-        public const string ACOS = "acos";
         public const string ADD = "add";
         public const string ADD_UNIQUE = "addunique";
         public const string ADD_TO_HASH = "AddToHash";
         public const string ADD_ALL_TO_HASH = "AddAllToHash";
-        public const string ASIN = "asin";
         public const string CANCEL_RUN = "CancelRun";
-        public const string CEIL = "ceil";
         public const string CHECK_LOADER_MAIN = "LoaderMain";
         public const string CONTAINS = "contains";
-        public const string COS = "cos";
         public const string CURRENT_PATH = "CurrentPath";
-        public const string DATE_TIME = "DateTime";
         public const string DEEP_COPY = "DeepCopy";
         public const string DEFINE_LOCAL = "DefineLocal";
-        public const string ENV = "env";
         public const string EXIT = "exit";
-        public const string EXP = "exp";
         public const string FIND_INDEX = "find_index";
         public const string FLOOR = "floor";
         public const string GET_COLUMN = "GetColumn";
         public const string GET_PROPERTIES = "GetPropertyStrings";
         public const string GET_PROPERTY = "GetProperty";
         public const string GET_KEYS = "GetKeys";
-        public const string HELP = "help";
         public const string LOCK = "lock";
-        public const string LOG = "log";
-        public const string NAME_EXISTS = "NameExists";
         public const string NAMESPACE = "Namespace";
-        public const string NOW = "Now";
         public const string ON_EXCEPTION = "OnException";
         public const string OBJECT_PROPERTIES = "Properties";
         public const string OBJECT_TYPE = "Type";
-        public const string PI = "pi";
         public const string POINTER = "->";
         public const string POINTER_REF = "&";
-        public const string POW = "pow";
         public const string PRINT = "print";
-        public const string PSTIME = "pstime";
-        public const string RANDOM = "GetRandom";
         public const string REGEX = "Regex";
         public const string REMOVE = "RemoveItem";
         public const string REMOVE_AT = "RemoveAt";
-        public const string RESET_VARS = "ResetVariables";
-        public const string ROUND = "round";
-        public const string SCHEDULE_RUN = "ScheduleRun";
-        public const string SETENV = "setenv";
         public const string SET_PROPERTY = "SetProperty";
         public const string SHOW = "show";
         public const string SIGNAL = "signal";
-        public const string SIN = "sin";
         public const string SINGLETON = "singleton";
         public const string SIZE = "Size";
-        public const string SLEEP = "sleep";
-        public const string SQRT = "sqrt";
-        public const string STR_BETWEEN = "StrBetween";
-        public const string STR_BETWEEN_ANY = "StrBetweenAny";
-        public const string STR_CONTAINS = "StrContains";
-        public const string STR_ENDS_WITH = "StrEndsWith";
-        public const string STR_EQUALS = "StrEqual";
-        public const string STR_INDEX_OF = "StrIndexOf";
-        public const string STR_LOWER = "StrLower";
-        public const string STR_REPLACE = "StrReplace";
-        public const string STR_STARTS_WITH = "StrStartsWith";
-        public const string STR_SUBSTR = "Substring";
-        public const string STR_TRIM = "StrTrim";
-        public const string STR_UPPER = "StrUpper";
-        public const string THREAD = "thread";
         public const string THREAD_ID = "threadid";
         public const string TOKENIZE_LINES = "TokenizeLines";
         public const string TOKEN_COUNTER = "CountTokens";
-        public const string TO_BOOL = "bool";
-        public const string TO_DECIMAL = "decimal";
-        public const string TO_DOUBLE = "double";
-        public const string TO_INT = "int";
-        public const string TO_INTEGER = "tointeger";
-        public const string TO_NUMBER = "number";
         public const string TO_STRING = "string";
         public const string VAR = "var";
         public const string VARIABLE_TYPE = "VariableType";
@@ -236,8 +194,8 @@ namespace AliceScript
         // 関数呼び出し時に丸括弧が不要な関数
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
-            APPENDLINE,  CLASS, 
-            FUNCTION, COMPILED_FUNCTION, CSHARP_FUNCTION, HELP,  NAMESPACE, NEW, PRINT, READFILE, RUN, SHOW, STARTSRV, THREAD, WRITE, WRITENL
+            CLASS, 
+            FUNCTION, NAMESPACE, NEW, PRINT,SHOW,
         };
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>
@@ -248,7 +206,7 @@ namespace AliceScript
         // 言語構造の予約。これらを演算したり返すことは無意味
         public static List<string> CONTROL_FLOW = new List<string>
         {
-            BREAK, CATCH, CLASS, COMPILED_FUNCTION, CONTINUE, ELSE, ELSE_IF, ELSE, FOR, FUNCTION, IF, INCLUDE, NEW,
+            BREAK, CATCH, CLASS, CONTINUE, ELSE, ELSE_IF, ELSE, FOR,FOREACH, FUNCTION, IF, INCLUDE, NEW,IMPORT,
             RETURN, THROW, TRY, WHILE
         };
 
@@ -265,11 +223,11 @@ namespace AliceScript
         //予約語
         public static List<string> RESERVED = new List<string>
         {
-            BREAK, CONTINUE, CLASS, NEW, FUNCTION, COMPILED_FUNCTION, IF, ELSE, ELSE_IF, INCLUDE, FOR, WHILE,
+            BREAK, CONTINUE, CLASS, NEW, FUNCTION, IF, ELSE, ELSE_IF, INCLUDE,IMPORT, FOR,FOREACH, WHILE,
             RETURN, THROW, TRY, CATCH, COMMENT, TRUE, FALSE, TYPE,
             ASSIGNMENT, AND, OR, EQUAL, NOT_EQUAL, LESS, LESS_EQ, GREATER, GREATER_EQ,
             ADD_ASSIGN, SUBT_ASSIGN, MULT_ASSIGN, DIV_ASSIGN,
-            SWITCH, CASE, DEFAULT, NAN, UNDEFINED,
+            SWITCH, CASE, DEFAULT, NAN, UNDEFINED,NULL,
             NEXT_ARG.ToString(), START_GROUP.ToString(), END_GROUP.ToString(), END_STATEMENT.ToString()
         };
         //インタプリタに最初から定義される定数

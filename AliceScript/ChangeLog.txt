@@ -69,3 +69,9 @@ AliceScript1103の変更点
 AliceScript1106の変更点
 ・ほとんどすべての例外を日本語化、エラーコード割り当て
 ・shellの16進表記を3桁強制に仕様変更
+
+AliceScript1108の変更点
+・string.Splitを引数なしで文字分割モード実装
+・number.Negative/PositiveInfinityの実装削除
+・べき乗を計算できるmath_pow関数の実装
+・プログラムの最適化

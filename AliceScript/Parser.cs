@@ -28,8 +28,7 @@ namespace AliceScript
 
             if (listToMerge.Count == 0)
             {
-                throw new ArgumentException("Couldn't parse [" +
-                                            script.Rest + "]");
+                ThrowErrorManerger.OnThrowError(script.Rest+"を解析できません",Exceptions.COULDNT_PARSE,script);
             }
 
             // Second step: merge list of cells to get the result of an expression.
@@ -44,8 +43,7 @@ namespace AliceScript
 
             if (listToMerge.Count == 0)
             {
-                throw new ArgumentException("Couldn't parse [" +
-                                            script.Rest + "]");
+                ThrowErrorManerger.OnThrowError(script.Rest + "を解析できません", Exceptions.COULDNT_PARSE, script);
             }
 
             // Second step: merge list of cells to get the result of an expression.

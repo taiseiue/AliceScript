@@ -205,6 +205,14 @@ namespace AliceScript
         /// <summary>
         /// インデックスが配列の境界外です
         /// </summary>
-        INDEX_OUT_OF_RANGE=0x031
+        INDEX_OUT_OF_RANGE=0x031,
+        /// <summary>
+        /// 次の行を解析できません
+        /// </summary>
+        COULDNT_PARSE=0x032,
+        /// <summary>
+        /// ファイルを読み込めませんでした
+        /// </summary>
+        COULDNT_READ_FILE=0x033
     }
 }

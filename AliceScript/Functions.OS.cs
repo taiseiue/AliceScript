@@ -266,14 +266,6 @@ namespace AliceScript
         }
     }
 
-    class CurrentPathFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            return new Variable(script.PWD);
-        }
-    }
-
     class TokenizeFunction : ParserFunction, IArrayFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -335,37 +327,6 @@ namespace AliceScript
             }
 
             return new Variable(results);
-        }
-    }
-
-    // Append a string to another string
-    class AppendFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
-
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetVariable(varName, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 3. Get the value to be added or appended.
-            Variable newValue = Utils.GetItem(script);
-
-            // 4. Take either the string part if it is defined,
-            // or the numerical part converted to a string otherwise.
-            string arg1 = currentValue.AsString();
-            string arg2 = newValue.AsString();
-
-            // 5. The variable becomes a string after adding a string to it.
-            newValue.Reset();
-            newValue.String = arg1 + arg2;
-
-            ParserFunction.AddGlobalOrLocalVariable(varName, new GetVarFunction(newValue), script);
-
-            return newValue;
         }
     }
 

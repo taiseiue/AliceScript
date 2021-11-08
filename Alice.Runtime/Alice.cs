@@ -437,7 +437,7 @@ namespace AliceScript.NameSpaces
                     }
                 case 1:
                     {
-                        e.Return = new Variable(Console.ReadKey().KeyChar);
+                        e.Return = new Variable(Console.ReadKey().KeyChar.ToString());
                         break;
                     }
                 case 2:
@@ -452,7 +452,7 @@ namespace AliceScript.NameSpaces
     }
     class Console_WriteLineFunc : FunctionBase
     {
-        public Console_WriteLineFunc(bool wline = false)
+        public Console_WriteLineFunc(bool wline = true)
         {
             m_WLine = wline;
             this.Run += Console_WriteLineFunc_Run;
@@ -468,7 +468,14 @@ namespace AliceScript.NameSpaces
 
         private void Console_WriteLineFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count <= 1)
+            if (e.Args.Count < 1)
+            {
+                if (m_WLine)
+                {
+                    Console.WriteLine();
+                }
+            }
+            else if (e.Args.Count == 1)
             {
                 if (m_WLine)
                 {

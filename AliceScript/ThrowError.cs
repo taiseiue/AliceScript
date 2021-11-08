@@ -16,24 +16,27 @@ namespace AliceScript
     {
         public static event ThrowErrorEventhandler ThrowError;
         public static bool HandleError = false;
-        public static void OnThrowError(string message,Exceptions errorcode,  ParsingScript script = null,ParsingException exception=null,bool isHandled=true)
+        public static bool InTryBlock = false;
+        public static void OnThrowError(string message,Exceptions errorcode,  ParsingScript script = null,ParsingException exception=null,bool isHandled=false)
         {
-
-            ThrowErrorEventArgs ex = new ThrowErrorEventArgs(); 
-            ex.Message = message;
-            ex.ErrorCode = errorcode;
-            ex.Exception = exception;
-            if (script != null)
+            if (!InTryBlock)
             {
-                ex.Script = script;
-                if (script.InTryBlock) { return; }
-            }
+                ThrowErrorEventArgs ex = new ThrowErrorEventArgs();
+                ex.Message = message;
+                ex.ErrorCode = errorcode;
+                ex.Exception = exception;
+                if (script != null)
+                {
+                    ex.Script = script;
+                    if (script.InTryBlock) { return; }
+                }
 
-            ThrowError?.Invoke(null, ex);
+                ThrowError?.Invoke(null, ex);
 
-            if (isHandled)
-            {
-                throw new HandledErrorException();
+                if (isHandled)
+                {
+                    throw new HandledErrorException();
+                }
             }
         }
     }

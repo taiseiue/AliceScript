@@ -268,22 +268,17 @@ namespace AliceScript
             return true;
         }
 
-        public static string GetLine(int chars = 40)
-        {
-            return string.Format("-").PadRight(chars, '-');
-        }
-
         public static string GetFileText(string filename)
         {
             string fileContents = string.Empty;
             if (File.Exists(filename))
             {
-                fileContents = File.ReadAllText(filename);
+                fileContents= SafeReader.ReadAllText(filename, out _);
             }
             else
             {
-                throw new ArgumentException("Couldn't read file [" + filename +
-                                            "] from disk.");
+                ThrowErrorManerger.OnThrowError("ファイルが存在しません",Exceptions.FILE_NOT_FOUND);
+                return fileContents;
             }
             return fileContents;
         }
@@ -321,55 +316,11 @@ namespace AliceScript
 
         public static string GetFileLines(string filename)
         {
-            try
-            {
                 string lines = SafeReader.ReadAllText(filename,out _);
                 return lines;
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Couldn't read file [" + filename +
-                                            "] from disk: " + ex.Message);
-            }
         }
 
-        public static string[] GetFileLines(string filename, int from, int count)
-        {
-            try
-            {
-                var allLines = File.ReadLines(filename).ToArray();
-                if (allLines.Length <= count)
-                {
-                    return allLines;
-                }
-
-                if (from < 0)
-                {
-                    // last n lines
-                    from = allLines.Length - count;
-                }
-
-                string[] lines = allLines.Skip(from).Take(count).ToArray();
-                return lines;
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Couldn't read file from disk: " + ex.Message);
-            }
-        }
-
-        public static void WriteFileText(string filename, string text)
-        {
-            try
-            {
-                File.WriteAllText(filename, text);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Couldn't write file to disk: " + ex.Message);
-            }
-        }
-
+        
         public static GetVarFunction ExtractArrayElement(string token)
         {
             if (!token.Contains(Constants.START_ARRAY))
@@ -382,52 +333,7 @@ namespace AliceScript
             return new GetVarFunction(result);
         }
 
-        public static void AppendFileText(string filename, string text)
-        {
-            try
-            {
-                File.AppendAllText(filename, text);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Couldn't write file to disk: " + ex.Message);
-            }
-        }
-
-        public static void ThrowException(ParsingScript script, string excName1,
-                                          string errorToken = "", string excName2 = "")
-        {
-
-            string msg = excName1;
-            if (!string.IsNullOrWhiteSpace(errorToken))
-            {
-                msg = string.Format(msg, errorToken);
-                string candidate = null;
-
-                if (!string.IsNullOrWhiteSpace(candidate) &&
-                    !string.IsNullOrWhiteSpace(excName2))
-                {
-                    string extra = excName2;
-                    msg += " " + string.Format(extra, candidate);
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(script.Filename))
-            {
-                string fileMsg = "File: {0}.";
-                msg += Environment.NewLine + string.Format(fileMsg, script.Filename);
-            }
-
-            int lineNumber = -1;
-            string line = script.GetOriginalLine(out lineNumber);
-            if (lineNumber >= 0)
-            {
-                string lineMsg = "Line {0}: [{1}]";
-                msg += string.IsNullOrWhiteSpace(script.Filename) ? Environment.NewLine : " ";
-                msg += string.Format(lineMsg, lineNumber + 1, line.Trim());
-            }
-            throw new ArgumentException(msg);
-        }
+    
 
         public static void PrintList(List<Variable> list, int from)
         {
@@ -723,13 +629,18 @@ namespace AliceScript
             {
                 return "";
             }
+            if (!File.Exists(filename))
+            {
+                ThrowErrorManerger.OnThrowError("ファイルが存在しません",Exceptions.FILE_NOT_FOUND);
+                return "";
+            }
             try
             {
                 return Utils.GetFileLines(filename).Replace(Environment.NewLine,Constants.END_LINE.ToString());
             }
             catch (Exception exc)
             {
-                Console.WriteLine(exc.Message);
+                ThrowErrorManerger.OnThrowError("ファイルの読み込みに失敗しました\r\n詳細:"+exc.Message,Exceptions.COULDNT_READ_FILE);
                 return "";
             }
         }
@@ -777,7 +688,7 @@ namespace AliceScript
             }
             catch(Exception exc)
             {
-                Console.WriteLine("Exception converting path {0}: {1}", path, exc.Message);
+                ThrowErrorManerger.OnThrowError(path+"のフルパスの取得に失敗しました\r\n詳細:"+exc,Exceptions.NONE);
             }
             return path;
         }
@@ -794,7 +705,7 @@ namespace AliceScript
             }
             catch (Exception exc)
             {
-                Console.WriteLine("Exception getting directory name {0}: {1}", path, exc.Message);
+                ThrowErrorManerger.OnThrowError(path+"のディレクトリの取得に失敗しました\r\n詳細:"+exc,Exceptions.NONE);
             }
             return GetCurrentDirectory();
         }
@@ -807,25 +718,9 @@ namespace AliceScript
             }
             catch (Exception exc)
             {
-                Console.WriteLine("Exception getting current directory: {0}", exc.Message);
+                ThrowErrorManerger.OnThrowError("カレントディレクトリの取得に失敗しました\r\n詳細:"+exc,Exceptions.NONE);
             }
             return "";
-        }
-        public static string ReadFile(string filaname)
-        {
-            return SafeReader.ReadAllText(filaname,out _);
-        }
-
-        public static void ExtendArrayIfNeeded<T>(List<T> array, int count, T defaultValue)
-        {
-            if (array.Count <= count)
-            {
-                array.Capacity = count + 1;
-                while (array.Count <= count)
-                {
-                    array.Add(defaultValue);
-                }
-            }
         }
     }
 }

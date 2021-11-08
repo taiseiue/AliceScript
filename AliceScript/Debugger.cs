@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Net;
-using System.Net.Sockets;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -311,22 +308,6 @@ namespace AliceScript
             return (LastResult != null && LastResult.IsReturn) ||
                    !debugging.StillValid();
         }
-
-        public static async Task<Variable> CheckBreakpoints(ParsingScript stepInScript)
-        {
-            var debugger = stepInScript.Debugger != null ? stepInScript.Debugger : MainInstance;
-            if (debugger == null || stepInScript.DisableBreakpoints)
-            {
-                return null;
-            }
-            if (!ProcessingClientRequest)
-            {
-                m_startFilename = null;
-                m_startLine = 0;
-            }
-            return await debugger.StepInBreakpointIfNeeded(stepInScript);
-        }
-
         public async Task<Variable> DebugBlockIfNeeded(ParsingScript stepInScript, bool done, Action<bool> doneEvent)
         {
             if (SteppingOut || Continue || ReplMode || !m_firstBlock)
@@ -382,49 +363,6 @@ namespace AliceScript
             //Trace("Finished StepIn");
             return LastResult;
         }
-
-        public async Task<Variable> StepInBreakpointIfNeeded(ParsingScript stepInScript)
-        {
-            if (ReplMode || stepInScript.Debugger == null)
-            {
-                return null;
-            }
-            stepInScript.Debugger = this;
-
-            int startPointer = stepInScript.Pointer;
-            string filename = stepInScript.Filename;
-            int line = stepInScript.OriginalLineNumber;
-
-            if (filename == m_startFilename && line == m_startLine)
-            {
-                return null;
-            }
-          
-
-            m_startFilename = filename;
-            m_startLine = line;
-
-            await StepIn(stepInScript, true);
-
-            SendBackResult = true;
-            return LastResult;
-        }
-
-        public async Task<Variable> StepInIncludeIfNeeded(ParsingScript stepInScript)
-        {
-            stepInScript.Debugger = this;
-            if (ReplMode || !SteppingIn)
-            {
-                return null;
-            }
-            m_firstBlock = false;
-
-            await StepIn(stepInScript);
-
-            SendBackResult = true;
-            return LastResult;
-        }
-
         public void AddOutput(string output, ParsingScript script = null)
         {
             if (!string.IsNullOrEmpty(Output) && !Output.EndsWith("\n"))
@@ -505,25 +443,6 @@ namespace AliceScript
                 MainInstance?.m_steppingIns.Pop();
                 ProcessingClientRequest = aBreakpoint;
             }
-        }
-
-        async Task<string> DebugScript()
-        {
-            if (string.IsNullOrWhiteSpace(m_script))
-            {
-                return null;
-            }
-
-            m_debugging = new ParsingScript(m_script, 0, m_char2Line);
-            m_debugging.OriginalScript = m_script;
-
-            Variable result = Variable.EmptyInstance;
-            while (m_debugging.Pointer < m_script.Length)
-            {
-                result = await ProcessNext();
-            }
-
-            return result.AsString();
         }
 
     }
