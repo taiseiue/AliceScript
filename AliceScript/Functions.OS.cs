@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AliceScript
 {
@@ -19,72 +13,171 @@ namespace AliceScript
     // Prints passed list of argumentsand
     class PrintFunction : FunctionBase
     {
-        public PrintFunction()
+        public PrintFunction(bool isWrite = false)
         {
-            this.Name = "print";
-
-            //AliceScript925から、Print関数は引数を持つ必要がなくなりました。
-            //this.MinimumArgCounts = 1;
-            this.Run += PrintFunction_Run;
-        }
-
-        private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if(e.Args.Count == 0)
+            if (isWrite)
             {
-                AddOutput("", e.Script, true);
-            }
-            else if (e.Args.Count == 1)
-            {
-                AddOutput(e.Args[0].AsString(), e.Script,true);
+                this.Name = "write";
+                m_write = true;
             }
             else
             {
-                string text = e.Args[0].AsString();
-                MatchCollection mc = Regex.Matches(text, @"{[0-9]+}");
-                foreach (Match match in mc)
+                this.Name = "print";
+            }
+
+            //AliceScript925から、Print関数は引数を持つ必要がなくなりました。
+            //this.MinimumArgCounts = 1;
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += PrintFunction_Run;
+        }
+        private bool m_write;
+        private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count == 0)
+            {
+                AddOutput("", e.Script, !m_write);
+            }
+            else if (e.Args.Count == 1)
+            {
+                AddOutput(e.Args[0].AsString(), e.Script, !m_write);
+            }
+            else
+            {
+                string format = e.Args[0].AsString();
+                e.Args.RemoveAt(0);
+                AddOutput(StringFormatFunction.Format(format, e.Args), e.Script, !m_write);
+            }
+        }
+
+        public static void AddOutput(string text, ParsingScript script = null,
+                                     bool addLine = true, bool addSpace = true, string start = "")
+        {
+
+            string output = text + (addLine ? Environment.NewLine : string.Empty);
+            Interpreter.Instance.AppendOutput(output);
+
+        }
+    }
+    public class StringFormatFunction : FunctionBase
+    {
+        public StringFormatFunction()
+        {
+            this.Name = "string_format";
+            this.MinimumArgCounts = 1;
+            this.Run += StringFormatFunction_Run;
+        }
+
+        private void StringFormatFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string format = e.Args[0].AsString();
+            e.Args.RemoveAt(0);
+            e.Return = new Variable(Format(format, e.Args));
+        }
+
+        public static string Format(string format, List<Variable> args)
+        {
+            string text = format;
+            MatchCollection mc = Regex.Matches(format, @"{[0-9]+:?[a-z,A-Z]*}");
+            foreach (Match match in mc)
+            {
+                int mn = -1;
+                string indstr = match.Value.TrimStart('{').TrimEnd('}');
+                bool selectSubFormat = false;
+                string subFormat = "";
+                if (indstr.Contains(":"))
                 {
-                    int mn = -1;
-                    if (int.TryParse(match.Value.TrimStart('{').TrimEnd('}'), out mn))
+                    string[] vs = indstr.Split(':');
+                    indstr = vs[0];
+                    if (!string.IsNullOrEmpty(vs[1]))
                     {
-                        if (mn == -1) { ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script); return; }
-                        if (e.Args.Count > mn + 1)
+                        selectSubFormat = true;
+                        subFormat = vs[1];
+                    }
+                }
+                if (int.TryParse(indstr, out mn))
+                {
+                    if (args.Count > mn)
+                    {
+                        if (selectSubFormat)
                         {
-                            text = text.Replace(match.Value, e.Args[mn + 1].AsString());
+                            switch (args[mn].Type)
+                            {
+                                case Variable.VarType.NUMBER:
+                                    {
+                                        switch (subFormat.ToLower())
+                                        {
+                                            case "c":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("c"));
+                                                    break;
+                                                }
+                                            case "d":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("d"));
+                                                    break;
+                                                }
+                                            case "e":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("e"));
+                                                    break;
+                                                }
+                                            case "f":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("f"));
+                                                    break;
+                                                }
+                                            case "g":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("g"));
+                                                    break;
+                                                }
+                                            case "n":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("n"));
+                                                    break;
+                                                }
+                                            case "p":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("p"));
+                                                    break;
+                                                }
+                                            case "r":
+                                                {
+                                                    text = text.Replace(match.Value, args[mn].Value.ToString("r"));
+                                                    break;
+                                                }
+                                            case "x":
+                                                {
+                                                    text = text.Replace(match.Value, ((int)args[mn].Value).ToString("x"));
+                                                    break;
+                                                }
+                                        }
+                                        break;
+                                    }
+                            }
                         }
                         else
                         {
-                            ThrowErrorManerger.OnThrowError("複合書式指定\"{" + mn + "}\"で" + mn + "番目の引数が見つかりません", e.Script);
-                            return;
+                            text = text.Replace(match.Value, args[mn].AsString());
                         }
                     }
                     else
                     {
-                        ThrowErrorManerger.OnThrowError("複合書式指定\"" + match.Value + "\"は無効です", e.Script);
-                        return;
+                        //範囲外のためスキップ
+                        continue;
                     }
                 }
-                AddOutput(text,e.Script,true);
-            }
-        }
-        
-        public static void AddOutput(string text, ParsingScript script = null,
-                                     bool addLine = true, bool addSpace = true, string start = "")
-        {
-            
-            string output = text + (addLine ? Environment.NewLine : string.Empty);
-            output = output.Replace("\\t", "\t").Replace("\\n", "\n");
-            Interpreter.Instance.AppendOutput(output);
+                else
+                {
+                    //数字ではないためスキップ
+                    continue;
+                }
 
-            Debugger debugger = script != null && script.Debugger != null ?
-                                script.Debugger : Debugger.MainInstance;
-            if (debugger != null)
-            {
-                debugger.AddOutput(output, script);
             }
+            return text;
         }
     }
-  
+
     class DataFunction : ParserFunction
     {
         public enum DataMode { ADD, SUBSCRIBE, SEND };
@@ -161,14 +254,6 @@ namespace AliceScript
         }
     }
 
-    class CurrentPathFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            return new Variable(script.PWD);
-        }
-    }
-
     class TokenizeFunction : ParserFunction, IArrayFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -233,39 +318,8 @@ namespace AliceScript
         }
     }
 
-    // Append a string to another string
-    class AppendFunction : ParserFunction, IStringFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.NEXT_ARG_ARRAY);
-            Utils.CheckNotEmpty(script, varName, m_name);
 
-            // 2. Get the current value of the variable.
-            ParserFunction func = ParserFunction.GetVariable(varName, script);
-            Variable currentValue = func.GetValue(script);
 
-            // 3. Get the value to be added or appended.
-            Variable newValue = Utils.GetItem(script);
-
-            // 4. Take either the string part if it is defined,
-            // or the numerical part converted to a string otherwise.
-            string arg1 = currentValue.AsString();
-            string arg2 = newValue.AsString();
-
-            // 5. The variable becomes a string after adding a string to it.
-            newValue.Reset();
-            newValue.String = arg1 + arg2;
-
-            ParserFunction.AddGlobalOrLocalVariable(varName, new GetVarFunction(newValue), script);
-
-            return newValue;
-        }
-    }
-
- 
-   
     class LockFunction : ParserFunction
     {
         static Object lockObject = new Object();

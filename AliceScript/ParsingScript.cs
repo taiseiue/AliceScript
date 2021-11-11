@@ -91,11 +91,7 @@ namespace AliceScript
 
         public string CurrentAssign { get; set; }
 
-        public Debugger Debugger
-        {
-            get;
-            set;
-        }
+        
 
         public string CurrentModule { get; set; }
 
@@ -150,7 +146,6 @@ namespace AliceScript
             CurrentClass = other.CurrentClass;
             ClassInstance = other.ClassInstance;
             ScriptOffset = other.ScriptOffset;
-            Debugger = other.Debugger;
             InTryBlock = other.InTryBlock;
             AllLabels = other.AllLabels;
             LabelToFile = other.LabelToFile;
@@ -516,11 +511,13 @@ namespace AliceScript
 
             Variable result = null;
 
-            bool handleByDebugger = false;
            
             if (InTryBlock)
             {
+                bool before = ThrowErrorManerger.InTryBlock;
+                ThrowErrorManerger.InTryBlock = true;
                 result = Parser.AliceScript(this, toArray);
+                ThrowErrorManerger.InTryBlock = before;
             }
             else
             {
@@ -528,17 +525,18 @@ namespace AliceScript
                 {
                     result = Parser.AliceScript(this, toArray);
                 }
+                catch (HandledErrorException)
+                {
+
+                }
                 catch (ParsingException parseExc)
                 {
                     if (!this.InTryBlock)
                     {
-                        if (handleByDebugger)
-                        {
-                            Debugger.ProcessException(this, parseExc);
-                        }
+
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
                         }
                         else
                         {
@@ -554,13 +552,9 @@ namespace AliceScript
                     if (!this.InTryBlock)
                     {
                         ParsingException parseExc = new ParsingException(exc.Message, this, exc);
-                        if (handleByDebugger)
-                        {
-                            Debugger.ProcessException(this, parseExc);
-                        }
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
                         }
                         else
                         {
@@ -584,7 +578,6 @@ namespace AliceScript
 
             Variable result = null;
 
-            bool handleByDebugger = false;
            
 
             if (InTryBlock)
@@ -597,21 +590,13 @@ namespace AliceScript
                 {
                     result = await Parser.AliceScriptAsync(this, toArray);
                 }
-                catch (ParsingException parseExc)
+                catch (ParsingException)
                 {
-                    if (handleByDebugger)
-                    {
-                        Debugger.ProcessException(this, parseExc);
-                    }
                     throw;
                 }
                 catch (Exception exc)
                 {
                     ParsingException parseExc = new ParsingException(exc.Message, this, exc);
-                    if (handleByDebugger)
-                    {
-                        Debugger.ProcessException(this, parseExc);
-                    }
                     throw parseExc;
                 }
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace AliceScript
 {
@@ -21,7 +22,27 @@ namespace AliceScript
             e.Return = new Variable(Alice.Version.ToString());
         }
     }
-    
+    class DelayFunc : FunctionBase
+    {
+        public DelayFunc()
+        {
+            this.Name = "delay";
+            this.MinimumArgCounts = 0;
+            this.Run += DelayFunc_Run;
+        }
+
+        private void DelayFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 0 && e.Args[0].Type == Variable.VarType.NUMBER)
+            {
+                Thread.Sleep((int)e.Args[0].Value);
+            }
+            else
+            {
+                Thread.Sleep(-1);
+            }
+        }
+    }
 
     class LabelFunction : ActionFunction
     {
@@ -157,7 +178,7 @@ namespace AliceScript
             if (script.AllLabels == null || script.LabelToFile == null |
                !script.AllLabels.TryGetValue(script.FunctionName, out labels))
             {
-                Utils.ThrowErrorMsg("Couldn't find labels in function [" + script.FunctionName + "].",
+                Utils.ThrowErrorMsg("次のラベルは関数内に存在しません [" + script.FunctionName + "]",Exceptions.COULDNT_FIND_LABEL_IN_FUNCTION,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }
@@ -165,7 +186,7 @@ namespace AliceScript
             int gotoPointer;
             if (!labels.TryGetValue(labelName, out gotoPointer))
             {
-                Utils.ThrowErrorMsg("Couldn't find label [" + labelName + "].",
+                Utils.ThrowErrorMsg("ラベル:[" + labelName + "]は定義されていません",Exceptions.COULDNT_FIND_LABEL,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }

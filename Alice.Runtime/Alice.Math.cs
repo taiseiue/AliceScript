@@ -37,8 +37,23 @@ namespace AliceScript.NameSpaces
             space.Add(new math_tanhFunc());
             space.Add(new math_truncateFunc());
             space.Add(new math_isPrimeFunc());
+            space.Add(new math_powFunc());
 
             NameSpaceManerger.Add(space);
+        }
+    }
+    class math_powFunc : FunctionBase
+    {
+        public math_powFunc()
+        {
+            this.Name = "math_pow";
+            this.MinimumArgCounts = 2;
+            this.Run += Math_powFunc_Run;
+        }
+
+        private void Math_powFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Math.Pow(e.Args[0].Value,e.Args[1].Value));
         }
     }
     class math_eFunc : FunctionBase

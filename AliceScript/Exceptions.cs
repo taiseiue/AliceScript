@@ -4,8 +4,12 @@ using System.Text;
 
 namespace AliceScript
 {
-    enum Exceptions
+   public enum Exceptions
     {
+        /// <summary>
+        /// 既定のエラーコード
+        /// </summary>
+        NONE=0x000,
         /// <summary>
         /// 関数が見つかりません
         /// </summary>
@@ -15,17 +19,33 @@ namespace AliceScript
         /// </summary>
         COULDNT_FIND_ARRAY=0x002,
         /// <summary>
-        /// 演算子が見つかりません
-        /// </summary>
-        COULDNT_FIND_OPERAND=0x003,
-        /// <summary>
         /// 変数が見つかりません
         /// </summary>
-        COULDNT_FIND_VARIABLE=0x004,
+        COULDNT_FIND_VARIABLE = 0x004,
+        /// <summary>
+        /// アイテムが配列内に見つかりません
+        /// </summary>
+        COULDNT_FIND_ITEM = 0x024,
+        /// <summary>
+        /// 指定されたラベルは存在しません
+        /// </summary>
+        COULDNT_FIND_LABEL = 0x027,
+        /// <summary>
+        /// 関数内に指定されたラベルは存在しません
+        /// </summary>
+        COULDNT_FIND_LABEL_IN_FUNCTION = 0x028,
+        /// <summary>
+        /// 演算子が見つかりません
+        /// </summary>
+        COULDNT_FIND_OPERATOR = 0x02e,
+        /// <summary>
+        /// 無効な演算子です
+        /// </summary>
+        INVALID_OPERAND =0x003,
         /// <summary>
         /// 指定された名前は予約されています
         /// </summary>
-        ITIS_RESERVED_NAME=0x005,
+        ITS_RESERVED_NAME=0x005,
         /// <summary>
         /// 先頭の文字に数字または'-'を使用することはできません
         /// </summary>
@@ -53,9 +73,9 @@ namespace AliceScript
         /// <summary>
         /// 変数または関数が存在しません
         /// </summary>
-        VARIABLE_OF_FUNCTION_DOESNT_EXIST=0x00c,
+        PROPERTY_OR_METHOD_NOT_FOUND=0x00c,
         /// <summary>
-        /// 引数が不完全です
+        /// 無効な引数です
         /// </summary>
         INVAILD_ARGUMENT=0x00d,
         /// <summary>
@@ -101,6 +121,98 @@ namespace AliceScript
         /// <summary>
         /// 変数がNullです
         /// </summary>
-        VARIABLE_IS_NULL = 0x018
+        VARIABLE_IS_NULL = 0x018,
+        /// <summary>
+        /// ユーザー定義の例外です
+        /// </summary>
+        USER_DEFINED = 0x019,
+        /// <summary>
+        /// parmsキーワードより後にパラメータを追加することはできません
+        /// </summary>
+        COULDNT_ADD_PARAMETERS_AFTER_PARMS_KEYWORD=0x01a,
+        /// <summary>
+        /// ファイルが見つかりません
+        /// </summary>
+        FILE_NOT_FOUND=0x01b,
+        /// <summary>
+        /// 名前空間が存在しません
+        /// </summary>
+        NAMESPACE_NOT_FOUND=0x01c,
+        /// <summary>
+        /// 名前空間が読み込まれていません
+        /// </summary>
+        NAMESPACE_NOT_LOADED=0x01d,
+        /// <summary>
+        /// 繰り返しが多すぎます
+        /// </summary>
+        TOO_MANY_REPETITIONS=0x01e,
+        /// <summary>
+        /// Catchステートメントがありません
+        /// </summary>
+        MISSING_CATCH_STATEMENT=0x01f,
+        /// <summary>
+        /// ブロックを実行できませんでした
+        /// </summary>
+        COULDNT_EXECUTE_BLOCK=0x020,
+        /// <summary>
+        /// 括弧が必要です
+        /// </summary>
+        NEED_BRACKETS=0x021,
+        /// <summary>
+        /// 括弧は不要です
+        /// </summary>
+        UNNEED_TO_BRACKETS=0x022,
+        /// <summary>
+        /// その型の変数は使用できません
+        /// </summary>
+        WRONG_TYPE_VARIABLE=0x023,
+        /// <summary>
+        /// その項目をクラス内で定義することはできません
+        /// </summary>
+        COULDNT_DEFINE_IN_CLASS=0x025,
+        /// <summary>
+        /// 無効なトークンです
+        /// </summary>
+        INVALID_TOKEN=0x026,
+        /// <summary>
+        /// 無効な構文です
+        /// </summary>
+        INVALID_SYNTAX=0x029,
+        /// <summary>
+        /// 関数はすでに定義されています
+        /// </summary>
+        FUNCTION_IS_ALREADY_DEFINED=0x02a,
+        /// <summary>
+        /// 有効な数値表現ではありません
+        /// </summary>
+        INVALID_NUMERIC_REPRESENTATION=0x02b,
+        /// <summary>
+        /// このプロパティに代入することはできません
+        /// </summary>
+        COULDNT_ASSIGN_THIS_PROPERTY=0x02c,
+        /// <summary>
+        /// 変数名に使用できない文字が含まれています
+        /// </summary>
+        CONTAINS_ILLEGAL_CHARACTER=0x02d,
+        /// <summary>
+        /// プロパティは読み取り専用です
+        /// </summary>
+        PROPERTY_IS_READ_ONLY=0x02f,
+        /// <summary>
+        /// 値を混合して取得/設定することはできません
+        /// </summary>
+        CANT_MIX_VALUE_AND_SET_GET = 0x030,
+        /// <summary>
+        /// インデックスが配列の境界外です
+        /// </summary>
+        INDEX_OUT_OF_RANGE=0x031,
+        /// <summary>
+        /// 次の行を解析できません
+        /// </summary>
+        COULDNT_PARSE=0x032,
+        /// <summary>
+        /// ファイルを読み込めませんでした
+        /// </summary>
+        COULDNT_READ_FILE=0x033
     }
 }

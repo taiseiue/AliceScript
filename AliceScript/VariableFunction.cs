@@ -44,8 +44,6 @@ namespace AliceScript
             //String関数(終わり)
             //NUMBER(Double)関数
             Variable.AddFunc(new num_EpsilonFunc());
-            Variable.AddFunc(new num_InfinityFunc(true), "NegativeInfinity");
-            Variable.AddFunc(new num_InfinityFunc(false), "PositiveInfinity");
             Variable.AddFunc(new num_NANFunc());
             Variable.AddFunc(new num_MValueFunc(true), "MinValue");
             Variable.AddFunc(new num_MValueFunc(false), "MaxValue");
@@ -458,14 +456,28 @@ namespace AliceScript
         public str_SplitFunc()
         {
             this.Name = "Split";
-            this.MinimumArgCounts = 1;
+            this.MinimumArgCounts = 0;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_SplitFunc_Run;
         }
 
         private void Str_SplitFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.CurentVariable.AsString().Split(new string[] {e.Args[0].AsString() },StringSplitOptions.None));
+            if (e.Args.Count > 0)
+            {
+                //引数がない場合は文字ずつに分割
+                Variable v = new Variable(Variable.VarType.ARRAY);
+                foreach(char c in e.CurentVariable.AsString())
+                {
+                    v.Tuple.Add(new Variable(c.ToString()));
+                }
+                e.Return = v;
+            }
+            else
+            {
+                e.Return = new Variable(e.CurentVariable.AsString().Split(new string[] { e.Args[0].AsString() }, StringSplitOptions.None));
+            }
+            
         }
     }
     class str_SubStringFunc : FunctionBase
@@ -728,30 +740,6 @@ namespace AliceScript
         }
 
 
-    }
-    class num_InfinityFunc : FunctionBase
-    {
-        public num_InfinityFunc(bool min)
-        {
-            Min = min;
-            this.RequestType = Variable.VarType.NUMBER;
-            this.Run += Num_MValueFunc_Run;
-        }
-
-        private void Num_MValueFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (Min)
-            {
-                e.Return = new Variable(double.NegativeInfinity);
-            }
-            else
-            {
-                e.Return = new Variable(double.PositiveInfinity);
-
-            }
-        }
-
-        bool Min = false;
     }
     class list_flattenFunc : FunctionBase
     {

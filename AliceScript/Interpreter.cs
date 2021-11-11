@@ -56,10 +56,21 @@ namespace AliceScript
 
         public event EventHandler<OutputAvailableEventArgs> OnOutput;
         public event EventHandler<OutputAvailableEventArgs> OnData;
+        public event EventHandler<OutputAvailableEventArgs> OnDebug;
 
         public void AppendOutput(string text, bool newLine = false)
         {
             EventHandler<OutputAvailableEventArgs> handler = OnOutput;
+            if (handler != null)
+            {
+                OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
+                                     (newLine ? Environment.NewLine : string.Empty));
+                handler(this, args);
+            }
+        }
+        public void AppendDebug(string text, bool newLine = false)
+        {
+            EventHandler<OutputAvailableEventArgs> handler = OnDebug;
             if (handler != null)
             {
                 OutputAvailableEventArgs args = new OutputAvailableEventArgs(text +
@@ -87,7 +98,6 @@ namespace AliceScript
                 return;
             m_bHasBeenInitialized = true; // このメソッドは一度のみ呼び出すことができます
 
-            ExceptionsTransletor.Init();
 
             RegisterFunctions();
             RegisterEnums();
@@ -106,10 +116,8 @@ namespace AliceScript
             FunctionBaseManerger.Add(new CaseStatement(), Constants.DEFAULT);
             FunctionBaseManerger.Add(new ForStatement());
             FunctionBaseManerger.Add(new ForeachStatement());
-            FunctionBaseManerger.Add(new BreakStatement());
             FunctionBaseManerger.Add(new GotoGosubFunction(true));
             FunctionBaseManerger.Add(new GotoGosubFunction(false));
-            FunctionBaseManerger.Add(new ContinueStatement());
             FunctionBaseManerger.Add(new IncludeFile());
             FunctionBaseManerger.Add(new ThrowFunction());
             FunctionBaseManerger.Add(new TryBlock());
@@ -127,15 +135,17 @@ namespace AliceScript
 
             FunctionBaseManerger.Add(new TypeFunction());
             FunctionBaseManerger.Add(new TypeOfFunction());
-            FunctionBaseManerger.Add(new UndefinedFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
+            FunctionBaseManerger.Add(new DelayFunc());
             FunctionBaseManerger.Add(new ImportFunc());
             FunctionBaseManerger.Add(new ImportFunc(true));
             FunctionBaseManerger.Add(new DllImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
+            FunctionBaseManerger.Add(new PrintFunction(true));
+            FunctionBaseManerger.Add(new StringFormatFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD, new AddFunction());
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
@@ -193,7 +203,7 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.ASSIGNMENT, new AssignFunction());
             ParserFunction.AddAction(Constants.INCREMENT, new IncrementDecrementFunction());
             ParserFunction.AddAction(Constants.DECREMENT, new IncrementDecrementFunction());
-
+            
             for (int i = 0; i < Constants.OPER_ACTIONS.Length; i++)
             {
                 ParserFunction.AddAction(Constants.OPER_ACTIONS[i], new OperatorAssignFunction());
@@ -320,14 +330,13 @@ namespace AliceScript
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
-                                     script, Constants.FOREACH);
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",Exceptions.INVALID_SYNTAX
+                                     ,script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
             }
 
             ParsingScript forScript = script.GetTempScript(forString, varName.Length + sep.Length + 1);
-            forScript.Debugger = script.Debugger;
 
             Variable arrayValue = Utils.GetItem(forScript);
 
@@ -375,14 +384,13 @@ namespace AliceScript
                 int index = forString.IndexOf(Constants.FOR_EACH);
                 if (index <= 0 || index == forString.Length - 1)
                 {
-                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",
+                    Utils.ThrowErrorMsg("foreach文はforeach(variable in array)の形をとるべきです",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOREACH);
                 }
                 varName = forString.Substring(0, index);
             }
 
             ParsingScript forScript = script.GetTempScript(forString, varName.Length + sep.Length + 1);
-            forScript.Debugger = script.Debugger;
 
             Variable arrayValue = await Utils.GetItemAsync(forScript);
 
@@ -423,7 +431,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOR);
             }
 
@@ -449,7 +457,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは"+MAX_LOOPS+"以上の繰り返しを行うことはできません",script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では"+MAX_LOOPS+"以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS,script);
                     return;
                 }
 
@@ -473,7 +481,7 @@ namespace AliceScript
             string[] forTokens = forString.Split(Constants.END_STATEMENT);
             if (forTokens.Length != 3)
             {
-                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形をとるべきです",
+                Utils.ThrowErrorMsg("for文はfor(init; condition; loopStatement;)の形である必要があります",Exceptions.INVALID_SYNTAX,
                                      script, Constants.FOR);
             }
 
@@ -499,7 +507,7 @@ namespace AliceScript
 
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    ThrowErrorManerger.OnThrowError("現在の設定では" + MAX_LOOPS + "以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS, script);
                     return;
                 }
 
@@ -543,7 +551,7 @@ namespace AliceScript
                 // 無限ループを抑制するための判定
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません", script);
+                    ThrowErrorManerger.OnThrowError("このインタプリタでは" + MAX_LOOPS + "以上の繰り返しを行うことはできません",Exceptions.TOO_MANY_REPETITIONS, script);
                     return Variable.EmptyInstance;
                 }
 
@@ -584,7 +592,7 @@ namespace AliceScript
                 // Check for an infinite loop if we are comparing same values:
                 if (MAX_LOOPS > 0 && ++cycles >= MAX_LOOPS)
                 {
-                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます");
+                    ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます",Exceptions.TOO_MANY_REPETITIONS);
                 }
 
                 result = await ProcessBlockAsync(script);
@@ -830,7 +838,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
+                ThrowErrorManerger.OnThrowError("Catchステートメントがありません",Exceptions.MISSING_CATCH_STATEMENT, script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -895,7 +903,7 @@ namespace AliceScript
                               // The next token after the try block must be a catch.
             if (Constants.CATCH != catchToken)
             {
-                ThrowErrorManerger.OnThrowError("tryブロックに対してcatchがありません",script);
+                ThrowErrorManerger.OnThrowError("Catchステートメントがありません",Exceptions.MISSING_CATCH_STATEMENT, script);
             }
 
             string exceptionName = Utils.GetNextToken(script);
@@ -974,15 +982,6 @@ namespace AliceScript
             int blockStart = script.Pointer;
             Variable result = null;
 
-            if (script.Debugger != null)
-            {
-                bool done = false;
-                result = script.Debugger.DebugBlockIfNeeded(script, done, (newDone) => { done = newDone; }).Result;
-                if (done)
-                {
-                    return result;
-                }
-            }
             while (script.StillValid())
             {
                 int endGroupRead = script.GoToNextStatement();
@@ -1008,15 +1007,6 @@ namespace AliceScript
             int blockStart = script.Pointer;
             Variable result = null;
 
-            if (script.Debugger != null)
-            {
-                bool done = false;
-                result = await script.Debugger.DebugBlockIfNeeded(script, done, (newDone) => { done = newDone; });
-                if (done)
-                {
-                    return result;
-                }
-            }
             while (script.StillValid())
             {
                 int endGroupRead = script.GoToNextStatement();
@@ -1052,7 +1042,7 @@ namespace AliceScript
                 if (!script.StillValid())
                 {
                     ThrowErrorManerger.OnThrowError("次のブロックを実行できませんでした [" +
-                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]", script);
+                    script.Substr(blockStart, Constants.MAX_CHARS_TO_SHOW) + "]",Exceptions.COULDNT_EXECUTE_BLOCK, script);
                 }
                 char currentChar = script.CurrentAndForward();
                 switch (currentChar)
@@ -1087,10 +1077,10 @@ namespace AliceScript
             }
             if(startCount > endCount)
             {
-                ThrowErrorManerger.OnThrowError("終端にはかっこが必要です",script);
+                ThrowErrorManerger.OnThrowError("波括弧が必要です",Exceptions.NEED_BRACKETS,script);
             }else if(startCount < endCount)
             {
-                ThrowErrorManerger.OnThrowError("終端のかっこは不要です",script);
+                ThrowErrorManerger.OnThrowError("終端の波括弧は不要です",Exceptions.UNNEED_TO_BRACKETS,script);
             }
         }
 

@@ -47,7 +47,7 @@ namespace AliceScript
             script.MoveForwardIf(Constants.NEXT_ARG, Constants.SPACE);
             Utils.CheckNotEnd(script);
 
-            bool inQuotes  = script.Current == Constants.QUOTE;
+            bool inQuotes = script.Current == Constants.QUOTE;
             bool inQuotes1 = script.Current == Constants.QUOTE1;
 
             bool isList = script.Current == Constants.START_GROUP || script.Current == Constants.START_ARRAY;
@@ -238,9 +238,9 @@ namespace AliceScript
         static void SetPropertyFromStr(string token, Variable result, ParsingScript script,
             string funcName, CustomFunction customFunc)
         {
-            if (string.IsNullOrWhiteSpace(token) || (token[0] == '"' && token[token.Length-1] != '"'))
+            if (string.IsNullOrWhiteSpace(token) || (token[0] == '"' && token[token.Length - 1] != '"'))
             {
-                Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
             }
             if (customFunc != null)
             {
@@ -300,7 +300,7 @@ namespace AliceScript
                     case "value":
                         if (setgetProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
                         }
                         valueProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -308,7 +308,7 @@ namespace AliceScript
                     case "set":
                         if (valueProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
                         }
                         setgetProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -316,7 +316,7 @@ namespace AliceScript
                     case "get":
                         if (valueProvided)
                         {
-                            Utils.ThrowErrorMsg("Cannot mix value and set/get", script, funcName);
+                            Utils.ThrowErrorMsg("値を混合して取得/設定することはできません", Exceptions.CANT_MIX_VALUE_AND_SET_GET, script, funcName);
                         }
                         setgetProvided = true;
                         SetPropertyFromStr(token, result, script, lower, customFunc);
@@ -346,7 +346,7 @@ namespace AliceScript
         public static void SkipRestExpr(ParsingScript script, char toChar = Constants.END_STATEMENT)
         {
             int argRead = 0;
-            bool inQuotes  = false;
+            bool inQuotes = false;
             bool inQuotes1 = false;
             bool inQuotes2 = false;
             char prev = Constants.EMPTY;
@@ -607,7 +607,7 @@ namespace AliceScript
 
             return args;
         }
-    
+
         public static string[] GetFunctionSignature(ParsingScript script)
         {
             script.MoveForwardIf(Constants.START_ARG, Constants.SPACE);
@@ -672,7 +672,7 @@ namespace AliceScript
         public static Variable GetVariableFromString(string str, ParsingScript script, int startIndex = 0)
         {
             ParsingScript tempScript = script.GetTempScript(str, startIndex);
-            Variable result          = Utils.GetItem(tempScript);
+            Variable result = Utils.GetItem(tempScript);
             return result;
         }
 
@@ -849,15 +849,15 @@ namespace AliceScript
 
         public static string ConvertToScript(string source, out Dictionary<int, int> char2Line, string filename = "")
         {
-            string curlyErrorMsg   = "Unbalanced curly braces.";
+            string curlyErrorMsg = "Unbalanced curly braces.";
             string bracketErrorMsg = "Unbalanced square brackets.";
             string parenthErrorMsg = "Unbalanced parentheses.";
-            string quoteErrorMsg   = "Unbalanced quotes.";
+            string quoteErrorMsg = "Unbalanced quotes.";
 
             StringBuilder sb = new StringBuilder(source.Length);
             char2Line = new Dictionary<int, int>();
 
-            bool inQuotes  = false;
+            bool inQuotes = false;
             bool inQuotes1 = false;
             bool inQuotes2 = false;
             bool spaceOK = false;
@@ -878,7 +878,7 @@ namespace AliceScript
             int lastScriptLength = 0;
 
             bool precompiledPart = false;
-            int  precompiledCounter = 0;
+            int precompiledCounter = 0;
             StringBuilder lastToken = new StringBuilder();
 
             // Remove these two lines for quality time debugging in case the user has special
@@ -890,12 +890,10 @@ namespace AliceScript
             {
                 char ch = source[i];
                 char next = i + 1 < source.Length ? source[i + 1] : Constants.EMPTY;
-                char last = sb.Length > 0  ? sb[sb.Length - 1] : Constants.EMPTY;
+                char last = sb.Length > 0 ? sb[sb.Length - 1] : Constants.EMPTY;
 
                 if (string.IsNullOrWhiteSpace(ch.ToString()))
                 {
-                    precompiledPart = precompiledPart || 
-                        lastToken.ToString().Equals(Constants.COMPILED_FUNCTION, StringComparison.OrdinalIgnoreCase);
                     lastToken.Clear();
                 }
 
@@ -1020,7 +1018,7 @@ namespace AliceScript
                                 lineNumberCurly = lineNumber;
                             }
                             levelCurly++;
-                            precompiledCounter = precompiledPart ? precompiledCounter +  1 : 0;
+                            precompiledCounter = precompiledPart ? precompiledCounter + 1 : 0;
                         }
                         break;
                     case Constants.END_GROUP:
@@ -1171,22 +1169,6 @@ namespace AliceScript
             result.AppendLine(Constants.END_GROUP.ToString());
             return result.ToString();
         }
-
-        public static string ReplaceSpaces(ParsingScript script, char replaceChar = ',', char end = Constants.END_STATEMENT)
-        {
-            StringBuilder sb = new StringBuilder(); 
-            while (script.StillValid() && script.TryCurrent() != end)
-            {
-                var token = GetBodyBetween(script, '\0', ' ', end);
-                sb.Append(token + replaceChar);
-            }
-            if (sb.Length > 0 && sb[sb.Length - 1] == replaceChar)
-            {
-                sb.Remove(sb.Length - 1, 1);
-            }
-            return sb.ToString();
-        }
-
         public static string GetBodySize(ParsingScript script, string endToken1, string endToken2 = null)
         {
             int start = script.Pointer;
@@ -1258,7 +1240,7 @@ namespace AliceScript
             // we must not have the opening char as the first one.
             StringBuilder sb = new StringBuilder(script.Size());
             int braces = 0;
-            bool inQuotes  = false;
+            bool inQuotes = false;
             bool inQuotes1 = false;
             bool inQuotes2 = false;
             bool checkBraces = true;
@@ -1358,11 +1340,11 @@ namespace AliceScript
                 {
                     continue;
                 }
-                else if (checkBraces && ch == open&&getarrow)
+                else if (checkBraces && ch == open && getarrow)
                 {
                     braces++;
                 }
-                else if (checkBraces && ch == close&&getarrow)
+                else if (checkBraces && ch == close && getarrow)
                 {
                     braces--;
                 }
@@ -1385,21 +1367,21 @@ namespace AliceScript
             string s = sb.ToString();
             if (s.Length > 5)
             {
-                if (s.StartsWith("=>{")&&s.EndsWith("};"))
+                if (s.StartsWith("=>{") && s.EndsWith("};"))
                 {
                     //その場合、実際のコード部分を切り出す
-                    s = s.Substring(3,s.Length-5);
+                    s = s.Substring(3, s.Length - 5);
                 }
             }
             return s;
         }
-        
+
 
         public static string ProtectQuotes(string str)
         {
             StringBuilder sb = new StringBuilder(str.Length);
-            char prev        = Constants.EMPTY;
-            char prevprev    = Constants.EMPTY;
+            char prev = Constants.EMPTY;
+            char prevprev = Constants.EMPTY;
 
             for (int i = 0; i < str.Length; i++)
             {
@@ -1536,7 +1518,7 @@ namespace AliceScript
 
         public static List<string> ExtractTokens(ParsingScript script)
         {
-            List<string> tokens = new List<string>(); 
+            List<string> tokens = new List<string>();
             script.MoveForwardIf(Constants.START_ARG);
             while (script.TryCurrent() != Constants.END_GROUP)
             {
@@ -1559,11 +1541,11 @@ namespace AliceScript
                 int arrayIndex = currLevel.GetArrayIndex(index);
 
                 int tupleSize = currLevel.GetSize();
-                
+
                 if (arrayIndex < 0 || arrayIndex >= tupleSize)
                 {
                     ThrowErrorMsg("インデックス: [" + index.AsString() +
-                                  "] は配列の長さ" + tupleSize+"の中に存在しません", script, index.AsString());
+                                  "] は配列の長さ[" + tupleSize + "]を超えています", Exceptions.INDEX_OUT_OF_RANGE, script, index.AsString());
                     return currLevel;
                 }
                 switch (currLevel.Type)
@@ -1587,33 +1569,6 @@ namespace AliceScript
             }
             return currLevel;
         }
-      
-
-        public static string GetLinesFromList(ParsingScript script)
-        {
-            Variable lines = Utils.GetItem(script);
-            if (lines.Tuple == null)
-            {
-                throw new ArgumentException("Expected a list argument");
-            }
-
-            StringBuilder sb = new StringBuilder(80 * lines.Tuple.Count);
-            foreach (Variable line in lines.Tuple)
-            {
-                sb.AppendLine(line.String);
-            }
-
-            return sb.ToString();
-        }
-
-        public static string ProcessString(string text)
-        {
-            text = text.Replace("\\\"", "\"");
-            text = text.Replace("\\t", "\t");
-            text = text.Replace("\\n", "\n");
-
-            return text;
-        }
         public static async Task<Variable> GetVar(string paramName, ParsingScript script)
         {
             if (script == null)
@@ -1627,62 +1582,6 @@ namespace AliceScript
             }
             Variable result = await function.GetValueAsync(script);
             return result;
-        }
-        public static async Task<string> GetString(string paramName, ParsingScript script = null)
-        {
-            Variable result = await GetVar(paramName, script);
-            return result.AsString();
-        }
-        public static async Task<double> GetDouble(string paramName, ParsingScript script = null)
-        {
-            Variable result = await GetVar(paramName, script);
-            return result.AsDouble();
-        }
-        public static string PrepareArgs(string argsStr, bool validateQuotes = false)
-        {
-            argsStr = argsStr.Trim();
-            if (!string.IsNullOrEmpty(argsStr) && argsStr[0] == Constants.START_ARG)
-            {
-                argsStr = argsStr.Substring(1);
-            }
-            if (!string.IsNullOrEmpty(argsStr) && argsStr[argsStr.Length - 1] == Constants.END_ARG)
-            {
-                argsStr = argsStr.Substring(0, argsStr.Length - 1);
-            }
-            string src = validateQuotes ? "\\\"" : "\"";
-            string dst = validateQuotes ? "\"" : "\\\"";
-            argsStr = argsStr.Replace(src, dst);
-            return argsStr;
-        }
-
-        public static List<string> SplitToken(string token)
-        {
-            List<string> tokens = new List<string>();
-            char[] separators = { '+', '-', '*', '/' };
-            var start = 0;
-            var end = token.IndexOfAny(separators, start + 1);
-            while(end > 0)
-            {
-                tokens.Add(token.Substring(start, end - start));
-                tokens.Add(token.Substring(end, 1));
-                start = end + 1;
-                end = token.IndexOfAny(separators, start + 1);
-            }
-            if (start < token.Length)
-            {
-                tokens.Add(token.Substring(start));
-            }
-            return tokens;
-        }
-
-        public static Variable Calculate(string functionName, string argsStr)
-        {
-            ParsingScript script = new ParsingScript(argsStr);
-            string action = "";
-            ParserFunction func = new ParserFunction(script, functionName, Constants.EMPTY, ref action);
-            Variable current = func.GetValue(script);
-
-            return current;
         }
     }
 }
