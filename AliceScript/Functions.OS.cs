@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AliceScript
 {
@@ -19,7 +13,7 @@ namespace AliceScript
     // Prints passed list of argumentsand
     class PrintFunction : FunctionBase
     {
-        public PrintFunction(bool isWrite=false)
+        public PrintFunction(bool isWrite = false)
         {
             if (isWrite)
             {
@@ -39,38 +33,32 @@ namespace AliceScript
         private bool m_write;
         private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            if(e.Args.Count == 0)
+            if (e.Args.Count == 0)
             {
                 AddOutput("", e.Script, !m_write);
             }
             else if (e.Args.Count == 1)
             {
-                AddOutput(e.Args[0].AsString(), e.Script,!m_write);
+                AddOutput(e.Args[0].AsString(), e.Script, !m_write);
             }
             else
             {
                 string format = e.Args[0].AsString();
                 e.Args.RemoveAt(0);
-                AddOutput(StringFormatFunction.Format(format,e.Args), e.Script,!m_write);
+                AddOutput(StringFormatFunction.Format(format, e.Args), e.Script, !m_write);
             }
         }
-        
+
         public static void AddOutput(string text, ParsingScript script = null,
                                      bool addLine = true, bool addSpace = true, string start = "")
         {
-            
+
             string output = text + (addLine ? Environment.NewLine : string.Empty);
             Interpreter.Instance.AppendOutput(output);
 
-            Debugger debugger = script != null && script.Debugger != null ?
-                                script.Debugger : Debugger.MainInstance;
-            if (debugger != null)
-            {
-                debugger.AddOutput(output, script);
-            }
         }
     }
-    public class StringFormatFunction:FunctionBase
+    public class StringFormatFunction : FunctionBase
     {
         public StringFormatFunction()
         {
@@ -83,10 +71,10 @@ namespace AliceScript
         {
             string format = e.Args[0].AsString();
             e.Args.RemoveAt(0);
-            e.Return = new Variable(Format(format,e.Args));
+            e.Return = new Variable(Format(format, e.Args));
         }
 
-        public static string Format(string format,List<Variable> args)
+        public static string Format(string format, List<Variable> args)
         {
             string text = format;
             MatchCollection mc = Regex.Matches(format, @"{[0-9]+:?[a-z,A-Z]*}");
@@ -108,7 +96,7 @@ namespace AliceScript
                 }
                 if (int.TryParse(indstr, out mn))
                 {
-                    if(args.Count > mn )
+                    if (args.Count > mn)
                     {
                         if (selectSubFormat)
                         {
@@ -170,7 +158,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            text=text.Replace(match.Value, args[mn].AsString());
+                            text = text.Replace(match.Value, args[mn].AsString());
                         }
                     }
                     else
@@ -184,12 +172,12 @@ namespace AliceScript
                     //数字ではないためスキップ
                     continue;
                 }
-                
+
             }
             return text;
         }
     }
-  
+
     class DataFunction : ParserFunction
     {
         public enum DataMode { ADD, SUBSCRIBE, SEND };
@@ -330,8 +318,8 @@ namespace AliceScript
         }
     }
 
- 
-   
+
+
     class LockFunction : ParserFunction
     {
         static Object lockObject = new Object();

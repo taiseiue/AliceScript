@@ -170,7 +170,7 @@ namespace alice
                 if (allow_throw)
                 {
                     AliceScript.Utils.PrintColor(throwmsg, ConsoleColor.Red);
-                    Dictionary<string, AliceScript.Variable> dic = AliceScript.Debug.Variables;
+                    Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
                     Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
                     foreach (string s in dic.Keys)
                     {

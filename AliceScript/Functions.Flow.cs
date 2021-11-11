@@ -7,34 +7,6 @@ using System.Threading.Tasks;
 
 namespace AliceScript
 {
-    class BreakStatement : FunctionBase
-    {
-        public BreakStatement()
-        {
-            this.Name = Constants.BREAK;
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            return new Variable(Variable.VarType.BREAK);
-        }
-    }
-
-    class ContinueStatement : FunctionBase
-    {
-        public ContinueStatement()
-        {
-            this.Name = Constants.CONTINUE;
-            this.Attribute = FunctionAttribute.CONTROL_FLOW | FunctionAttribute.FUNCT_WITH_SPACE;
-            this.Run += ContinueStatement_Run;
-        }
-
-        private void ContinueStatement_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(Variable.VarType.CONTINUE);
-        }
-    }
-
-
     class ReturnStatement : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -831,11 +803,7 @@ namespace AliceScript
                 tempScript.DisableBreakpoints = true;
                 tempScript.MoveForwardIf(Constants.START_GROUP);
 
-                Debugger debugger = script != null && script.Debugger != null ? script.Debugger : Debugger.MainInstance;
-                if (debugger != null)
-                {
-                    result = debugger.StepInFunctionIfNeeded(tempScript).Result;
-                }
+                
 
                 while (tempScript.Pointer < body.Length - 1 &&
                       (result == null || !result.IsReturn))
@@ -1087,11 +1055,7 @@ namespace AliceScript
             ParsingScript tempScript = Utils.GetTempScript(m_body, m_stackLevel, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
             
-            Debugger debugger = script != null && script.Debugger != null ? script.Debugger : Debugger.MainInstance;
-            if (script != null && debugger != null)
-            {
-                result = debugger.StepInFunctionIfNeeded(tempScript).Result;
-            }
+            
 
             while (tempScript.Pointer < m_body.Length - 1 &&
                   (result == null || !result.IsReturn))
@@ -1125,11 +1089,7 @@ namespace AliceScript
             ParsingScript tempScript = Utils.GetTempScript(m_body, m_stackLevel, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
 
-            Debugger debugger = script != null && script.Debugger != null ? script.Debugger : Debugger.MainInstance;
-            if (debugger != null)
-            {
-                result = await debugger.StepInFunctionIfNeeded(tempScript);
-            }
+            
 
             while (tempScript.Pointer < m_body.Length - 1 &&
                   (result == null || !result.IsReturn))
@@ -1448,22 +1408,6 @@ namespace AliceScript
         }
     }
 
- 
-
-    class UndefinedFunction : FunctionBase
-    {
-        public UndefinedFunction()
-        {
-            this.Name = "undefind";
-            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
-            this.Run += UndefinedFunction_Run;
-        }
-
-        private void UndefinedFunction_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(Variable.VarType.UNDEFINED);
-        }
-    }
     class TypeConvertFunc : FunctionBase
     {
         public TypeConvertFunc(Variable.VarType type)
@@ -2031,7 +1975,7 @@ namespace AliceScript
             set { m_propName = value; }
         }
 
-        Variable m_value;
+        internal Variable m_value;
         int m_delta = 0;
         List<Variable> m_arrayIndices = null;
         string m_propName;
@@ -2354,7 +2298,8 @@ namespace AliceScript
             {
                 if (script.CurrentClass == null && script.ClassInstance == null)
                 {
-                    ParserFunction.AddGlobalOrLocalVariable(m_name, new GetVarFunction(result), script, localIfPossible);
+                    
+                        ParserFunction.AddGlobalOrLocalVariable(m_name, new GetVarFunction(result), script, localIfPossible);
                 }
                 return result;
             }
@@ -2471,7 +2416,8 @@ namespace AliceScript
             Variable baseValue = existing != null ? existing.GetValue(script) : new Variable(Variable.VarType.ARRAY);
             baseValue.SetProperty(prop, varValue, script, name);
 
-            ParserFunction.AddGlobalOrLocalVariable(name, new GetVarFunction(baseValue), script);
+            
+                ParserFunction.AddGlobalOrLocalVariable(name, new GetVarFunction(baseValue), script);
             //ParserFunction.AddGlobal(name, new GetVarFunction(baseValue), false);
 
             return varValue.DeepClone();

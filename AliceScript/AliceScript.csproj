@@ -6,7 +6,9 @@
     <Description>AliceScriptは軽量なスクリプト言語の実装です</Description>
     <Copyright>©Copylight WSOFT 2021</Copyright>
     <SignAssembly>false</SignAssembly>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <AssemblyVersion>1.0.0.2</AssemblyVersion>
+    <PackageProjectUrl>https://alice.wsoft.gq</PackageProjectUrl>
+    <PackageIcon>alice_logo.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -15,6 +17,13 @@
 
   <ItemGroup>
     <None Remove="VariableFunction.cs~RF7f8c5.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\WSOFT_Documents\Alice\alice_logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

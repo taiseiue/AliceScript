@@ -153,13 +153,6 @@ namespace AliceScript.NameSpaces
             }
             string output = indents+text + (addLine ? Environment.NewLine : string.Empty);
             Interpreter.Instance.AppendDebug(output);
-
-            Debugger debugger = script != null && script.Debugger != null ?
-                                script.Debugger : Debugger.MainInstance;
-            if (debugger != null)
-            {
-                debugger.AddOutput(output, script);
-            }
         }
     }
     class Interpreter_NameExistsFunc : FunctionBase
@@ -384,7 +377,7 @@ namespace AliceScript.NameSpaces
         private void Interpreter_VariablesFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             Variable v = new Variable(Variable.VarType.ARRAY);
-            foreach (string s in Debug.Variables.Keys)
+            foreach (string s in Diagnosis.Variables.Keys)
             {
                 v.Tuple.Add(new Variable(s));
             }
@@ -402,9 +395,9 @@ namespace AliceScript.NameSpaces
 
         private void Interpreter_GetVariable_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (Debug.Variables.ContainsKey(e.Args[0].AsString()))
+            if (Diagnosis.Variables.ContainsKey(e.Args[0].AsString()))
             {
-                e.Return = Debug.Variables[e.Args[0].AsString()];
+                e.Return = Diagnosis.Variables[e.Args[0].AsString()];
             }
             else
             {

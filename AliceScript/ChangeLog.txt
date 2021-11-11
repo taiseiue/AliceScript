@@ -75,3 +75,8 @@ AliceScript1108の変更点
 ・number.Negative/PositiveInfinityの実装削除
 ・べき乗を計算できるmath_pow関数の実装
 ・プログラムの最適化
+
+AliceScript1111の変更点
+・デバッガの削除
+・Debugクラスの削除
+・Undefined、Break、Continueを関数定義から定数定義に変更

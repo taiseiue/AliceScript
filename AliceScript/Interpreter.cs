@@ -98,7 +98,6 @@ namespace AliceScript
                 return;
             m_bHasBeenInitialized = true; // このメソッドは一度のみ呼び出すことができます
 
-            ExceptionsTransletor.Init();
 
             RegisterFunctions();
             RegisterEnums();
@@ -117,10 +116,8 @@ namespace AliceScript
             FunctionBaseManerger.Add(new CaseStatement(), Constants.DEFAULT);
             FunctionBaseManerger.Add(new ForStatement());
             FunctionBaseManerger.Add(new ForeachStatement());
-            FunctionBaseManerger.Add(new BreakStatement());
             FunctionBaseManerger.Add(new GotoGosubFunction(true));
             FunctionBaseManerger.Add(new GotoGosubFunction(false));
-            FunctionBaseManerger.Add(new ContinueStatement());
             FunctionBaseManerger.Add(new IncludeFile());
             FunctionBaseManerger.Add(new ThrowFunction());
             FunctionBaseManerger.Add(new TryBlock());
@@ -138,7 +135,6 @@ namespace AliceScript
 
             FunctionBaseManerger.Add(new TypeFunction());
             FunctionBaseManerger.Add(new TypeOfFunction());
-            FunctionBaseManerger.Add(new UndefinedFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
             FunctionBaseManerger.Add(new DelayFunc());
@@ -341,7 +337,6 @@ namespace AliceScript
             }
 
             ParsingScript forScript = script.GetTempScript(forString, varName.Length + sep.Length + 1);
-            forScript.Debugger = script.Debugger;
 
             Variable arrayValue = Utils.GetItem(forScript);
 
@@ -396,7 +391,6 @@ namespace AliceScript
             }
 
             ParsingScript forScript = script.GetTempScript(forString, varName.Length + sep.Length + 1);
-            forScript.Debugger = script.Debugger;
 
             Variable arrayValue = await Utils.GetItemAsync(forScript);
 
@@ -988,15 +982,6 @@ namespace AliceScript
             int blockStart = script.Pointer;
             Variable result = null;
 
-            if (script.Debugger != null)
-            {
-                bool done = false;
-                result = script.Debugger.DebugBlockIfNeeded(script, done, (newDone) => { done = newDone; }).Result;
-                if (done)
-                {
-                    return result;
-                }
-            }
             while (script.StillValid())
             {
                 int endGroupRead = script.GoToNextStatement();
@@ -1022,15 +1007,6 @@ namespace AliceScript
             int blockStart = script.Pointer;
             Variable result = null;
 
-            if (script.Debugger != null)
-            {
-                bool done = false;
-                result = await script.Debugger.DebugBlockIfNeeded(script, done, (newDone) => { done = newDone; });
-                if (done)
-                {
-                    return result;
-                }
-            }
             while (script.StillValid())
             {
                 int endGroupRead = script.GoToNextStatement();
@@ -1101,10 +1077,10 @@ namespace AliceScript
             }
             if(startCount > endCount)
             {
-                ThrowErrorManerger.OnThrowError("括弧が必要です",Exceptions.NEED_BRACKETS,script);
+                ThrowErrorManerger.OnThrowError("波括弧が必要です",Exceptions.NEED_BRACKETS,script);
             }else if(startCount < endCount)
             {
-                ThrowErrorManerger.OnThrowError("終端のかっこは不要です",Exceptions.UNNEED_TO_BRACKETS,script);
+                ThrowErrorManerger.OnThrowError("終端の波括弧は不要です",Exceptions.UNNEED_TO_BRACKETS,script);
             }
         }
 

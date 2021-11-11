@@ -56,7 +56,7 @@ namespace AliceScript
         public static bool GETTING = false;
         public static List<Variable> LaskVariable;
 
-        Task<Variable> ScriptObject.GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
+        Task<Variable> ScriptObject.GetProperty(string sPropertyName, List<Variable> args, ParsingScript script)
         {
 
 
@@ -1518,14 +1518,8 @@ namespace AliceScript
             }
             else if (script != null && Functions.ContainsKey(propName.ToLower()))
             {
-                if (!Diagnosis.IsRunFunction)
-                {
-                    return Variable.EmptyInstance;
-                }
-                else
-                {
+               
                     return Functions[propName.ToLower()].Evaluate(script, this);
-                }
             }
 
             return result;

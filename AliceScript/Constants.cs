@@ -123,7 +123,6 @@ namespace AliceScript
         public const string VAR = "var";
         public const string VARIABLE_TYPE = "VariableType";
         public const string WAIT = "wait";
-        public const string GET_FILE_FROM_DEBUGGER = "GetFileFromDebugger";
 
         public const string ADD_DATA     = "AddDataToCollection";
         public const string COLLECT_DATA = "StartCollectingData";
@@ -155,7 +154,10 @@ namespace AliceScript
         public const string TRIM          = "Trim";
         public const string UPPER         = "Upper";
 
-        
+        public const string LABEL_OPERATOR = ":";
+        public const string GOTO = "goto";
+        public const string GOSUB = "gosub";
+
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
         // Special property for converting an object to a string:
@@ -241,7 +243,13 @@ namespace AliceScript
             //無限を表します
             { INFINITY,new Variable(double.PositiveInfinity)},
             //負の無限を表します
-            { NEG_INFINITY,new Variable(double.NegativeInfinity)}
+            { NEG_INFINITY,new Variable(double.NegativeInfinity)},
+            //定義されていないことを表します
+            { UNDEFINED,new Variable(Variable.VarType.UNDEFINED)},
+            //ループを抜けます
+            {BREAK,new Variable(Variable.VarType.BREAK) },
+            //ループを次に進めます
+            {CONTINUE,new Variable(Variable.VarType.CONTINUE) }
         };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
