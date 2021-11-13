@@ -18,7 +18,58 @@ namespace AliceScript.NameSpaces
             space.Add(new RegexSingleArgFunc(RegexSingleArgFunc.FuncMode.Replace));
             space.Add(new RegexSingleArgFunc(RegexSingleArgFunc.FuncMode.Split));
 
+            space.Loading += Space_Loading;
+            space.UnLoading += Space_UnLoading;
+
             NameSpaceManerger.Add(space);
+        }
+
+        private static void Space_UnLoading(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Variable.RemoveFunc(new str_IsMatchFunc());
+            Variable.AddFunc(new str_MatchesFunc());
+        }
+
+        private static void Space_Loading(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Variable.AddFunc(new str_IsMatchFunc());
+            Variable.AddFunc(new str_MatchesFunc());
+        }
+    }
+    class str_IsMatchFunc : FunctionBase
+    {
+        public str_IsMatchFunc()
+        {
+            this.FunctionName = "IsMatch";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IsMatchFunc_Run;
+        }
+
+        private void Str_IsMatchFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable((System.Text.RegularExpressions.Regex.IsMatch(e.CurentVariable.AsString(), e.Args[0].AsString())));
+        }
+    }
+    class str_MatchesFunc : FunctionBase
+    {
+        public str_MatchesFunc()
+        {
+            this.FunctionName = "Matches";
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_IsMatchFunc_Run;
+        }
+
+        private void Str_IsMatchFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            System.Text.RegularExpressions.MatchCollection mc = System.Text.RegularExpressions.Regex.Matches(e.CurentVariable.AsString(), e.Args[0].AsString());
+            Variable r = new Variable(Variable.VarType.ARRAY);
+            foreach (System.Text.RegularExpressions.Match m in mc)
+            {
+                r.Tuple.Add(new Variable(m.Value));
+            }
+            e.Return = r;
         }
     }
     class RegexSingleArgFunc : FunctionBase

@@ -151,8 +151,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
             ParserFunction.RegisterFunction(Constants.CANCEL, new CancelFunction());
-            ParserFunction.RegisterFunction(Constants.CONTAINS, new ContainsFunction());
-            ParserFunction.RegisterFunction(Constants.DEEP_COPY, new DeepCopyFunction());
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());

@@ -1376,38 +1376,6 @@ namespace AliceScript
         }
     }
 
-    class ContainsFunction : ParserFunction, INumericFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            // 1. Get the name of the variable.
-            string varName = Utils.GetToken(script, Constants.NEXT_OR_END_ARRAY);
-            Utils.CheckNotEnd(script, m_name);
-
-            // 2. Get the current value of the variable.
-            List<Variable> arrayIndices = Utils.GetArrayIndices(script, varName, (newVarName) => { varName = newVarName; });
-
-            ParserFunction func = ParserFunction.GetVariable(varName, script);
-            Utils.CheckNotNull(varName, func, script);
-            Variable currentValue = func.GetValue(script);
-
-            // 2b. Special dealings with arrays:
-            Variable query = arrayIndices.Count > 0 ?
-                             Utils.ExtractArrayElement(currentValue, arrayIndices, script) :
-                             currentValue;
-
-            // 3. Get the value to be looked for.
-            Variable searchValue = Utils.GetItem(script);
-            Utils.CheckNotEnd(script, m_name);
-
-            // 4. Check if the value to search for exists.
-            bool exists = query.Exists(searchValue, true /* notEmpty */);
-
-            script.MoveBackIf(Constants.START_GROUP);
-            return new Variable(exists);
-        }
-    }
-
     class TypeConvertFunc : FunctionBase
     {
         public TypeConvertFunc(Variable.VarType type)
@@ -1469,7 +1437,7 @@ namespace AliceScript
                                 }
                             case Variable.VarType.STRING:
                                 {
-                                    e.Return = new Variable(e.Args[0].String.ToLower()=="true");
+                                    e.Return = new Variable(e.Args[0].String.ToLower()==Constants.TRUE);
                                     break;
                                 }
                         }
@@ -1924,7 +1892,7 @@ namespace AliceScript
 
         public static Variable EvaluateFunction(Variable var, ParsingScript script, string m_propName)
         {
-            if (var.CustomFunctionGet != null)
+            if (var!=null&&var.CustomFunctionGet != null)
             {
                 List<Variable> args = script.Prev == '(' ? script.GetFunctionArgs() : new List<Variable>();
                 if (var.StackVariables != null)
@@ -1933,7 +1901,7 @@ namespace AliceScript
                 }
                 return var.CustomFunctionGet.Run(args, script);
             }
-            if (!string.IsNullOrWhiteSpace(var.CustomGet))
+            if (var!=null&&!string.IsNullOrWhiteSpace(var.CustomGet))
             {
                 return ParsingScript.RunString(var.CustomGet);
             }
@@ -2513,15 +2481,6 @@ namespace AliceScript
                 }
             }
             return arrayIndex;
-        }
-    }
-
-    class DeepCopyFunction : ActionFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            Variable varValue = Utils.GetItem(script);
-            return varValue.DeepClone();
         }
     }
 

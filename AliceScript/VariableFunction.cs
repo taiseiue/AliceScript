@@ -15,20 +15,22 @@ namespace AliceScript
             Variable.AddFunc(new CloneFunc());
             Variable.AddFunc(new ResetFunc());
             Variable.AddFunc(new DeepCloneFunc());
+            Variable.AddFunc(new ContainsFunc());
+            Variable.AddFunc(new ToStringFunc());
+            Variable.AddFunc(new LengthFunc());
+            Variable.AddFunc(new SizeFunc());
+            Variable.AddFunc(new PropertiesFunc());
+            Variable.AddFunc(new TypeFunc());
             //String関数
-            Variable.AddFunc(new string_TrimFunc(0), "Trim");
-            Variable.AddFunc(new string_TrimFunc(1), "TrimStart");
-            Variable.AddFunc(new string_TrimFunc(2), "TrimEnd");
-            Variable.AddFunc(new str_SEWithFunc(false), "StartsWith");
-            Variable.AddFunc(new str_SEWithFunc(true), "EndsWith");
+            Variable.AddFunc(new string_TrimFunc(0), Constants.TRIM);
+            Variable.AddFunc(new string_TrimFunc(1), Constants.TRIM_START);
+            Variable.AddFunc(new string_TrimFunc(2), Constants.TRIM_END);
+            Variable.AddFunc(new str_SEWithFunc(false), Constants.STARTS_WITH);
+            Variable.AddFunc(new str_SEWithFunc(true), Constants.ENDS_WITH);
             Variable.AddFunc(new str_PadFunc(false), "PadLeft");
             Variable.AddFunc(new str_PadFunc(true), "PadRight");
             Variable.AddFunc(new str_NormalizeFunc());
-            Variable.AddFunc(new str_IsMatchFunc());
-            Variable.AddFunc(new str_MatchesFunc());
-            Variable.AddFunc(new str_ReplaceMatchesFunc());
             Variable.AddFunc(new str_CompareToFunc());
-            Variable.AddFunc(new str_ContainsFunc());
             Variable.AddFunc(new str_IndexOfFunc());
             Variable.AddFunc(new str_InsertFunc());
             Variable.AddFunc(new str_IsNormalizedFunc());
@@ -39,29 +41,160 @@ namespace AliceScript
             Variable.AddFunc(new str_SubStringFunc());
             Variable.AddFunc(new str_ToLowerUpperFunc());
             Variable.AddFunc(new str_ToLowerUpperFunc(true));
-            Variable.AddFunc(new str_ToLowerUpperInvariantFunc());
-            Variable.AddFunc(new str_ToLowerUpperInvariantFunc(true));
+            Variable.AddFunc(new str_EmptyOrWhiteFunc(true));
+            Variable.AddFunc(new str_EmptyOrWhiteFunc(false));
+            Variable.AddFunc(new str_FormatFunc());
             //String関数(終わり)
             //NUMBER(Double)関数
-            Variable.AddFunc(new num_EpsilonFunc());
-            Variable.AddFunc(new num_NANFunc());
-            Variable.AddFunc(new num_MValueFunc(true), "MinValue");
-            Variable.AddFunc(new num_MValueFunc(false), "MaxValue");
+
             //NUMBER(Double)関数(終わり)
             //List関数
-            Variable.AddFunc(new list_flattenFunc());
-            Variable.AddFunc(new list_marge2Func());
-            Variable.AddFunc(new list_FindIndexFunc());
+            Variable.AddFunc(new list_addFunc());
+            Variable.AddFunc(new list_addRangeFunc());
+            Variable.AddFunc(new list_InsertFunc());
+            Variable.AddFunc(new list_InsertRangeFunc());
             //List関数(終わり)
             //BYTES系(Base64)
-            Variable.AddFunc(new toBase64Func());
-            Variable.AddFunc(new fromBase64Func());
             //BYTES系(終わり)
             //DELEGATE系(Delegate.csに本体あり)
             Variable.AddFunc(new InvokeFunc());
             Variable.AddFunc(new BeginInvokeFunc());
             //DELEGATE系(終わり)
         }
+    }
+    class PropertiesFunc : FunctionBase
+    {
+        public PropertiesFunc()
+        {
+            this.Name = Constants.OBJECT_PROPERTIES;
+            this.Run += ToStringFunc_Run;
+        }
+
+        private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.GetProperties());
+        }
+    }
+    class TypeFunc : FunctionBase
+    {
+        public TypeFunc()
+        {
+            this.Name = Constants.OBJECT_TYPE;
+            this.Run += ToStringFunc_Run;
+        }
+
+        private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.GetTypeString());
+        }
+    }
+    class LengthFunc : FunctionBase
+    {
+        public LengthFunc()
+        {
+            this.Name = Constants.LENGTH;
+            this.Run += ToStringFunc_Run;
+        }
+
+        private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.GetLength());
+        }
+    }
+    class SizeFunc : FunctionBase
+    {
+        public SizeFunc()
+        {
+            this.Name = Constants.SIZE;
+            this.Run += ToStringFunc_Run;
+        }
+
+        private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.GetSize());
+        }
+    }
+    class ToStringFunc : FunctionBase
+    {
+        public ToStringFunc()
+        {
+            this.Name = "To"+Constants.TO_STRING;
+            this.Run += ToStringFunc_Run;
+        }
+
+        private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.AsString());
+        }
+    }
+    class ContainsFunc : FunctionBase
+    {
+        public ContainsFunc()
+        {
+            this.Name = Constants.CONTAINS;
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.STRING|Variable.VarType.ARRAY|Variable.VarType.DELEGATE;
+            this.Run += ContainsFunc_Run;
+        }
+
+        private void ContainsFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.CurentVariable.Type)
+            {
+                case Variable.VarType.STRING:
+                    {
+                        if (e.Args[0].Type == Variable.VarType.STRING)
+                        {
+                            return;
+                        }
+                        e.Return = new Variable(e.CurentVariable.AsString().Contains(e.Args[0].AsString()));
+                        break;
+                    }
+                    case Variable.VarType.ARRAY:
+                    {
+                        e.Return = new Variable(e.CurentVariable.Tuple.Contains(e.Args[0]));
+                        break;
+                    }
+                case Variable.VarType.DELEGATE:
+                    {
+                        if (e.Args[0].Type == Variable.VarType.DELEGATE && e.Args[0].Delegate != null)
+                        {
+                            e.Return = new Variable(e.CurentVariable.Delegate.Contains(e.Args[0].Delegate));
+                        }
+                        break;
+                    }
+            }
+        }
+    }
+    class str_EmptyOrWhiteFunc : FunctionBase
+    {
+        public str_EmptyOrWhiteFunc(bool isNullOr)
+        {
+            isNull = isNullOr;
+            if (isNull)
+            {
+                this.Name = Constants.EMPTY_NULL;
+            }
+            else
+            {
+                this.Name = Constants.EMPTY_WHITE;
+            }
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += String_EmptyOrWhiteFunc_Run;
+        }
+
+        private void String_EmptyOrWhiteFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (isNull)
+            {
+                e.Return = new Variable(string.IsNullOrEmpty(e.CurentVariable.AsString()));
+            }
+            else
+            {
+                e.Return = new Variable(string.IsNullOrWhiteSpace(e.CurentVariable.AsString()));
+            }
+        }
+        private bool isNull;
     }
     class InvokeFunc : FunctionBase
     {
@@ -99,7 +232,7 @@ namespace AliceScript
     {
         public DeepCloneFunc()
         {
-            this.Name = "DeepClone";
+            this.Name = Constants.DEEP_CLONE;
             this.Run += DeepCloneFunc_Run;
         }
 
@@ -112,7 +245,7 @@ namespace AliceScript
     {
         public CloneFunc()
         {
-            this.Name = "Clone";
+            this.Name = Constants.CLONE;
             this.Run += FinalizeFunc_Run;
         }
 
@@ -125,7 +258,7 @@ namespace AliceScript
     {
         public EqualsFunc()
         {
-            this.Name = "Equals";
+            this.Name = Constants.EQUALS;
             this.MinimumArgCounts = 1;
             this.Run += EqualsFunc_Run;
         }
@@ -169,40 +302,30 @@ namespace AliceScript
     }
 
     //ここより下は変数(Variable)オブジェクトの関数です
-    class toBase64Func : FunctionBase
-    {
-        public toBase64Func()
-        {
-            this.FunctionName = "ToBase64";
-            this.RequestType = Variable.VarType.BYTES;
-            this.Run += ToBase64Func_Run;
-        }
-
-        private void ToBase64Func_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = Variable.FromText(System.Convert.ToBase64String(e.CurentVariable.AsByteArray()));
-        }
-    }
-    class fromBase64Func : FunctionBase
-    {
-        public fromBase64Func()
-        {
-            this.FunctionName = "FromBase64";
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += FromBase64Func_Run;
-        }
-
-        private void FromBase64Func_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(System.Convert.FromBase64String(e.CurentVariable.AsString()));
-        }
-    }
+    
     class string_TrimFunc : FunctionBase
     {
         public string_TrimFunc(int trimtype = 0)
         {
             this.TrimType = trimtype;
-            this.FunctionName = "Trim";
+            switch (TrimType)
+            {
+                case 0:
+                    {
+                        this.FunctionName = Constants.TRIM;
+                        break;
+                    }
+                case 1:
+                    {
+                        this.FunctionName = Constants.TRIM_START;
+                        break;
+                    }
+                case 2:
+                    {
+                        this.FunctionName = Constants.TRIM_END;
+                        break;
+                    }
+            }
             this.RequestType = Variable.VarType.STRING;
             this.Run += String_TrimFunc_Run;
         }
@@ -296,27 +419,11 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString().CompareTo(e.Args[0].AsString()));
         }
     }
-    class str_ContainsFunc : FunctionBase
-    {
-        public str_ContainsFunc()
-        {
-            this.Name = "Contains";
-            this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_ContainsFunc_Run;
-        }
-
-        private void Str_ContainsFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(e.CurentVariable.AsString().Contains(e.Args[0].AsString()));
-        }
-    }
-  
     class str_IndexOfFunc : FunctionBase
     {
         public str_IndexOfFunc()
         {
-            this.Name = "IndexOf";
+            this.Name = Constants.INDEX_OF;
             this.MinimumArgCounts = 1;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_IndexOfFunc_Run;
@@ -425,7 +532,7 @@ namespace AliceScript
     {
         public str_RemoveFunc()
         {
-            this.Name = "Remove";
+            this.Name = Constants.REMOVE;
             this.MinimumArgCounts = 1;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_RemoveFunc_Run;
@@ -440,7 +547,7 @@ namespace AliceScript
     {
         public str_ReplaceFunc()
         {
-            this.Name = "Replace";
+            this.Name = Constants.REPLACE;
             this.MinimumArgCounts = 2;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_ReplaceFunc_Run;
@@ -455,7 +562,7 @@ namespace AliceScript
     {
         public str_SplitFunc()
         {
-            this.Name = "Split";
+            this.Name = Constants.SPLIT;
             this.MinimumArgCounts = 0;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_SplitFunc_Run;
@@ -484,7 +591,7 @@ namespace AliceScript
     {
         public str_SubStringFunc()
         {
-            this.Name = "SubString";
+            this.Name = Constants.SUBSTRING;
             this.MinimumArgCounts = 1;
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_SubStringFunc_Run;
@@ -507,12 +614,26 @@ namespace AliceScript
             }
         }
     }
+    class str_FormatFunc : FunctionBase
+    {
+        public str_FormatFunc()
+        {
+            this.Name = "Format";
+            this.RequestType = Variable.VarType.STRING;
+            this.Run += Str_FormatFunc_Run;
+        }
+
+        private void Str_FormatFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return=new Variable(StringFormatFunction.Format(e.CurentVariable.AsString(),e.Args));
+        }
+    }
     class str_ToLowerUpperFunc : FunctionBase
     {
         public str_ToLowerUpperFunc(bool upper = false)
         {
             Upper = upper;
-            if (upper) { this.Name = "Upper"; } else { this.Name = "Lower"; }
+            if (upper) { this.Name = Constants.UPPER; } else { this.Name = Constants.LOWER; }
             this.RequestType = Variable.VarType.STRING;
             this.Run += Str_ToLowerUpperFunc_Run;
         }
@@ -530,81 +651,7 @@ namespace AliceScript
 
         private bool Upper = false;
     }
-    class str_ToLowerUpperInvariantFunc : FunctionBase
-    {
-        public str_ToLowerUpperInvariantFunc(bool upper = false)
-        {
-            Upper = upper;
-            if (upper) { this.Name = "UpperInvariant"; } else { this.Name = "LowerInvariant"; }
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_ToLowerUpperFunc_Run;
-        }
-
-        private void Str_ToLowerUpperFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (Upper)
-            {
-                e.Return = new Variable(e.CurentVariable.AsString().ToUpperInvariant());
-            }
-            else
-            {
-                e.Return = new Variable(e.CurentVariable.AsString().ToLowerInvariant());
-            }
-        }
-
-        private bool Upper = false;
-    }
-    class str_IsMatchFunc : FunctionBase
-    {
-        public str_IsMatchFunc()
-        {
-            this.FunctionName = "ismatch";
-            this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_IsMatchFunc_Run;
-        }
-
-        private void Str_IsMatchFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable((System.Text.RegularExpressions.Regex.IsMatch(e.CurentVariable.AsString(), e.Args[0].AsString())));
-        }
-    }
-    class str_MatchesFunc : FunctionBase
-    {
-        public str_MatchesFunc()
-        {
-            this.FunctionName = "matches";
-            this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_IsMatchFunc_Run;
-        }
-
-        private void Str_IsMatchFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            System.Text.RegularExpressions.MatchCollection mc = System.Text.RegularExpressions.Regex.Matches(e.CurentVariable.AsString(), e.Args[0].AsString());
-            Variable r = new Variable(Variable.VarType.ARRAY);
-            foreach (System.Text.RegularExpressions.Match m in mc)
-            {
-                r.Tuple.Add(new Variable(m.Value));
-            }
-            e.Return = r;
-        }
-    }
-    class str_ReplaceMatchesFunc : FunctionBase
-    {
-        public str_ReplaceMatchesFunc()
-        {
-            this.FunctionName = "replacematches";
-            this.MinimumArgCounts = 2;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_IsMatchFunc_Run;
-        }
-
-        private void Str_IsMatchFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable((System.Text.RegularExpressions.Regex.Replace(e.CurentVariable.AsString(), e.Args[0].AsString(), e.Args[1].AsString())));
-        }
-    }
+   
     class str_SEWithFunc : FunctionBase
     {
         public str_SEWithFunc(bool endsWith = false)
@@ -682,135 +729,90 @@ namespace AliceScript
         bool Right = false;
     }
    
-    class num_MValueFunc : FunctionBase
+    class list_addFunc : FunctionBase
     {
-        public num_MValueFunc(bool min)
+        public list_addFunc()
         {
-            Min = min;
-            this.RequestType = Variable.VarType.NUMBER;
-            this.Run += Num_MValueFunc_Run;
-        }
-
-        private void Num_MValueFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (Min)
-            {
-                e.Return = new Variable(double.MinValue);
-            }
-            else
-            {
-                e.Return = new Variable(double.MaxValue);
-            }
-        }
-
-        bool Min = false;
-    }
-    class num_EpsilonFunc : FunctionBase
-    {
-        public num_EpsilonFunc()
-        {
-            this.FunctionName = "Epsilon";
-            this.RequestType = Variable.VarType.NUMBER;
-            this.Run += Num_MValueFunc_Run;
-        }
-
-        private void Num_MValueFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-
-            e.Return = new Variable(double.Epsilon);
-
-        }
-
-
-    }
-    class num_NANFunc : FunctionBase
-    {
-        public num_NANFunc()
-        {
-            this.FunctionName = "NaN";
-            this.RequestType = Variable.VarType.NUMBER;
-            this.Run += Num_MValueFunc_Run;
-        }
-
-        private void Num_MValueFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-
-            e.Return = new Variable(double.NaN);
-
-        }
-
-
-    }
-    class list_flattenFunc : FunctionBase
-    {
-        public list_flattenFunc()
-        {
-            this.FunctionName = "Flatten";
-            this.RequestType = Variable.VarType.ARRAY;
-            this.Run += List_flattenFunc_Run;
-        }
-
-        private void List_flattenFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Variable v = new Variable();
-            foreach (var strLst in e.CurentVariable.Tuple)
-            {
-                if (strLst.Type == Variable.VarType.ARRAY)
-                {
-                    v.Tuple.AddRange(strLst.Tuple);
-                }
-                else
-                {
-                    v.Tuple.Add(strLst);
-                }
-            }
-        }
-    }
-  
-    class list_marge2Func : FunctionBase
-    {
-        public list_marge2Func()
-        {
-
-            this.FunctionName = "Merge";
-            this.RequestType = Variable.VarType.ARRAY;
-            this.Run += List_marge2Func_Run;
-        }
-
-        private void List_marge2Func_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Variable r = new Variable(Variable.VarType.ARRAY);
-
-            r.Tuple.AddRange(e.CurentVariable.Tuple);
-
-            foreach (Variable v1 in e.Args)
-            {
-                if (v1.Type == Variable.VarType.ARRAY)
-                {
-                    r.Tuple.AddRange(v1.Tuple);
-                }
-                else
-                {
-                    r.Tuple.Add(v1);
-                }
-            }
-
-            e.Return = r;
-        }
-    }
-    class list_FindIndexFunc : FunctionBase
-    {
-        public list_FindIndexFunc()
-        {
-            this.FunctionName = "FindIndex";
+            this.FunctionName = Constants.ADD;
             this.RequestType = Variable.VarType.ARRAY;
             this.MinimumArgCounts = 1;
-            this.Run += List_FindIndexFunc_Run;
+            this.Run += List_addFunc_Run;
         }
 
-        private void List_FindIndexFunc_Run(object sender, FunctionBaseEventArgs e)
+        private void List_addFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.CurentVariable.FindIndex(e.Args[0]));
+            if (e.CurentVariable.Tuple != null)
+            {
+                foreach (Variable a in e.Args)
+                {
+                    e.CurentVariable.Tuple.Add(a);
+                }
+            }
         }
     }
+    class list_addRangeFunc : FunctionBase
+    {
+        public list_addRangeFunc()
+        {
+            this.FunctionName = Constants.ADD_RANGE;
+            this.RequestType = Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += List_addFunc_Run;
+        }
+
+        private void List_addFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.CurentVariable.Tuple != null)
+            {
+                foreach (Variable a in e.Args)
+                {
+                    if (a.Type == Variable.VarType.ARRAY&&a.Tuple!=null)
+                    {
+                        e.CurentVariable.Tuple.AddRange(a.Tuple);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    class list_InsertFunc : FunctionBase
+    {
+        public list_InsertFunc()
+        {
+            this.FunctionName = Constants.INSERT;
+            this.RequestType= Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 2;
+            this.Run += List_InsertFunc_Run;
+        }
+
+        private void List_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER)
+            {
+                e.CurentVariable.Tuple.Insert(e.Args[0].AsInt(), e.Args[1]);
+            }
+        }
+    }
+    class list_InsertRangeFunc : FunctionBase
+    {
+        public list_InsertRangeFunc()
+        {
+            this.FunctionName = Constants.INSERT_RANGE;
+            this.RequestType = Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 2;
+            this.Run += List_InsertFunc_Run;
+        }
+
+        private void List_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.ARRAY&&e.Args[1].Tuple!=null)
+            {
+                e.CurentVariable.Tuple.InsertRange(e.Args[0].AsInt(), e.Args[1].Tuple);
+            }
+        }
+    }
+   
 }

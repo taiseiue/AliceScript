@@ -43,6 +43,19 @@ namespace AliceScript
             name = name.ToLower();
             Functions.Add(name, fb);
         }
+        public static void RemoveFunc(FunctionBase fb, string name = "")
+        {
+            
+            if (name == "")
+            {
+                name = fb.FunctionName;
+            }
+            name = name.ToLower();
+            if (Functions.ContainsKey(name))
+            {
+                Functions.Remove(name);
+            }
+        }
 
         public static Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
 
@@ -1208,42 +1221,6 @@ namespace AliceScript
             {
                 return result;
             }
-            else if (propName.Equals(Constants.OBJECT_PROPERTIES, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(GetProperties());
-            }
-            else if (propName.Equals(Constants.OBJECT_TYPE, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(GetTypeString());
-            }
-            else if (propName.Equals(Constants.SIZE, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(GetSize());
-            }
-            else if (propName.Equals(Constants.LENGTH, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(GetLength());
-            }
-            else if (propName.Equals("To" + Constants.STRING, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Variable(AsString());
-            }
-            else if (propName.Equals(Constants.FIRST, StringComparison.OrdinalIgnoreCase))
-            {
-                if (Tuple != null && Tuple.Count > 0)
-                {
-                    return Tuple[0];
-                }
-                return AsString().Length > 0 ? new Variable("" + AsString()[0]) : Variable.EmptyInstance;
-            }
-            else if (propName.Equals(Constants.LAST, StringComparison.OrdinalIgnoreCase))
-            {
-                if (Tuple != null && Tuple.Count > 0)
-                {
-                    return Tuple.Last<Variable>();
-                }
-                return AsString().Length > 0 ? new Variable("" + AsString().Last<char>()) : Variable.EmptyInstance;
-            }
             else if (script != null && propName.Equals(Constants.INDEX_OF, StringComparison.OrdinalIgnoreCase))
             {
                 List<Variable> args = script.GetFunctionArgs();
@@ -1256,94 +1233,6 @@ namespace AliceScript
                     StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
 
                 return new Variable(AsString().IndexOf(search, startFrom, comp));
-            }
-            else if (script != null && propName.Equals(Constants.SUBSTRING, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-
-                int startFrom = Utils.GetSafeInt(args, 0, 0);
-                int length = Utils.GetSafeInt(args, 1, AsString().Length);
-                length = Math.Min(length, AsString().Length - startFrom);
-
-                return new Variable(AsString().Substring(startFrom, length));
-            }
-            else if (script != null && propName.Equals(Constants.REVERSE, StringComparison.OrdinalIgnoreCase))
-            {
-                script.GetFunctionArgs();
-                if (Tuple != null)
-                {
-                    Tuple.Reverse();
-                }
-                else if (Type == VarType.STRING)
-                {
-                    char[] charArray = AsString().ToCharArray();
-                    Array.Reverse(charArray);
-                    String = new string(charArray);
-                }
-
-                return this;
-            }
-            else if (script != null && propName.Equals(Constants.SORT, StringComparison.OrdinalIgnoreCase))
-            {
-                script.GetFunctionArgs();
-                Sort();
-
-                return this;
-            }
-            else if (script != null && propName.Equals(Constants.FOREACH, StringComparison.OrdinalIgnoreCase))
-            {
-                ProcessForEach(script);
-                return this;
-            }
-            else if (script != null && propName.Equals(Constants.SPLIT, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                string sep = Utils.GetSafeString(args, 0, " ");
-                var option = Utils.GetSafeString(args, 1);
-
-                return TokenizeFunction.Tokenize(AsString(), sep, option);
-            }
-            else if (script != null && propName.Equals(Constants.JOIN, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                string sep = Utils.GetSafeString(args, 0, " ");
-                if (Tuple == null)
-                {
-                    return new Variable(AsString());
-                }
-
-                var join = string.Join(sep, Tuple);
-                return new Variable(join);
-            }
-            else if (script != null && propName.Equals(Constants.ADD, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-
-                Variable var = Utils.GetSafeVariable(args, 0);
-                int index = Utils.GetSafeInt(args, 1, -1);
-
-                if (Tuple != null)
-                {
-                    if (index >= 0)
-                    {
-                        Tuple.Insert(index, var);
-                    }
-                    else
-                    {
-                        Tuple.Add(var);
-                    }
-                }
-                else if (Type == VarType.NUMBER)
-                {
-                    Value += var.AsDouble();
-                }
-                else
-                {
-                    String += var.AsString();
-                }
-                return this;
             }
             else if (script != null && propName.Equals(Constants.ADD_UNIQUE, StringComparison.OrdinalIgnoreCase))
             {
@@ -1394,11 +1283,6 @@ namespace AliceScript
                 int removed = RemoveItem(oldVal);
                 return new Variable(removed);
             }
-            else if (script != null && propName.Equals(Constants.DEEP_COPY, StringComparison.OrdinalIgnoreCase))
-            {
-                script.GetFunctionArgs();
-                return DeepClone();
-            }
             else if (script != null && propName.Equals(Constants.AT, StringComparison.OrdinalIgnoreCase))
             {
                 List<Variable> args = script.GetFunctionArgs();
@@ -1411,105 +1295,6 @@ namespace AliceScript
                 }
                 string str = AsString();
                 return str.Length > at ? new Variable("" + str[at]) : Variable.EmptyInstance;
-            }
-            else if (script != null && propName.Equals(Constants.REPLACE, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 2, propName);
-                string oldVal = Utils.GetSafeString(args, 0);
-                string newVal = Utils.GetSafeString(args, 1);
-
-                return new Variable(AsString().Replace(oldVal, newVal));
-            }
-            else if (propName.Equals(Constants.EMPTY_WHITE, StringComparison.OrdinalIgnoreCase))
-            {
-                bool isEmpty = string.IsNullOrWhiteSpace(AsString());
-                return new Variable(isEmpty);
-            }
-            else if (script != null && propName.Equals(Constants.REPLACE_TRIM, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 2, propName);
-                string currentValue = AsString();
-
-                for (int i = 0; i < args.Count; i += 2)
-                {
-                    string oldVal = Utils.GetSafeString(args, i);
-                    string newVal = Utils.GetSafeString(args, i + 1);
-                    currentValue = currentValue.Replace(oldVal, newVal);
-                }
-
-                return new Variable(currentValue.Trim());
-            }
-            else if (script != null && propName.Equals(Constants.CONTAINS, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                string val = Utils.GetSafeString(args, 0);
-                string param = Utils.GetSafeString(args, 1, "no_case");
-                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
-                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-                bool contains = false;
-                if (Type == Variable.VarType.ARRAY)
-                {
-                    string lower = val.ToLower();
-                    contains = m_dictionary != null && m_dictionary.ContainsKey(lower);
-                    if (!contains && m_tuple != null)
-                    {
-                        foreach (var item in m_tuple)
-                        {
-                            if (item.AsString().Equals(val, comp))
-                            {
-                                contains = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    contains = val != "" && AsString().IndexOf(val, comp) >= 0;
-                }
-                return new Variable(contains);
-            }
-            else if (script != null && propName.Equals(Constants.EQUALS, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                string val = Utils.GetSafeString(args, 0);
-                string param = Utils.GetSafeString(args, 1, "no_case");
-                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
-                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-                return new Variable(AsString().Equals(val, comp));
-            }
-            else if (script != null && propName.Equals(Constants.STARTS_WITH, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                string val = Utils.GetSafeString(args, 0);
-                string param = Utils.GetSafeString(args, 1, "no_case");
-                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
-                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-                return new Variable(AsString().StartsWith(val, comp));
-            }
-            else if (script != null && propName.Equals(Constants.ENDS_WITH, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                string val = Utils.GetSafeString(args, 0);
-                string param = Utils.GetSafeString(args, 1, "no_case");
-                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
-                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-                return new Variable(AsString().EndsWith(val, comp));
-            }
-            else if (script != null && propName.Equals(Constants.TRIM, StringComparison.OrdinalIgnoreCase))
-            {
-                script.GetFunctionArgs();
-                return new Variable(AsString().Trim());
             }
             else if (propName.Equals(Constants.KEYS, StringComparison.OrdinalIgnoreCase))
             {

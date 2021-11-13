@@ -80,3 +80,8 @@ AliceScript1111の変更点
 ・デバッガの削除
 ・Debugクラスの削除
 ・Undefined、Break、Continueを関数定義から定数定義に変更
+
+AliceScript1114の変更点
+・string.Formatプロパティの追加
+・大部分のプロパティの実装をFunctionBase化
+・一部のプロパティをAlice.Runtimeに移動

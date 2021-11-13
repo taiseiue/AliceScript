@@ -84,6 +84,7 @@ namespace AliceScript
         public const string FALSE = "false";
 
         public const string ADD = "add";
+        public const string ADD_RANGE = "AddRange";
         public const string ADD_UNIQUE = "addunique";
         public const string ADD_TO_HASH = "AddToHash";
         public const string ADD_ALL_TO_HASH = "AddAllToHash";
@@ -91,10 +92,11 @@ namespace AliceScript
         public const string CHECK_LOADER_MAIN = "LoaderMain";
         public const string CONTAINS = "contains";
         public const string CURRENT_PATH = "CurrentPath";
-        public const string DEEP_COPY = "DeepCopy";
+        public const string CLONE = "Clone";
+        public const string DEEP_CLONE = "DeepClone";
         public const string DEFINE_LOCAL = "DefineLocal";
         public const string EXIT = "exit";
-        public const string FIND_INDEX = "find_index";
+        public const string FIND_INDEX = "FindIndex";
         public const string FLOOR = "floor";
         public const string GET_COLUMN = "GetColumn";
         public const string GET_PROPERTIES = "GetPropertyStrings";
@@ -130,6 +132,7 @@ namespace AliceScript
 
         // Properties, returned after the variable dot:
         public const string AT            = "At";
+        public const string EMPTY_NULL    = "EmptyOrNull";
         public const string EMPTY_WHITE   = "EmptyOrWhite";
         public const string ENDS_WITH     = "EndsWith";
         public const string EQUALS        = "Equals";
@@ -152,7 +155,11 @@ namespace AliceScript
         public const string SUBSTRING     = "Substring";
         public const string TOKENIZE      = "Tokenize";
         public const string TRIM          = "Trim";
+        public const string TRIM_START    = "TrimStart";
+        public const string TRIM_END      = "TrimEnd";
         public const string UPPER         = "Upper";
+        public const string INSERT        = "Insert";
+        public const string INSERT_RANGE = "InsertRange";
 
         public const string LABEL_OPERATOR = ":";
         public const string GOTO = "goto";

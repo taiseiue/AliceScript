@@ -428,15 +428,7 @@ namespace alice
 
         private static string GetPrompt()
         {
-            const int MAX_SIZE = 30;
             string path = Directory.GetCurrentDirectory();
-            /*
-            if (path.Length > MAX_SIZE)
-            {
-                path = "..." + path.Substring(path.Length - MAX_SIZE);
-            }
-            */
-
             return string.Format("{0}>>", path);
         }
 

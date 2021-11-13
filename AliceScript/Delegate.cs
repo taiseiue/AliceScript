@@ -67,6 +67,23 @@ namespace AliceScript
         {
             return m_fucntions.Contains(func);
         }
+        public bool Contains(DelegateObject d)
+        {
+            bool r = false;
+            foreach(CustomFunction cf in d.Functions)
+            {
+                if (!m_fucntions.Contains(cf))
+                {
+                    //一つでも異なればFalse
+                    return false;
+                }
+                else
+                {
+                    r = true;
+                }
+            }
+            return r;
+        }
         public Variable Invoke(List<Variable> args=null,ParsingScript script=null,AliceScriptClass.ClassInstance instance=null)
         {
             Variable last_result = Variable.EmptyInstance;
