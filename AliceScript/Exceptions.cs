@@ -213,6 +213,10 @@ namespace AliceScript
         /// <summary>
         /// ファイルを読み込めませんでした
         /// </summary>
-        COULDNT_READ_FILE=0x033
+        COULDNT_READ_FILE=0x033,
+        /// <summary>
+        /// 実装されていません
+        /// </summary>
+        NOT_IMPLEMENTED=0x034
     }
 }

@@ -45,7 +45,7 @@ namespace AliceScript
         }
         public static void RemoveFunc(FunctionBase fb, string name = "")
         {
-            
+
             if (name == "")
             {
                 name = fb.FunctionName;
@@ -78,7 +78,6 @@ namespace AliceScript
 
             if (Functions.ContainsKey(sPropertyName))
             {
-
                 //issue#1「ObjectBase内の関数で引数が認識されない」に対する対処
                 //原因:先に値検出関数にポインタが移動されているため正常に引数が認識できていない
                 //対処:値検出関数で拾った引数のリストをバックアップし、関数で使用する
@@ -88,7 +87,6 @@ namespace AliceScript
                 Task<Variable> va = Task.FromResult(Functions[sPropertyName].GetValue(script));
                 GETTING = false;
                 return va;
-
             }
 
             else
@@ -202,7 +200,7 @@ namespace AliceScript
         {
             Object = o;
         }
-        
+
 
         public virtual Variable Clone()
         {
@@ -843,7 +841,8 @@ namespace AliceScript
                     }
                     else
                     {
-                        Console.WriteLine("Error condition: dictionary value {0} out of bounds {1}", entry.Value, m_tuple.Count);
+                        ThrowErrorManerger.OnThrowError("インデックス: [" + entry.Value +
+                                  "] は配列の長さ[" + m_tuple.Count + "]を超えています", Exceptions.INDEX_OUT_OF_RANGE);
                     }
                 }
             }
@@ -872,7 +871,7 @@ namespace AliceScript
             return sb.ToString();
         }
 
-        string ObjectToString()
+        private string ObjectToString()
         {
             StringBuilder sb = new StringBuilder();
             if (m_object != null)
@@ -972,7 +971,7 @@ namespace AliceScript
             return FinishSetProperty(propName, value, script, baseName);
         }
 
-        string GetRealName(string name)
+        private string GetRealName(string name)
         {
             string realName;
             string converted = Constants.ConvertName(name);
@@ -993,7 +992,7 @@ namespace AliceScript
             {
                 if (!result.Writable)
                 {
-                    Utils.ThrowErrorMsg("プロパティ:[" + propName + "]は読み取り専用です",Exceptions.PROPERTY_IS_READ_ONLY,
+                    Utils.ThrowErrorMsg("プロパティ:[" + propName + "]は読み取り専用です", Exceptions.PROPERTY_IS_READ_ONLY,
                         script, propName);
                 }
                 if (result.CustomFunctionSet != null)
@@ -1173,46 +1172,7 @@ namespace AliceScript
             return GetCoreProperty(propName, script);
         }
 
-        bool ProcessForEach(ParsingScript script)
-        {
-            var token = Utils.GetNextToken(script, true);
-            Utils.CheckNotEmpty(token, Constants.FOREACH);
-
-            CustomFunction customFunc = Utils.GetFunction(script, "", token);
-            script.MoveForwardIf(Constants.END_ARG);
-
-            if (customFunc == null)
-            {
-                customFunc = ParserFunction.GetFunction(token, script) as CustomFunction;
-            }
-            if (customFunc == null)
-            {
-                Utils.ThrowErrorMsg("関数:[" + Constants.FOREACH + "]は定義されていないか、存在しません",Exceptions.COULDNT_FIND_FUNCTION,
-                                    script, token);
-            }
-            if (Tuple == null)
-            {
-                Utils.ThrowErrorMsg("ForEach文で、配列が見つかりません",Exceptions.COULDNT_FIND_ARRAY,
-                                    script, token);
-            }
-
-            var args = ParserFunction.VariablesSnaphot(script);
-            string propArg = customFunc.RealArgs[0];
-            List<Variable> funcArgs = new List<Variable>();
-
-            int index = 0;
-            foreach (var item in Tuple)
-            {
-                funcArgs.Clear();
-                funcArgs.Add(item);
-                funcArgs.Add(new Variable(index++));
-                funcArgs.Add(this);
-                customFunc.Run(funcArgs, script);
-            }
-            return true;
-        }
-
-        Variable GetCoreProperty(string propName, ParsingScript script = null)
+        private Variable GetCoreProperty(string propName, ParsingScript script = null)
         {
             Variable result = Variable.EmptyInstance;
 
@@ -1221,90 +1181,10 @@ namespace AliceScript
             {
                 return result;
             }
-            else if (script != null && propName.Equals(Constants.INDEX_OF, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-
-                string search = Utils.GetSafeString(args, 0);
-                int startFrom = Utils.GetSafeInt(args, 1, 0);
-                string param = Utils.GetSafeString(args, 2, "no_case");
-                StringComparison comp = param.Equals("case", StringComparison.OrdinalIgnoreCase) ?
-                    StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-                return new Variable(AsString().IndexOf(search, startFrom, comp));
-            }
-            else if (script != null && propName.Equals(Constants.ADD_UNIQUE, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-
-                Variable var = Utils.GetSafeVariable(args, 0);
-                string comp = var.AsString();
-                int index = Utils.GetSafeInt(args, 1, -1);
-
-                bool containsItem = m_tuple != null && m_tuple.Any(item => item.AsString() == comp);
-
-                if (!containsItem)
-                {
-                    if (index >= 0)
-                    {
-                        m_tuple.Insert(index, var);
-                    }
-                    else
-                    {
-                        m_tuple.Add(var);
-                    }
-                    return new Variable(true);
-                }
-                return new Variable(false);
-            }
-            else if (script != null && propName.Equals(Constants.REMOVE_AT, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                int index = Utils.GetSafeInt(args, 0);
-
-                int removed = 0;
-                if (m_dictionary.Count == 0 && m_tuple != null && m_tuple.Count > index && index >= 0)
-                {
-                    m_tuple.RemoveAt(index);
-                    removed = 1;
-                }
-
-                return new Variable(removed);
-            }
-            else if (script != null && propName.Equals(Constants.REMOVE_ITEM, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                string oldVal = Utils.GetSafeString(args, 0);
-
-                int removed = RemoveItem(oldVal);
-                return new Variable(removed);
-            }
-            else if (script != null && propName.Equals(Constants.AT, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> args = script.GetFunctionArgs();
-                Utils.CheckArgs(args.Count, 1, propName);
-                int at = Utils.GetSafeInt(args, 0);
-
-                if (Tuple != null && Tuple.Count > 0)
-                {
-                    return Tuple.Count > at ? Tuple[at] : Variable.EmptyInstance;
-                }
-                string str = AsString();
-                return str.Length > at ? new Variable("" + str[at]) : Variable.EmptyInstance;
-            }
-            else if (propName.Equals(Constants.KEYS, StringComparison.OrdinalIgnoreCase))
-            {
-                List<Variable> results = GetAllKeys();
-                return new Variable(results);
-            }
             else if (script != null && Functions.ContainsKey(propName.ToLower()))
             {
-               
-                    return Functions[propName.ToLower()].Evaluate(script, this);
+
+                return Functions[propName.ToLower()].Evaluate(script, this);
             }
 
             return result;
@@ -1595,16 +1475,15 @@ namespace AliceScript
         protected bool m_bool;
         protected DateTime m_datetime;
         protected DelegateObject m_delegate;
-        CustomFunction m_customFunctionGet;
-        CustomFunction m_customFunctionSet;
+        private CustomFunction m_customFunctionGet;
+        private CustomFunction m_customFunctionSet;
         protected List<Variable> m_tuple;
         protected byte[] m_byteArray;
-        Dictionary<string, int> m_dictionary = new Dictionary<string, int>();
-        Dictionary<string, string> m_keyMappings = new Dictionary<string, string>();
-        Dictionary<string, string> m_propertyStringMap = new Dictionary<string, string>();
-
-        Dictionary<string, Variable> m_propertyMap = new Dictionary<string, Variable>();
-        Dictionary<int, string> m_enumMap;
+        private Dictionary<string, int> m_dictionary = new Dictionary<string, int>();
+        private Dictionary<string, string> m_keyMappings = new Dictionary<string, string>();
+        private Dictionary<string, string> m_propertyStringMap = new Dictionary<string, string>();
+        private Dictionary<string, Variable> m_propertyMap = new Dictionary<string, Variable>();
+        private Dictionary<int, string> m_enumMap;
 
         //Dictionary<string, Func<ParsingScript, Variable, string, Variable>> m_properties = new Dictionary<string, Func<ParsingScript, Variable, string, Variable>>();
     }

@@ -113,6 +113,7 @@ namespace AliceScript
         public const string REGEX = "Regex";
         public const string REMOVE = "RemoveItem";
         public const string REMOVE_AT = "RemoveAt";
+        public const string REMOVE_RANGE = "RemoveRange";
         public const string SET_PROPERTY = "SetProperty";
         public const string SHOW = "show";
         public const string SIGNAL = "signal";
@@ -131,7 +132,6 @@ namespace AliceScript
         public const string GET_DATA     = "GetCollectedData";
 
         // Properties, returned after the variable dot:
-        public const string AT            = "At";
         public const string EMPTY_NULL    = "EmptyOrNull";
         public const string EMPTY_WHITE   = "EmptyOrWhite";
         public const string ENDS_WITH     = "EndsWith";

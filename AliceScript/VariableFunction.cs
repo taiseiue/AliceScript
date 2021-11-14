@@ -9,18 +9,26 @@ namespace AliceScript
     {
         public static void Init()
         {
-            //総合関数(VariableFunction.csに本体あり)
+            //総合関数(コアプロパティ)
             Variable.AddFunc(new DisposeFunc());
             Variable.AddFunc(new EqualsFunc());
             Variable.AddFunc(new CloneFunc());
             Variable.AddFunc(new ResetFunc());
             Variable.AddFunc(new DeepCloneFunc());
-            Variable.AddFunc(new ContainsFunc());
             Variable.AddFunc(new ToStringFunc());
             Variable.AddFunc(new LengthFunc());
             Variable.AddFunc(new SizeFunc());
             Variable.AddFunc(new PropertiesFunc());
             Variable.AddFunc(new TypeFunc());
+            //統合関数(終わり)
+            //複合関数(複数の型に対応する関数)
+            Variable.AddFunc(new IndexOfFunc());
+            Variable.AddFunc(new ContainsFunc());
+            Variable.AddFunc(new KeysFunc());
+            Variable.AddFunc(new list_InsertFunc());
+            Variable.AddFunc(new RemoveAtFunc());
+            Variable.AddFunc(new RemoveFunc());
+            //複合関数(終わり)
             //String関数
             Variable.AddFunc(new string_TrimFunc(0), Constants.TRIM);
             Variable.AddFunc(new string_TrimFunc(1), Constants.TRIM_START);
@@ -31,11 +39,8 @@ namespace AliceScript
             Variable.AddFunc(new str_PadFunc(true), "PadRight");
             Variable.AddFunc(new str_NormalizeFunc());
             Variable.AddFunc(new str_CompareToFunc());
-            Variable.AddFunc(new str_IndexOfFunc());
-            Variable.AddFunc(new str_InsertFunc());
             Variable.AddFunc(new str_IsNormalizedFunc());
             Variable.AddFunc(new str_LastIndexOfFunc());
-            Variable.AddFunc(new str_RemoveFunc());
             Variable.AddFunc(new str_ReplaceFunc());
             Variable.AddFunc(new str_SplitFunc());
             Variable.AddFunc(new str_SubStringFunc());
@@ -46,22 +51,224 @@ namespace AliceScript
             Variable.AddFunc(new str_FormatFunc());
             //String関数(終わり)
             //NUMBER(Double)関数
-
+            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsSubnormal),"IsSubnormal");
+            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsNegative),"IsNegative");
+            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsInifinity),"IsInfinity");
+            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsFinite),"IsFinite");
             //NUMBER(Double)関数(終わり)
             //List関数
             Variable.AddFunc(new list_addFunc());
             Variable.AddFunc(new list_addRangeFunc());
-            Variable.AddFunc(new list_InsertFunc());
             Variable.AddFunc(new list_InsertRangeFunc());
+            Variable.AddFunc(new list_RemoveRangeFunc());
             //List関数(終わり)
-            //BYTES系(Base64)
-            //BYTES系(終わり)
             //DELEGATE系(Delegate.csに本体あり)
             Variable.AddFunc(new InvokeFunc());
             Variable.AddFunc(new BeginInvokeFunc());
             //DELEGATE系(終わり)
         }
     }
+    class list_RemoveRangeFunc : FunctionBase
+    {
+        public list_RemoveRangeFunc()
+        {
+            this.Name = Constants.REMOVE_RANGE;
+            this.MinimumArgCounts = 1;
+            this.RequestType = Variable.VarType.ARRAY;
+            this.Run += List_RemoveRangeFunc_Run;
+        }
+
+        private void List_RemoveRangeFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.NUMBER && e.CurentVariable.Tuple != null)
+            {
+                e.CurentVariable.Tuple.RemoveRange(e.Args[0].AsInt(),e.Args[1].AsInt());
+            }
+        }
+    }
+    class RemoveAtFunc : FunctionBase
+    {
+        public RemoveAtFunc()
+        {
+            this.Name = Constants.REMOVE_AT;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += RemoveAtFunc_Run;
+        }
+
+        private void RemoveAtFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args[0].Type == Variable.VarType.NUMBER)
+            {
+                switch (e.CurentVariable.Type)
+                {
+                    case Variable.VarType.STRING:
+                        {
+                            e.Return = new Variable(e.CurentVariable.AsString().Remove(e.Args[0].AsInt()));
+                            break;
+                        }
+                    case Variable.VarType.ARRAY:
+                        {
+                            if (e.CurentVariable.Tuple != null)
+                            {
+                                e.CurentVariable.Tuple.RemoveAt(e.Args[0].AsInt());
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+    }
+    class RemoveFunc : FunctionBase
+    {
+        public RemoveFunc()
+        {
+            this.Name = Constants.REMOVE_ITEM;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += RemoveFunc_Run;
+        }
+
+        private void RemoveFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.CurentVariable.Type)
+            {
+                case Variable.VarType.STRING:
+                    {
+                        e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(),""));
+                        break;
+                    }
+                case Variable.VarType.ARRAY:
+                    {
+                        if (e.CurentVariable.Tuple != null)
+                        {
+                            foreach (Variable v in e.Args)
+                            {
+                                if (e.CurentVariable.Tuple.Contains(v))
+                                {
+                                    e.CurentVariable.Tuple.Remove(v);
+                                }
+                                else
+                                {
+                                    ThrowErrorManerger.OnThrowError("アイテムが配列内に存在しません", Exceptions.COULDNT_FIND_ITEM, e.Script);
+                                    return;
+                                }
+                            }
+                        }
+                        break;
+                    }
+            }
+        }
+    }
+    class IndexOfFunc : FunctionBase
+    {
+        public IndexOfFunc()
+        {
+            this.Name = Constants.INDEX_OF;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += IndexOfFunc_Run;
+        }
+
+        private void IndexOfFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (e.CurentVariable.Type)
+            {
+                case Variable.VarType.STRING:
+                    {
+                        if (e.Args.Count == 1)
+                        {
+                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString()));
+                        }else if (e.Args.Count == 2)
+                        {
+                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt()));
+                        }
+                        else
+                        {
+                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt(),e.Args[2].AsInt()));
+                        }
+                        break;
+                    }
+                    case Variable.VarType.ARRAY:
+                    {
+                        if (e.CurentVariable.Tuple != null)
+                        {
+                            if (e.Args.Count == 1)
+                            {
+                                e.Return = new Variable(e.CurentVariable.Tuple.IndexOf(e.Args[0]));
+                            }
+                            else if (e.Args.Count == 2)
+                            {
+                                e.Return = new Variable(e.CurentVariable.Tuple.IndexOf(e.Args[0], e.Args[1].AsInt()));
+                            }
+                            else
+                            {
+                                e.Return = new Variable(e.CurentVariable.Tuple.IndexOf(e.Args[0], e.Args[1].AsInt(), e.Args[2].AsInt()));
+                            }
+                        }
+                        break;
+                    }
+            }
+        }
+    }
+    class NumberFuncs : FunctionBase
+    {
+        public NumberFuncs(NumberFuncMode mode)
+        {
+            m_Mode = mode;
+            this.RequestType = Variable.VarType.NUMBER;
+            this.Run += NumberFuncs_Run;
+        }
+
+        private void NumberFuncs_Run(object sender, FunctionBaseEventArgs e)
+        {
+            switch (m_Mode)
+            {
+                case NumberFuncMode.IsSubnormal:
+                    {
+                        e.Return = new Variable(double.IsSubnormal(e.CurentVariable.Value));
+                        break;
+                    }
+                case NumberFuncMode.IsInifinity:
+                    {
+                        e.Return = new Variable(double.IsInfinity(e.CurentVariable.Value));
+                        break;
+                    }
+                case NumberFuncMode.IsNegative:
+                    {
+                        e.Return = new Variable(double.IsNegative(e.CurentVariable.Value));
+                        break;
+                    }
+                case NumberFuncMode.IsFinite:
+                    {
+                        e.Return = new Variable(double.IsFinite(e.CurentVariable.Value));
+                        break;
+                    }
+            }
+        }
+
+        private NumberFuncMode m_Mode;
+        public enum NumberFuncMode
+        {
+            IsFinite,IsInifinity,IsNegative,IsSubnormal
+        }
+    }
+    class KeysFunc : FunctionBase
+    {
+        public KeysFunc()
+        {
+            this.Name = Constants.KEYS;
+            this.RequestType = Variable.VarType.MAP_NUM|Variable.VarType.MAP_STR;
+            this.Run += KeysFunc_Run;
+
+        }
+
+        private void KeysFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.GetAllKeys());
+        }
+    }
+    
     class PropertiesFunc : FunctionBase
     {
         public PropertiesFunc()
@@ -419,54 +626,6 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString().CompareTo(e.Args[0].AsString()));
         }
     }
-    class str_IndexOfFunc : FunctionBase
-    {
-        public str_IndexOfFunc()
-        {
-            this.Name = Constants.INDEX_OF;
-            this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_IndexOfFunc_Run;
-        }
-
-        private void Str_IndexOfFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            switch (e.Args.Count)
-            {
-                default:
-                    {
-                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString()));
-                        break;
-                    }
-                case 2:
-                    {
-                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt()));
-                        break;
-                    }
-                case 3:
-                    {
-                        e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(), e.Args[1].AsInt(),e.Args[2].AsInt()));
-                        break;
-                    }
-            }
-            
-        }
-    }
-    class str_InsertFunc : FunctionBase
-    {
-        public str_InsertFunc()
-        {
-            this.Name = "Insert";
-            this.MinimumArgCounts = 2;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_InsertFunc_Run;
-        }
-
-        private void Str_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(e.CurentVariable.AsString().Insert(e.Args[0].AsInt(),e.Args[1].AsString()));
-        }
-    }
     class str_IsNormalizedFunc : FunctionBase
     {
         public str_IsNormalizedFunc()
@@ -526,21 +685,6 @@ namespace AliceScript
         private void Str_NormalizeFunc_Run1(object sender, FunctionBaseEventArgs e)
         {
             e.Return = new Variable(e.CurentVariable.AsString().Normalize());
-        }
-    }
-    class str_RemoveFunc : FunctionBase
-    {
-        public str_RemoveFunc()
-        {
-            this.Name = Constants.REMOVE;
-            this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING;
-            this.Run += Str_RemoveFunc_Run;
-        }
-
-        private void Str_RemoveFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(e.CurentVariable.AsString().Remove(e.Args[0].AsInt()));
         }
     }
     class str_ReplaceFunc : FunctionBase
@@ -783,17 +927,33 @@ namespace AliceScript
         public list_InsertFunc()
         {
             this.FunctionName = Constants.INSERT;
-            this.RequestType= Variable.VarType.ARRAY;
+            this.RequestType= Variable.VarType.ARRAY|Variable.VarType.STRING;
             this.MinimumArgCounts = 2;
             this.Run += List_InsertFunc_Run;
         }
 
         private void List_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER)
+            switch (e.CurentVariable.Type)
             {
-                e.CurentVariable.Tuple.Insert(e.Args[0].AsInt(), e.Args[1]);
+                case Variable.VarType.ARRAY:
+                    {
+                        if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER)
+                        {
+                            e.CurentVariable.Tuple.Insert(e.Args[0].AsInt(), e.Args[1]);
+                        }
+                        break;
+                    }
+                case Variable.VarType.STRING:
+                    {
+                        if (e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.STRING)
+                        {
+                            e.Return = new Variable(e.CurentVariable.AsString().Insert(e.Args[0].AsInt(),e.Args[1].AsString()));
+                        }
+                        break;
+                    }
             }
+          
         }
     }
     class list_InsertRangeFunc : FunctionBase

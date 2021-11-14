@@ -47,6 +47,7 @@ namespace AliceScript.NameSpaces
             Variable.AddFunc(new list_flattenFunc());
             Variable.AddFunc(new list_marge2Func());
             Variable.AddFunc(new list_FindIndexFunc());
+            Variable.AddFunc(new list_ForeachFunc());
 
             Variable.AddFunc(new bytes_toBase64Func());
 
@@ -54,6 +55,27 @@ namespace AliceScript.NameSpaces
             Variable.AddFunc(new str_ToLowerUpperInvariantFunc(true));
 
             FunctionBase.RegisterEnum("ConsoleColor","System.ConsoleColor");
+        }
+    }
+    class list_ForeachFunc : FunctionBase
+    {
+        public list_ForeachFunc()
+        {
+            this.Name = Constants.FOREACH;
+            this.RequestType = Variable.VarType.ARRAY;
+            this.MinimumArgCounts = 1;
+            this.Run += List_ForeachFunc_Run;
+        }
+
+        private void List_ForeachFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.DELEGATE && e.Args[0].Delegate != null)
+            {
+                foreach (Variable v in e.CurentVariable.Tuple)
+                {
+                    e.Args[0].Delegate.Invoke(new List<Variable> { v }, e.Script);
+                }
+            }
         }
     }
     class str_ToLowerUpperInvariantFunc : FunctionBase

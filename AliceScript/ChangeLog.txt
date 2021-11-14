@@ -85,3 +85,4 @@ AliceScript1114の変更点
 ・string.Formatプロパティの追加
 ・大部分のプロパティの実装をFunctionBase化
 ・一部のプロパティをAlice.Runtimeに移動
+・Tokenize関連の関数は削除されました。

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 namespace AliceScript
 {
-   
- 
-   class wsverFunc : FunctionBase
+    internal class wsverFunc : FunctionBase
     {
         public wsverFunc()
         {
@@ -18,11 +15,12 @@ namespace AliceScript
 
         private void WsverFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            
+
             e.Return = new Variable(Alice.Version.ToString());
         }
     }
-    class DelayFunc : FunctionBase
+
+    internal class DelayFunc : FunctionBase
     {
         public DelayFunc()
         {
@@ -44,7 +42,7 @@ namespace AliceScript
         }
     }
 
-    class LabelFunction : ActionFunction
+    internal class LabelFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -52,8 +50,9 @@ namespace AliceScript
             return Variable.EmptyInstance;
         }
     }
+
     //デリゲートを作成する関数クラスです
-    class DelegateCreator : FunctionBase
+    internal class DelegateCreator : FunctionBase
     {
         public DelegateCreator()
         {
@@ -83,7 +82,7 @@ namespace AliceScript
             string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
             //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。下の式は将来使用するために残されています。
             //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
-            
+
             if (!KnownLines.Contains(script.OriginalLine))
             {
                 KnownLines.Add(script.OriginalLine);
@@ -92,15 +91,12 @@ namespace AliceScript
             CustomFunction customFunc = new CustomFunction("", body, args, script);
             customFunc.ParentScript = script;
             customFunc.ParentOffset = parentOffset;
-
-
-
             return new Variable(customFunc);
         }
         internal static List<string> KnownLines = new List<string>();
     }
- 
-    class PointerFunction : ActionFunction
+
+    internal class PointerFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -114,8 +110,8 @@ namespace AliceScript
             return result;
         }
     }
-    
-    class PointerReferenceFunction : ActionFunction
+
+    internal class PointerReferenceFunction : ActionFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
@@ -153,9 +149,9 @@ namespace AliceScript
         }
     }
 
-    class GotoGosubFunction : FunctionBase
+    internal class GotoGosubFunction : FunctionBase
     {
-        bool m_isGoto = true;
+        private bool m_isGoto = true;
 
         public GotoGosubFunction(bool gotoMode = true)
         {
@@ -178,7 +174,7 @@ namespace AliceScript
             if (script.AllLabels == null || script.LabelToFile == null |
                !script.AllLabels.TryGetValue(script.FunctionName, out labels))
             {
-                Utils.ThrowErrorMsg("次のラベルは関数内に存在しません [" + script.FunctionName + "]",Exceptions.COULDNT_FIND_LABEL_IN_FUNCTION,
+                Utils.ThrowErrorMsg("次のラベルは関数内に存在しません [" + script.FunctionName + "]", Exceptions.COULDNT_FIND_LABEL_IN_FUNCTION,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }
@@ -186,7 +182,7 @@ namespace AliceScript
             int gotoPointer;
             if (!labels.TryGetValue(labelName, out gotoPointer))
             {
-                Utils.ThrowErrorMsg("ラベル:[" + labelName + "]は定義されていません",Exceptions.COULDNT_FIND_LABEL,
+                Utils.ThrowErrorMsg("ラベル:[" + labelName + "]は定義されていません", Exceptions.COULDNT_FIND_LABEL,
                                     script, m_name);
                 return Variable.EmptyInstance;
             }
@@ -215,6 +211,6 @@ namespace AliceScript
         }
     }
 
- 
-    
+
+
 }

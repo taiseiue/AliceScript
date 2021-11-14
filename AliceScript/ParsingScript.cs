@@ -579,7 +579,6 @@ namespace AliceScript
             Variable result = null;
 
            
-
             if (InTryBlock)
             {
                 result = await Parser.AliceScriptAsync(this, toArray);
@@ -624,9 +623,7 @@ namespace AliceScript
             tempScript.StackLevel     = this.StackLevel;
             tempScript.AllLabels      = this.AllLabels;
             tempScript.LabelToFile    = this.LabelToFile;
-            tempScript.FunctionName   = this.FunctionName;            
-
-            //tempScript.Debugger       = this.Debugger;
+            tempScript.FunctionName   = this.FunctionName;
 
             return tempScript;
         }
