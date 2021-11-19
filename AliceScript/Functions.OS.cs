@@ -253,20 +253,23 @@ namespace AliceScript
             return data;
         }
     }
-    class LockFunction : ParserFunction
+    class LockFunction : FunctionBase
     {
-        static Object lockObject = new Object();
-
-        protected override Variable Evaluate(ParsingScript script)
+        public LockFunction()
         {
-            string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+            this.Name = Constants.LOCK;
+            this.MinimumArgCounts = 1;
+            this.Run += LockFunction_Run;
+        }
+        private void LockFunction_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string body = Utils.GetBodyBetween(e.Script, Constants.START_ARG,
                                                        Constants.END_ARG);
-            ParsingScript threadScript = new ParsingScript(body);
-            lock (lockObject)
+            ParsingScript parsingScript = e.Script.GetTempScript(body);
+            lock (e.Args[0])
             {
-                threadScript.ExecuteAll();
+                parsingScript.ExecuteAll();
             }
-            return Variable.EmptyInstance;
         }
     }
 }

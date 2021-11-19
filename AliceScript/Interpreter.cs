@@ -134,8 +134,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
             ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
 
-            FunctionBaseManerger.Add(new TypeFunction());
-            FunctionBaseManerger.Add(new TypeOfFunction());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
             FunctionBaseManerger.Add(new DelayFunc());
@@ -147,6 +145,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new PrintFunction());
             FunctionBaseManerger.Add(new PrintFunction(true));
             FunctionBaseManerger.Add(new StringFormatFunction());
+            FunctionBaseManerger.Add(new LockFunction());
 
             ParserFunction.RegisterFunction(Constants.ADD_TO_HASH, new AddVariableToHashFunction());
             ParserFunction.RegisterFunction(Constants.ADD_ALL_TO_HASH, new AddVariablesToHashFunction());
@@ -154,7 +153,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.DEFINE_LOCAL, new DefineLocalFunction());
             ParserFunction.RegisterFunction(Constants.GET_COLUMN, new GetColumnFunction());
             ParserFunction.RegisterFunction(Constants.GET_KEYS, new GetAllKeysFunction());
-            ParserFunction.RegisterFunction(Constants.LOCK, new LockFunction());
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
             ParserFunction.RegisterFunction(Constants.VAR, new VarFunction());
@@ -169,12 +167,6 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
-            //型変換の関数群
-            foreach (Variable.VarType type in Constants.CAN_CONVERT_VARIABLE_TYPES)
-            {
-                FunctionBaseManerger.Add(new TypeConvertFunc(type));
-            }
-
             if (File.Exists(Alice.Runtime_File_Path))
             {
                 Interop.NetLibraryLoader.LoadLibrary(Alice.Runtime_File_Path);
@@ -185,7 +177,7 @@ namespace AliceScript
 
         public void RegisterEnums()
         {
-            ParserFunction.RegisterEnum(Constants.VARIABLE_TYPE, "AliceScript.Variable.VarType");
+            //ParserFunction.RegisterEnum(Constants.VARIABLE_TYPE, "AliceScript.Variable.VarType");
         }
 
         public void RegisterActions()

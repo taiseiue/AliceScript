@@ -583,7 +583,17 @@ namespace AliceScript
                 //処理は不要
                 return Variable.EmptyInstance;
             }
-            if (leftCell.Type == Variable.VarType.NUMBER &&
+            //[is]演算子、型テスト演算子ですべての型に適応できます
+            if (leftCell.Action == "is")
+            {
+                leftCell = new Variable(leftCell.Type==rightCell.AsType());
+            }
+            //[as]演算子、キャスト演算子ですべての型に適応できます
+            else if (leftCell.Action == "as"&&rightCell.Type==Variable.VarType.TYPE)
+            {
+                leftCell = leftCell.Convert(rightCell.VariableType);
+            }
+            else if (leftCell.Type == Variable.VarType.NUMBER &&
                 rightCell.Type == Variable.VarType.NUMBER)
             {
                 leftCell = MergeNumbers(leftCell, rightCell, script);

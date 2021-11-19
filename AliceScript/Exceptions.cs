@@ -217,6 +217,10 @@ namespace AliceScript
         /// <summary>
         /// 実装されていません
         /// </summary>
-        NOT_IMPLEMENTED=0x034
+        NOT_IMPLEMENTED=0x034,
+        /// <summary>
+        /// その変数を変換することができませんでした
+        /// </summary>
+        COULDNT_CONVERT_VARIABLE=0x035
     }
 }

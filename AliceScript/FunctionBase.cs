@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AliceScript
 {
@@ -19,7 +18,9 @@ namespace AliceScript
         /// <summary>
         /// この関数の属性を取得または設定します
         /// </summary>
-        public FunctionAttribute Attribute { get
+        public FunctionAttribute Attribute
+        {
+            get
             {
                 return m_Attribute;
             }
@@ -43,6 +44,7 @@ namespace AliceScript
             }
         }
         private FunctionAttribute m_Attribute = FunctionAttribute.GENERAL;
+
         /// <summary>
         /// この関数が変数のプロパティとして呼び出される場合、その変数の種類を取得または設定します
         /// </summary>
@@ -51,7 +53,7 @@ namespace AliceScript
         {
 
 
-            List<Variable> args=null;
+            List<Variable> args = null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
                 if (ObjectBase.GETTING)
@@ -87,9 +89,9 @@ namespace AliceScript
             if (currentVariable == null) { return Variable.EmptyInstance; }
             if (this.RequestType != Variable.VarType.NONE)
             {
-                if (!currentVariable.Type.HasFlag(this.RequestType)) { ThrowErrorManerger.OnThrowError("関数[" + FunctionName + "]は無効または定義されていません",Exceptions.COULDNT_FIND_FUNCTION); return Variable.EmptyInstance; }
+                if (!currentVariable.Type.HasFlag(this.RequestType)) { ThrowErrorManerger.OnThrowError("関数[" + FunctionName + "]は無効または定義されていません", Exceptions.COULDNT_FIND_FUNCTION); return Variable.EmptyInstance; }
             }
-            List<Variable> args=null;
+            List<Variable> args = null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
                 if (ObjectBase.GETTING)
@@ -100,9 +102,6 @@ namespace AliceScript
                 {
                     args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
                 }
-
-
-
                 if (MinimumArgCounts >= 1)
                 {
                     Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
@@ -130,7 +129,7 @@ namespace AliceScript
         /// この関数が呼び出されたときに発生するイベント
         /// </summary>
         public event FunctionBaseEventHandler Run;
-        public  Variable GetVaruableFromArgs(List<Variable> args)
+        public Variable GetVaruableFromArgs(List<Variable> args)
         {
             if (MinimumArgCounts >= 1)
             {
@@ -156,29 +155,29 @@ namespace AliceScript
         /// <summary>
         /// 通常の関数です
         /// </summary>
-        GENERAL=0,
+        GENERAL = 0,
         /// <summary>
         /// 関数の引数に括弧を必要としません（すなわち、空白が使われます）
         /// </summary>
-        FUNCT_WITH_SPACE =1,
+        FUNCT_WITH_SPACE = 1,
         /// <summary>
         /// 関数の引数に括弧を必要としませんが、空白は唯一のものにする必要があります
         /// </summary>
-        FUNCT_WITH_SPACE_ONC=2,
+        FUNCT_WITH_SPACE_ONC = 2,
         /// <summary>
         /// フロー関数です。これらの関数の戻り値には意味はありません
         /// </summary>
-        CONTROL_FLOW=3,
+        CONTROL_FLOW = 3,
         /// <summary>
         /// 言語構造です。これらの関数では引数の自動チェックなどが実行されず、Script以外の要素はすべてNullになります
         /// </summary>
-        LANGUAGE_STRUCTURE=4,
+        LANGUAGE_STRUCTURE = 4,
         /// <summary>
         /// オーバーライド可能です。CanOverrideプロパティもしくはこの属性が定義のいずれかが定義されている場合、オーバーライド可能です。
         /// </summary>
-        VIRTUAL=5
+        VIRTUAL = 5
     }
-    
+
     public static class FunctionBaseManerger
     {
         /// <summary>
@@ -186,15 +185,15 @@ namespace AliceScript
         /// </summary>
         /// <param name="func">登録される関数</param>
         /// <param name="name">登録される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
-        public static void Add(FunctionBase func,string name="")
+        public static void Add(FunctionBase func, string name = "")
         {
 
-            string fname =func.Name;
+            string fname = func.Name;
             if (!string.IsNullOrEmpty(name))
             {
                 fname = name;
             }
-            ParserFunction.RegisterFunction(fname,func);
+            ParserFunction.RegisterFunction(fname, func);
             if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
             {
                 Constants.FUNCT_WITH_SPACE_ONCE.Add(fname);
@@ -205,7 +204,7 @@ namespace AliceScript
             }
             if (func.Attribute.HasFlag(FunctionAttribute.CONTROL_FLOW))
             {
-                Constants.CONTROL_FLOW.Add(fname) ;
+                Constants.CONTROL_FLOW.Add(fname);
             }
             if (func.Attribute.HasFlag(FunctionAttribute.VIRTUAL))
             {
@@ -217,7 +216,7 @@ namespace AliceScript
         /// </summary>
         /// <param name="func">登録解除される関数</param>
         /// <param name="name">登録解除される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
-        public static void Remove(FunctionBase func,string name="")
+        public static void Remove(FunctionBase func, string name = "")
         {
             string fname = name;
             if (!string.IsNullOrEmpty(name))
@@ -237,7 +236,7 @@ namespace AliceScript
             {
                 Constants.CONTROL_FLOW.Remove(fname);
             }
-            
+
         }
         /// <summary>
         /// インタプリタに関数が登録されているかどうかを調べます
@@ -305,5 +304,5 @@ namespace AliceScript
 
 
     }
-   
+
 }

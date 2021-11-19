@@ -90,13 +90,15 @@ namespace AliceScript
                 ThrowErrorMsg("次の変数または関数は存在しません [" + realName + "]",Exceptions.PROPERTY_OR_METHOD_NOT_FOUND, script, name);
             }
         }
-        public static void CheckNotNull(object obj, string name, ParsingScript script)
+        public static bool CheckNotNull(object obj, string name, ParsingScript script)
         {
             if (obj == null)
             {
                 string realName = Constants.GetRealName(name);
                 ThrowErrorMsg("次のオブジェクトは存在しません [" + realName + "]",Exceptions.OBJECT_DOESNT_EXIST, script, name);
+                return false;
             }
+            return true;
         }
 
         public static void CheckNotEnd(ParsingScript script, string name)

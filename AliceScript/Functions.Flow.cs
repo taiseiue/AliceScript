@@ -103,57 +103,6 @@ namespace AliceScript
         private Variable Value;
     }
 
-    internal class TypeOfFunction : FunctionBase
-    {
-        public TypeOfFunction()
-        {
-            this.Name = Constants.TYPE_OF;
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            var args = Utils.GetTokens(script, Constants.TOKEN_SEPARATION);
-            Utils.CheckArgs(args.Count, 1, m_name);
-
-            if (args[0].StartsWith("\""))
-            {
-                return new Variable(Constants.TypeToString(Variable.VarType.STRING).ToLower());
-            }
-            if (Utils.CanConvertToDouble(args[0], out double _))
-            {
-                return new Variable(Constants.TypeToString(Variable.VarType.NUMBER).ToLower());
-            }
-
-            var vari = GetVariable(args[0], script);
-            if (vari == null || vari.GetValue(script).Type == Variable.VarType.UNDEFINED)
-            {
-                return Variable.Undefined;
-            }
-
-            var exists = FunctionExists(args[0]);
-            if (!exists)
-            {
-                return Variable.Undefined;
-            }
-
-            bool complexVariable = args.Count > 1 &&
-                Utils.CanConvertToDouble(args[1], out double converted) && converted > 0;
-            Variable element = null;
-            if (complexVariable)
-            {
-                element = Utils.GetVariable(args[0], script, false);
-            }
-            if (element == null)
-            {
-                element = new Variable(args[0]);
-            }
-
-            string type = element.GetTypeString();
-            script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
-
-            Variable newValue = new Variable(type.ToLower());
-            return newValue;
-        }
-    }
     internal class IsUndefinedFunction : ParserFunction
     {
         private string m_argument;
@@ -1261,173 +1210,6 @@ namespace AliceScript
         }
     }
 
-    internal class TypeConvertFunc : FunctionBase
-    {
-        public TypeConvertFunc(Variable.VarType type)
-        {
-            this.Type = type;
-            this.Name = Type.ToString();
-            this.Run += TypeConvertFunc_Run;
-        }
-
-        private void TypeConvertFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (e.Args.Count == 0)
-            {
-                //引数がない場合、その型の変数の初期化のみ行い返す
-                e.Return = new Variable(Type);
-                return;
-            }
-            if (e.Args.Count == 1 && e.Args[0].Type == Type)
-            {
-                //引数が一つのみで、型も同じ場合その変数をそのまま返す
-                e.Return = e.Args[0];
-                return;
-            }
-            switch (Type)
-            {
-                case Variable.VarType.ARRAY:
-                    {
-                        Variable tuple = new Variable(Variable.VarType.ARRAY);
-                        foreach (Variable v in e.Args)
-                        {
-                            if (v.Type == Variable.VarType.ARRAY)
-                            {
-                                foreach (Variable v2 in v.Tuple)
-                                {
-                                    tuple.Tuple.Add(v2);
-                                }
-                            }
-                            else
-                            {
-                                tuple.Tuple.Add(v);
-                            }
-                        }
-                        e.Return = tuple;
-                        break;
-                    }
-                case Variable.VarType.BOOLEAN:
-                    {
-                        switch (e.Args[0].Type)
-                        {
-                            case Variable.VarType.NUMBER:
-                                {
-                                    e.Return = new Variable(e.Args[0].Value == 1.0);
-                                    break;
-                                }
-                            case Variable.VarType.BYTES:
-                                {
-                                    e.Return = new Variable(BitConverter.ToBoolean(e.Args[0].ByteArray));
-                                    break;
-                                }
-                            case Variable.VarType.STRING:
-                                {
-                                    e.Return = new Variable(e.Args[0].String.ToLower() == Constants.TRUE);
-                                    break;
-                                }
-                        }
-                        break;
-                    }
-                case Variable.VarType.BYTES:
-                    {
-                        switch (e.Args[0].Type)
-                        {
-                            case Variable.VarType.BOOLEAN:
-                                {
-                                    e.Return = new Variable(BitConverter.GetBytes(e.Args[0].Bool));
-                                    break;
-                                }
-                            case Variable.VarType.NUMBER:
-                                {
-                                    e.Return = new Variable(BitConverter.GetBytes(e.Args[0].Value));
-                                    break;
-                                }
-                            case Variable.VarType.STRING:
-                                {
-                                    if (e.Args.Count > 1 && e.Args[1].Type == Variable.VarType.STRING)
-                                    {
-                                        e.Return = new Variable(System.Text.Encoding.GetEncoding(e.Args[1].AsString()).GetBytes(e.Args[0].AsString()));
-                                    }
-                                    else
-                                    {
-                                        e.Return = new Variable(System.Text.Encoding.Unicode.GetBytes(e.Args[0].AsString()));
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    e.Return = new Variable(Variable.VarType.BYTES);
-                                    break;
-                                }
-                        }
-                        break;
-                    }
-                case Variable.VarType.NUMBER:
-                    {
-                        switch (e.Args[0].Type)
-                        {
-                            case Variable.VarType.BOOLEAN:
-                                {
-                                    double d = 0.0;
-                                    if (e.Args[0].Bool)
-                                    {
-                                        d = 1.0;
-                                    }
-                                    e.Return = new Variable(d);
-                                    break;
-                                }
-                            case Variable.VarType.BYTES:
-                                {
-                                    e.Return = new Variable(BitConverter.ToDouble(e.Args[0].ByteArray));
-                                    break;
-                                }
-                            case Variable.VarType.STRING:
-                                {
-                                    double d = 0.0;
-                                    if (double.TryParse(e.Args[0].String, out d))
-                                    {
-                                        e.Return = new Variable(d);
-                                    }
-                                    else
-                                    {
-                                        ThrowErrorManerger.OnThrowError("引数である" + e.Args[0].String + "は有効な数値の形式ではありません", Exceptions.INVALID_NUMERIC_REPRESENTATION);
-                                    }
-                                    break;
-                                }
-
-                        }
-                        break;
-                    }
-                case Variable.VarType.STRING:
-                    {
-                        if (e.Args[0].Type == Variable.VarType.BYTES)
-                        {
-                            if (e.Args.Count > 1 && e.Args[1].Type == Variable.VarType.STRING)
-                            {
-                                System.Text.Encoding.GetEncoding(e.Args[1].AsString()).GetString(e.Args[0].ByteArray);
-                            }
-                            else
-                            {
-                                System.Text.Encoding.Unicode.GetString(e.Args[0].ByteArray);
-                            }
-                        }
-                        else
-                        {
-                            e.Return = new Variable(e.Args[0].AsString());
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        //これら以外(通常は起こりえないはず)の場合、nullを返す。
-                        e.Return = Variable.EmptyInstance;
-                        break;
-                    }
-            }
-        }
-
-        private Variable.VarType Type;
-    }
 
     internal class IdentityFunction : ParserFunction
     {
@@ -1903,7 +1685,10 @@ namespace AliceScript
             List<Variable> arrayIndices = Utils.GetArrayIndices(script, m_name, (string name) => { m_name = name; });
 
             ParserFunction func = ParserFunction.GetVariable(m_name, script);
-            Utils.CheckNotNull(func, m_name, script);
+            if(!Utils.CheckNotNull(func, m_name, script))
+            {
+                return Variable.EmptyInstance;
+            }
 
             Variable currentValue = func.GetValue(script);
             currentValue = currentValue.DeepClone();
@@ -2446,36 +2231,6 @@ namespace AliceScript
                                                 new GetVarFunction(mapVar), script);
 
             return Variable.EmptyInstance;
-        }
-    }
-
-    internal class TypeFunction : FunctionBase
-    {
-        public TypeFunction()
-        {
-            this.Name = Constants.TYPE;
-        }
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 1, m_name);
-
-            bool complexVariable = Utils.GetSafeInt(args, 1, 0) == 1;
-            Variable element = null;
-            if (complexVariable)
-            {
-                element = Utils.GetVariable(args[0].AsString(), script, false);
-            }
-            if (element == null)
-            {
-                element = Utils.GetSafeVariable(args, 0);
-            }
-
-            string type = element.GetTypeString();
-            script.MoveForwardIf(Constants.END_ARG, Constants.SPACE);
-
-            Variable newValue = new Variable(type);
-            return newValue;
         }
     }
 

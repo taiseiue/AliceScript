@@ -171,10 +171,10 @@ namespace alice
                 {
                     AliceScript.Utils.PrintColor(throwmsg, ConsoleColor.Red);
                     Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
-                    Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
+                    Console.WriteLine("変数の内容\r\n| 変数名 | 変数型 | 内容 |");
                     foreach (string s in dic.Keys)
                     {
-                        Console.WriteLine("| " + s + " | " + dic[s].AsString() + " |");
+                        Console.WriteLine("| " + s + " | "+dic[s].Type+" | " + dic[s].AsString() + " |");
                     }
                 }
                 if (throw_redirect_files.Count > 0)

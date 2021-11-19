@@ -86,3 +86,10 @@ AliceScript1114の変更点
 ・大部分のプロパティの実装をFunctionBase化
 ・一部のプロパティをAlice.Runtimeに移動
 ・Tokenize関連の関数は削除されました。
+
+AliceScript1119の変更点
+・変数の型を表すType型の実装
+・Convert関数の削除
+・それぞれの型を表す定数[string,number,array,object,enum,pointer,delegate,bool,type]の実装
+・与えられた型がもう一方の型と等しいか判定する型一致演算子[is]の実装
+・与えられた値を指定された型に変換して返す型変換演算子[as]の実装

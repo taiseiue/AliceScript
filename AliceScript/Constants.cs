@@ -127,38 +127,38 @@ namespace AliceScript
         public const string VARIABLE_TYPE = "VariableType";
         public const string WAIT = "wait";
 
-        public const string ADD_DATA     = "AddDataToCollection";
+        public const string ADD_DATA = "AddDataToCollection";
         public const string COLLECT_DATA = "StartCollectingData";
-        public const string GET_DATA     = "GetCollectedData";
+        public const string GET_DATA = "GetCollectedData";
 
         // Properties, returned after the variable dot:
-        public const string EMPTY_NULL    = "EmptyOrNull";
-        public const string EMPTY_WHITE   = "EmptyOrWhite";
-        public const string ENDS_WITH     = "EndsWith";
-        public const string EQUALS        = "Equals";
-        public const string FIRST         = "First";
-        public const string FOREACH       = "ForEach";
-        public const string INDEX_OF      = "IndexOf";
-        public const string JOIN          = "Join";
-        public const string KEYS          = "Keys";
-        public const string LAST          = "Last";
-        public const string LENGTH        = "Length";
-        public const string LOWER         = "Lower";
-        public const string REMOVE_ITEM   = "Remove";
-        public const string REPLACE       = "Replace";
-        public const string REPLACE_TRIM  = "ReplaceAndTrim";
-        public const string REVERSE       = "Reverse";
-        public const string SORT          = "Sort";
-        public const string SPLIT         = "Split";
-        public const string STRING        = "String";
-        public const string STARTS_WITH   = "StartsWith";
-        public const string SUBSTRING     = "Substring";
-        public const string TOKENIZE      = "Tokenize";
-        public const string TRIM          = "Trim";
-        public const string TRIM_START    = "TrimStart";
-        public const string TRIM_END      = "TrimEnd";
-        public const string UPPER         = "Upper";
-        public const string INSERT        = "Insert";
+        public const string EMPTY_NULL = "EmptyOrNull";
+        public const string EMPTY_WHITE = "EmptyOrWhite";
+        public const string ENDS_WITH = "EndsWith";
+        public const string EQUALS = "Equals";
+        public const string FIRST = "First";
+        public const string FOREACH = "ForEach";
+        public const string INDEX_OF = "IndexOf";
+        public const string JOIN = "Join";
+        public const string KEYS = "Keys";
+        public const string LAST = "Last";
+        public const string LENGTH = "Length";
+        public const string LOWER = "Lower";
+        public const string REMOVE_ITEM = "Remove";
+        public const string REPLACE = "Replace";
+        public const string REPLACE_TRIM = "ReplaceAndTrim";
+        public const string REVERSE = "Reverse";
+        public const string SORT = "Sort";
+        public const string SPLIT = "Split";
+        public const string STRING = "String";
+        public const string STARTS_WITH = "StartsWith";
+        public const string SUBSTRING = "Substring";
+        public const string TOKENIZE = "Tokenize";
+        public const string TRIM = "Trim";
+        public const string TRIM_START = "TrimStart";
+        public const string TRIM_END = "TrimEnd";
+        public const string UPPER = "Upper";
+        public const string INSERT = "Insert";
         public const string INSERT_RANGE = "InsertRange";
 
         public const string LABEL_OPERATOR = ":";
@@ -168,15 +168,15 @@ namespace AliceScript
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
         // Special property for converting an object to a string:
-        public const string PROP_TO_STRING    = "ToString";
+        public const string PROP_TO_STRING = "ToString";
 
         public static string END_ARG_STR = END_ARG.ToString();
         public static string NULL_ACTION = END_ARG.ToString();
 
-        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":","??"};
+        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":", "??"};
         public static string[] MATH_ACTIONS = { "===", "!==",
                                                 "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
-                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "="};
+                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "=","is","as"};
         // Actions: always decreasing by the number of characters.
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
@@ -203,7 +203,7 @@ namespace AliceScript
         // 関数呼び出し時に丸括弧が不要な関数
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
-            CLASS, 
+            CLASS,
             FUNCTION, NAMESPACE, NEW, PRINT,SHOW,
         };
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
@@ -219,13 +219,9 @@ namespace AliceScript
             RETURN, THROW, TRY, WHILE
         };
 
-        //型変換を行うことができる変数の型
-        public static List<Variable.VarType> CAN_CONVERT_VARIABLE_TYPES = new List<Variable.VarType>() 
-        {
-            Variable.VarType.ARRAY,Variable.VarType.BOOLEAN,Variable.VarType.BYTES,Variable.VarType.NUMBER,Variable.VarType.STRING
-        };
+
         //配列添え字演算子を使用できる変数の型
-        public static List<Variable.VarType> CAN_GET_ARRAYELEMENT_VARIABLE_TYPES = new List<Variable.VarType>() 
+        public static List<Variable.VarType> CAN_GET_ARRAYELEMENT_VARIABLE_TYPES = new List<Variable.VarType>()
         {
             Variable.VarType.ARRAY,Variable.VarType.DELEGATE,Variable.VarType.STRING
         };
@@ -256,7 +252,17 @@ namespace AliceScript
             //ループを抜けます
             {BREAK,new Variable(Variable.VarType.BREAK) },
             //ループを次に進めます
-            {CONTINUE,new Variable(Variable.VarType.CONTINUE) }
+            {CONTINUE,new Variable(Variable.VarType.CONTINUE) },
+            {"string",Variable.AsType(Variable.VarType.STRING) },
+            {"number",Variable.AsType(Variable.VarType.NUMBER) },
+            {"array",Variable.AsType(Variable.VarType.ARRAY) },
+            {"bytes",Variable.AsType(Variable.VarType.BYTES) },
+            {"object",Variable.AsType(Variable.VarType.OBJECT) },
+            {"enum",Variable.AsType(Variable.VarType.ENUM) },
+            {"pointer",Variable.AsType(Variable.VarType.POINTER) },
+            {"delegate",Variable.AsType(Variable.VarType.DELEGATE) },
+            {"bool",Variable.AsType(Variable.VarType.BOOLEAN) },
+            {"type",Variable.AsType(Variable.VarType.TYPE) }
         };
 
         public static List<string> ARITHMETIC_EXPR = new List<string>
@@ -326,7 +332,8 @@ namespace AliceScript
                 case Variable.VarType.CONTINUE: return "CONTINUE";
                 case Variable.VarType.DELEGATE: return "DELEGATE";
                 case Variable.VarType.BOOLEAN:  return "BOOLEAN";
-                case Variable.VarType.BYTES: return "BYTES";
+                case Variable.VarType.BYTES:    return "BYTES";
+                case Variable.VarType.TYPE:     return "TYPE";
                 case Variable.VarType.UNDEFINED: return "UNDEFINED";
                 default: return "NONE";
             }
@@ -336,7 +343,6 @@ namespace AliceScript
             type = type.ToUpper();
             switch (type)
             {
-                case "BOOL":
                 case "INT":
                 case "FLOAT":
                 case "DOUBLE":
@@ -354,11 +360,13 @@ namespace AliceScript
                 case "MAP<STRING,STRING>": return Variable.VarType.MAP_STR;
                 case "TUPLE":
                 case "ARRAY": return Variable.VarType.ARRAY;
+                case "BOOL":
+                case "BOOLEAN": return Variable.VarType.BOOLEAN;
                 case "BREAK": return Variable.VarType.BREAK;
                 case "CONTINUE": return Variable.VarType.CONTINUE;
                 case "DELEGATE": return Variable.VarType.DELEGATE;
-                case "BOOLEAN":return Variable.VarType.BOOLEAN;
                 case "VARIABLE": return Variable.VarType.VARIABLE;
+                case "TYPE": return Variable.VarType.TYPE;
                 default: return Variable.VarType.NONE;
             }
         }

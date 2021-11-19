@@ -292,7 +292,7 @@ namespace AliceScript
 
         private void ToStringFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.CurentVariable.GetTypeString());
+            e.Return = Variable.AsType(e.CurentVariable.Type);
         }
     }
     class LengthFunc : FunctionBase
