@@ -221,6 +221,22 @@ namespace AliceScript
         /// <summary>
         /// その変数を変換することができませんでした
         /// </summary>
-        COULDNT_CONVERT_VARIABLE=0x035
+        COULDNT_CONVERT_VARIABLE=0x035,
+        /// <summary>
+        /// 波括弧が不均等です
+        /// </summary>
+        UNBALANCED_CURLY_BRACES=0x036,
+        /// <summary>
+        /// 角括弧が不均等です
+        /// </summary>
+        UNBALANCED_SQUARE_BLACKETS=0x037,
+        /// <summary>
+        /// 括弧が不均等です
+        /// </summary>
+        UNBALANCED_PARENTHESES=0x038,
+        /// <summary>
+        /// クオーテーションが不均等です
+        /// </summary>
+        UNBALANCED_QUOTES=0x039
     }
 }

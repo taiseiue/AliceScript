@@ -260,8 +260,8 @@ namespace AliceScript
 
                 if (action != null && action != Constants.END_ARG_STR && token != Constants.DEFAULT)
                 {
-                    throw new ArgumentException("Action [" +
-                              action + "] without an argument.");
+                    ThrowErrorManerger.OnThrowError("次のアクションで引数が不完全です。["+action+"]",Exceptions.INSUFFICIENT_ARGUMETS);
+                    return false;
                 }
 
                 // If there is no numerical result, we are not in a math expression.
@@ -301,19 +301,6 @@ namespace AliceScript
             return negSign;
         }
 
-        static void CheckConsistency(string item, List<Variable> listToMerge,
-                                             ParsingScript script)
-        {
-            if (Constants.CONTROL_FLOW.Contains(item) && listToMerge.Count > 0)
-            {//&&
-             //item != Constants.RETURN) {
-             // This can happen when the end of statement ";" is forgotten.
-                listToMerge.Clear();
-                //throw new ArgumentException("Token [" +
-                //   item + "] can't be part of an expression. Check \";\". Stopped at [" +
-                //    script.Rest + " ...]");
-            }
-        }
 
         static void CheckQuotesIndices(ParsingScript script,
                             char ch, ref bool inQuotes, ref int arrayIndexDepth)
@@ -484,6 +471,7 @@ namespace AliceScript
             }
 
             //[&&]'かつ'演算なのに左辺がすでにFalseであったり[||]'または'演算なのに左辺がすでにTrueのとき、これ以上演算の必要がない。
+            //これは[&]演算子および[|]演算子には適用されません
             if ((current.Action == "&&" && !current.Bool) ||
                 (current.Action == "||" && current.Bool))
             {
@@ -588,10 +576,17 @@ namespace AliceScript
             {
                 leftCell = new Variable(leftCell.Type==rightCell.AsType());
             }
-            //[as]演算子、キャスト演算子ですべての型に適応できます
+            //[as]演算子、キャスト演算子で右辺がType型の時すべての型に適応できます
             else if (leftCell.Action == "as"&&rightCell.Type==Variable.VarType.TYPE)
             {
                 leftCell = leftCell.Convert(rightCell.VariableType);
+            //[??]演算子、Null合体演算子ですべての型に適応できます
+            }else if (leftCell.Action == "??")
+            {
+                if (leftCell.Type == Variable.VarType.NONE)
+                {
+                    leftCell = rightCell;
+                }
             }
             else if (leftCell.Type == Variable.VarType.NUMBER &&
                 rightCell.Type == Variable.VarType.NUMBER)

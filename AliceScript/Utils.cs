@@ -168,7 +168,7 @@ namespace AliceScript
             ThrowErrorManerger.OnThrowError(msg,errorcode,script);
         }
 
-        static void ThrowErrorMsg(string msg, string script, int lineNumber, string filename = "", int minLines = 1)
+        static void ThrowErrorMsg(string msg, string script,Exceptions ecode, int lineNumber, string filename = "", int minLines = 1)
         {
             string [] lines = script.Split('\n');
             lineNumber = lines.Length <= lineNumber ? -1 : lineNumber;
@@ -192,8 +192,8 @@ namespace AliceScript
 
             if (lines.Length > 1)
             {
-                string lineStr = currentLineNumber == lineNumber ? "Line " + (lineNumber + 1) :
-                                 "Lines " + (currentLineNumber + 1) + "-" + (lineNumber + 1);
+                string lineStr = currentLineNumber == lineNumber ? "行: " + (lineNumber + 1) :
+                                 "行" + (currentLineNumber + 1) + "-" + (lineNumber + 1);
                 msg += " " + lineStr + ": " + lineContents;
             }
 
@@ -201,14 +201,13 @@ namespace AliceScript
             stack.AppendLine("" + currentLineNumber);
             stack.AppendLine(filename);
             stack.AppendLine(line);
-
-            throw new ParsingException(msg, stack.ToString());
+            ThrowErrorManerger.OnThrowError(msg+stack.ToString(),ecode,null);
         }
 
-        static void ThrowErrorMsg(string msg, string code, int level, int lineStart, int lineEnd, string filename)
+        static void ThrowErrorMsg(string msg, string code, Exceptions ecode,int level, int lineStart, int lineEnd, string filename)
         {
             var lineNumber = level > 0 ? lineStart : lineEnd;
-            ThrowErrorMsg(msg, code, lineNumber, filename);
+            ThrowErrorMsg(msg, code,ecode, lineNumber, filename);
         }
 
         public static bool CheckLegalName(string name, ParsingScript script = null, bool throwError = true)

@@ -108,6 +108,8 @@ namespace alice
 
             ClearLine();
 
+            //ShellFunctions登録
+            FunctionBaseManerger.Add(new shell_dumpFunc());
 
             //標準出力
             Interpreter.Instance.OnOutput += Print;
@@ -170,12 +172,7 @@ namespace alice
                 if (allow_throw)
                 {
                     AliceScript.Utils.PrintColor(throwmsg, ConsoleColor.Red);
-                    Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
-                    Console.WriteLine("変数の内容\r\n| 変数名 | 変数型 | 内容 |");
-                    foreach (string s in dic.Keys)
-                    {
-                        Console.WriteLine("| " + s + " | "+dic[s].Type+" | " + dic[s].AsString() + " |");
-                    }
+                    DumpVariables();
                 }
                 if (throw_redirect_files.Count > 0)
                 {
@@ -189,7 +186,66 @@ namespace alice
             }
 
         }
-
+        // 文字列が表示幅より短ければ、左側と右側に何文字の空白が必要なのかを計算する。
+        // 文字列が表示幅より長ければ、何文字目から表示するのかを計算する。
+        private static string Centering(string s, int width)
+        {
+            int space = width - s.Length;
+            if (space >= 0)
+            {
+                return new string(' ', space / 2) + s + new string(' ', space - (space / 2));
+            }
+            else
+            {
+                return s.Substring(-space / 2).Remove(width);
+            }
+        }
+        public static void DumpVariables()
+        {
+            Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
+            if (dic.Count <= 0)
+            {
+                Console.WriteLine("定義されている変数がありません");
+                return;
+            }
+            List<string> names = new List<string>();
+            List<string> types = new List<string>();
+            List<string> contents = new List<string>();
+            int namemax = 4;
+            int typemax = 4;
+            int contentmax = 7;
+            names.Add("Name");
+            types.Add("Type");
+            contents.Add("Content");
+            foreach (string s in dic.Keys)
+            {
+                names.Add(s);
+                if (s.Length > namemax)
+                {
+                    namemax = s.Length;
+                }
+                string type = dic[s].Type.ToString();
+                types.Add(type);
+                if (type.Length > typemax)
+                {
+                    typemax = type.Length;
+                }
+                string content = dic[s].AsString();
+                contents.Add(content);
+                if (content.Length > contentmax)
+                {
+                    contentmax = content.Length;
+                }
+            }
+            for (int i = 0; i < names.Count; i++)
+            {
+                string print = "|";
+                print += Centering(names[i],namemax+2)+"|";
+                print += Centering(types[i], typemax + 2) + "|";
+                print += Centering(contents[i], contentmax + 2) + "|";
+                Console.WriteLine(print);
+            }
+        }
         private static void SplitByLast(string str, string sep, ref string a, ref string b)
         {
             int it = str.LastIndexOfAny(sep.ToCharArray());

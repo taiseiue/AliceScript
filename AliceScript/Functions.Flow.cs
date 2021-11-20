@@ -1699,7 +1699,7 @@ namespace AliceScript
                 left = Utils.ExtractArrayElement(currentValue, arrayIndices, script);
                 script.MoveForwardIf(Constants.END_ARRAY);
             }
-            if (m_action == "??")
+            if (m_action == "??=")
             {
                 if (left.Type == Variable.VarType.NONE)
                 {

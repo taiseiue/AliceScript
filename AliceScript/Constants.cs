@@ -173,10 +173,10 @@ namespace AliceScript
         public static string END_ARG_STR = END_ARG.ToString();
         public static string NULL_ACTION = END_ARG.ToString();
 
-        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":", "??"};
+        public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":", "??="};
         public static string[] MATH_ACTIONS = { "===", "!==",
                                                 "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
-                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "=","is","as"};
+                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "=","is","as","??"};
         // Actions: always decreasing by the number of characters.
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
@@ -315,7 +315,7 @@ namespace AliceScript
             }
             return realName;
         }
-
+        
         public static string TypeToString(Variable.VarType type)
         {
             switch (type)
@@ -338,37 +338,44 @@ namespace AliceScript
                 default: return "NONE";
             }
         }
-        public static Variable.VarType StringToType(string type)
+        public static bool TryParseType(string text,out Variable.VarType type)
         {
-            type = type.ToUpper();
-            switch (type)
+            text = text.ToUpper();
+            switch (text)
             {
                 case "INT":
                 case "FLOAT":
                 case "DOUBLE":
-                case "NUMBER": return Variable.VarType.NUMBER;
+                case "NUMBER": type= Variable.VarType.NUMBER;break;
                 case "CHAR":
-                case "STRING": return Variable.VarType.STRING;
+                case "STRING": type= Variable.VarType.STRING; break;
                 case "LIST<INT>":
-                case "LIST<DOUBLE>": return Variable.VarType.ARRAY_NUM;
-                case "LIST<STRING>": return Variable.VarType.ARRAY_STR;
+                case "LIST<DOUBLE>": type= Variable.VarType.ARRAY_NUM; break;
+                case "LIST<STRING>": type= Variable.VarType.ARRAY_STR; break;
                 case "MAP<INT>":
                 case "MAP<STRING,INT>":
                 case "MAP<DOUBLE>":
-                case "MAP<STRING,DOUBLE>": return Variable.VarType.MAP_NUM;
+                case "MAP<STRING,DOUBLE>": type= Variable.VarType.MAP_NUM; break;
                 case "MAP<STRING>":
-                case "MAP<STRING,STRING>": return Variable.VarType.MAP_STR;
+                case "MAP<STRING,STRING>": type= Variable.VarType.MAP_STR; break;
                 case "TUPLE":
-                case "ARRAY": return Variable.VarType.ARRAY;
+                case "ARRAY": type= Variable.VarType.ARRAY; break;
                 case "BOOL":
-                case "BOOLEAN": return Variable.VarType.BOOLEAN;
-                case "BREAK": return Variable.VarType.BREAK;
-                case "CONTINUE": return Variable.VarType.CONTINUE;
-                case "DELEGATE": return Variable.VarType.DELEGATE;
-                case "VARIABLE": return Variable.VarType.VARIABLE;
-                case "TYPE": return Variable.VarType.TYPE;
-                default: return Variable.VarType.NONE;
+                case "BOOLEAN": type= Variable.VarType.BOOLEAN; break;
+                case "BREAK": type= Variable.VarType.BREAK; break;
+                case "CONTINUE": type= Variable.VarType.CONTINUE; break;
+                case "DELEGATE": type= Variable.VarType.DELEGATE; break;
+                case "VARIABLE": type= Variable.VarType.VARIABLE; break;
+                case "TYPE": type= Variable.VarType.TYPE; break;
+                default: type = Variable.VarType.NONE; return false;
             }
+            return true;
+        }
+        public static Variable.VarType StringToType(string type)
+        {
+            Variable.VarType ptype;
+            TryParseType(type, out ptype);
+            return ptype;
         }
     }
 }

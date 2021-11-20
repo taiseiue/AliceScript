@@ -849,10 +849,10 @@ namespace AliceScript
 
         public static string ConvertToScript(string source, out Dictionary<int, int> char2Line, string filename = "")
         {
-            string curlyErrorMsg = "Unbalanced curly braces.";
-            string bracketErrorMsg = "Unbalanced square brackets.";
-            string parenthErrorMsg = "Unbalanced parentheses.";
-            string quoteErrorMsg = "Unbalanced quotes.";
+            string curlyErrorMsg = "波括弧が不均等です";
+            string bracketErrorMsg = "角括弧が不均等です";
+            string parenthErrorMsg = "括弧が不均等です";
+            string quoteErrorMsg = "クオーテーションが不均等です";
 
             StringBuilder sb = new StringBuilder(source.Length);
             char2Line = new Dictionary<int, int>();
@@ -1006,7 +1006,7 @@ namespace AliceScript
                             spaceOK = false;
                             if (levelParentheses < 0)
                             {
-                                ThrowErrorMsg(parenthErrorMsg, source, levelParentheses, lineNumberPar, lineNumber, filename);
+                                ThrowErrorMsg(parenthErrorMsg, source, Exceptions.UNBALANCED_QUOTES,levelParentheses, lineNumberPar, lineNumber, filename);
                             }
                         }
                         break;
@@ -1028,7 +1028,7 @@ namespace AliceScript
                             spaceOK = false;
                             if (levelCurly < 0)
                             {
-                                ThrowErrorMsg(curlyErrorMsg, source, levelCurly, lineNumberCurly, lineNumber, filename);
+                                ThrowErrorMsg(curlyErrorMsg, source,Exceptions.UNBALANCED_CURLY_BRACES, levelCurly, lineNumberCurly, lineNumber, filename);
                             }
                             if (precompiledPart && --precompiledCounter <= 0)
                             {
@@ -1053,7 +1053,7 @@ namespace AliceScript
                             levelBrackets--;
                             if (levelBrackets < 0)
                             {
-                                ThrowErrorMsg(bracketErrorMsg, source, levelBrackets, lineNumberBrack, lineNumber, filename);
+                                ThrowErrorMsg(bracketErrorMsg, source, Exceptions.UNBALANCED_SQUARE_BLACKETS,levelBrackets, lineNumberBrack, lineNumber, filename);
                             }
                         }
                         break;
@@ -1088,19 +1088,19 @@ namespace AliceScript
             {
                 if (inQuotes)
                 {
-                    ThrowErrorMsg(quoteErrorMsg, source, 1, lineNumberQuote, lineNumber, filename);
+                    ThrowErrorMsg(quoteErrorMsg, source, Exceptions.UNBALANCED_QUOTES,1, lineNumberQuote, lineNumber, filename);
                 }
                 else if (levelBrackets != 0)
                 {
-                    ThrowErrorMsg(bracketErrorMsg, source, levelBrackets, lineNumberBrack, lineNumber, filename);
+                    ThrowErrorMsg(bracketErrorMsg, source, Exceptions.UNBALANCED_SQUARE_BLACKETS,levelBrackets, lineNumberBrack, lineNumber, filename);
                 }
                 else if (levelParentheses != 0)
                 {
-                    ThrowErrorMsg(parenthErrorMsg, source, levelParentheses, lineNumberPar, lineNumber, filename);
+                    ThrowErrorMsg(parenthErrorMsg, source,Exceptions.UNBALANCED_PARENTHESES, levelParentheses, lineNumberPar, lineNumber, filename);
                 }
                 else if (levelCurly != 0)
                 {
-                    ThrowErrorMsg(curlyErrorMsg, source, levelCurly, lineNumberCurly, lineNumber, filename);
+                    ThrowErrorMsg(curlyErrorMsg, source, Exceptions.UNBALANCED_CURLY_BRACES,levelCurly, lineNumberCurly, lineNumber, filename);
                 }
             }
 

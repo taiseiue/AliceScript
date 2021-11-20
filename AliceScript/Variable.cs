@@ -13,7 +13,7 @@ namespace AliceScript
         {
             NONE, UNDEFINED, NUMBER, STRING, ARRAY,
             ARRAY_NUM, ARRAY_STR, MAP_NUM, MAP_STR, BYTES,
-            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, CUSTOM, POINTER, DELEGATE, BOOLEAN,TYPE
+            BREAK, CONTINUE, OBJECT, ENUM, VARIABLE, CUSTOM, POINTER, DELEGATE, BOOLEAN, TYPE
         };
 
         public static Variable True
@@ -338,7 +338,7 @@ namespace AliceScript
             {
                 return EqualsArray(Tuple, other.Tuple);
             }
-            if(Type == VarType.TYPE)
+            if (Type == VarType.TYPE)
             {
                 return VariableType == other.VariableType;
             }
@@ -380,7 +380,7 @@ namespace AliceScript
                 case Variable.VarType.ARRAY:
                     {
                         Variable tuple = new Variable(Variable.VarType.ARRAY);
-                        tuple.Tuple = new List<Variable> { this};
+                        tuple.Tuple = new List<Variable> { this };
                         return tuple;
                     }
                 case Variable.VarType.BOOLEAN:
@@ -413,12 +413,10 @@ namespace AliceScript
                             case Variable.VarType.NUMBER:
                                 {
                                     return new Variable(BitConverter.GetBytes(Value));
-                                    break;
                                 }
                             case Variable.VarType.STRING:
                                 {
-                                       return new Variable(System.Text.Encoding.Unicode.GetBytes(AsString()));
-                                    break;
+                                    return new Variable(System.Text.Encoding.Unicode.GetBytes(AsString()));
                                 }
                         }
                         break;
@@ -445,11 +443,11 @@ namespace AliceScript
                                     double d = 0.0;
                                     if (double.TryParse(String, out d))
                                     {
-                                       return new Variable(d);
+                                        return new Variable(d);
                                     }
                                     else
                                     {
-                                        ThrowErrorManerger.OnThrowError("引数である" +String + "は有効な数値の形式ではありません", Exceptions.INVALID_NUMERIC_REPRESENTATION);
+                                        ThrowErrorManerger.OnThrowError("引数である" + String + "は有効な数値の形式ではありません", Exceptions.INVALID_NUMERIC_REPRESENTATION);
                                     }
                                     break;
                                 }
@@ -461,12 +459,21 @@ namespace AliceScript
                     {
                         if (Type == Variable.VarType.BYTES)
                         {
-                             return new Variable(System.Text.Encoding.Unicode.GetString(ByteArray));
+                            return new Variable(System.Text.Encoding.Unicode.GetString(ByteArray));
                         }
                         else
                         {
                             return new Variable(AsString());
                         }
+                    }
+                case VarType.TYPE:
+                    {
+                        VarType ptype;
+                        if (Constants.TryParseType(AsString(), out ptype))
+                        {
+                            return Variable.AsType(ptype);
+                        }
+                        break;
                     }
             }
             //変換に失敗または非対応
@@ -848,7 +855,7 @@ namespace AliceScript
             {
                 return Encoding.Unicode.GetString(m_byteArray, 0, m_byteArray.Length);
             }
-            if(Type == VarType.TYPE)
+            if (Type == VarType.TYPE)
             {
                 return Constants.TypeToString(VariableType);
             }
@@ -1253,29 +1260,29 @@ namespace AliceScript
 
         public bool CheckNull()
         {
-                switch (Type)
-                {
-                    case VarType.ARRAY:
-                        {
-                        return (Tuple==null);
-                        }
-                    case VarType.DELEGATE:
-                        {
-                        return (Delegate==null);
-                        }
-                    case VarType.BYTES:
-                        {
-                        return (ByteArray==null);
-                        }
+            switch (Type)
+            {
+                case VarType.ARRAY:
+                    {
+                        return (Tuple == null);
+                    }
+                case VarType.DELEGATE:
+                    {
+                        return (Delegate == null);
+                    }
+                case VarType.BYTES:
+                    {
+                        return (ByteArray == null);
+                    }
                 case VarType.OBJECT:
                     {
-                        return (Object==null);
+                        return (Object == null);
                     }
                 default:
                     {
                         return false;
                     }
-                }
+            }
 
         }
 
