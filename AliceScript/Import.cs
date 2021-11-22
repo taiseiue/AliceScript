@@ -156,67 +156,47 @@ namespace AliceScript
     {
         public DllImportFunc()
         {
-            this.FunctionName = "Libimport";
-            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
-            this.MinimumArgCounts = 0;
+            this.FunctionName = "Dllimport";
+            this.MinimumArgCounts =1;
             this.Run += ImportFunc_Run;
         }
 
         private void ImportFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args.Count > 0)
+            string filename = e.Args[0].AsString();
+            if (e.Script.Package != null&&e.Script.Package.ExistsEntry(filename))
             {
-                if (e.Args[0].Type == Variable.VarType.STRING)
-                {
-                    string file = e.Args[0].AsString();
-                    if (!file.EndsWith(".ice") && !file.EndsWith(".dll"))
-                    {
-                        //拡張子がありません
-
-
-                        if (File.Exists(Path.ChangeExtension(file, ".ice")))
-                        { //alp形式で存在
-                            file = Path.ChangeExtension(file, ".ice");
-                        }
-                        else
-                            if (File.Exists(Path.ChangeExtension(file, ".dll")))
-                        {
-                            file = Path.ChangeExtension(file, ".dll");
-                            //dll形式で存在
-                        }
-                        else
-                        {
-                            //いずれでもない場合
-                            ThrowErrorManerger.OnThrowError("該当するライブラリが見つかりません",Exceptions.FILE_NOT_FOUND,e.Script);
-                        }
-                    }
-                    else if (File.Exists(file))
-                    {
-                        try
-                        {
-                            switch (Path.GetExtension(file))
-                            {
-                                case ".ice":
-                                    {
-                                        //alp形式で存在
-                                        AlicePackage.LoadPackage(file);
-                                        break;
-                                    }
-                                case ".dll":
-                                    {
-                                        //dll形式で存在
-                                        AliceScript.Interop.NetLibraryLoader.LoadLibrary(file);
-                                        break;
-                                    }
-                            }
-                        }
-                        catch
-                        {
-                            throw;
-                        }
-                    }
-                }
+                Interop.NetLibraryLoader.LoadLibrary(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename),filename));
+                return;
             }
+            if (File.Exists(filename))
+            {
+                Interop.NetLibraryLoader.LoadLibrary(filename);
+            }
+            else
+            {
+                ThrowErrorManerger.OnThrowError("ファイルが見つかりません",Exceptions.FILE_NOT_FOUND,e.Script);
+            }
+        }
+    }
+    class IceImportFunc : FunctionBase
+    {
+        public IceImportFunc()
+        {
+            this.FunctionName = "Iceimport";
+            this.MinimumArgCounts = 1;
+            this.Run += IceImportFunc_Run;
+        }
+
+        private void IceImportFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            string filename = e.Args[0].AsString();
+            if (e.Script.Package != null && e.Script.Package.ExistsEntry(filename))
+            {
+                AlicePackage.LoadData(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename),filename));
+                return;
+            }
+            AlicePackage.Load(filename);
         }
     }
     class ImportFunc : FunctionBase

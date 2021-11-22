@@ -51,8 +51,6 @@ namespace AliceScript
         public Variable.VarType RequestType { get; set; }
         protected override Variable Evaluate(ParsingScript script)
         {
-
-
             List<Variable> args = null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
@@ -64,8 +62,6 @@ namespace AliceScript
                 {
                     args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
                 }
-
-
 
                 if (MinimumArgCounts >= 1)
                 {

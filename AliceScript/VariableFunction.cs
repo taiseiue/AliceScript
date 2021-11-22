@@ -20,6 +20,7 @@ namespace AliceScript
             Variable.AddFunc(new SizeFunc());
             Variable.AddFunc(new PropertiesFunc());
             Variable.AddFunc(new TypeFunc());
+            Variable.AddFunc(new ConvertFunc());
             //統合関数(終わり)
             //複合関数(複数の型に対応する関数)
             Variable.AddFunc(new IndexOfFunc());
@@ -29,6 +30,9 @@ namespace AliceScript
             Variable.AddFunc(new RemoveAtFunc());
             Variable.AddFunc(new RemoveFunc());
             //複合関数(終わり)
+            //Type関数
+            Variable.AddFunc(new type_ActivateFunc());
+            //Type関数8(終わり)
             //String関数
             Variable.AddFunc(new string_TrimFunc(0), Constants.TRIM);
             Variable.AddFunc(new string_TrimFunc(1), Constants.TRIM_START);
@@ -50,12 +54,6 @@ namespace AliceScript
             Variable.AddFunc(new str_EmptyOrWhiteFunc(false));
             Variable.AddFunc(new str_FormatFunc());
             //String関数(終わり)
-            //NUMBER(Double)関数
-            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsSubnormal),"IsSubnormal");
-            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsNegative),"IsNegative");
-            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsInifinity),"IsInfinity");
-            Variable.AddFunc(new NumberFuncs(NumberFuncs.NumberFuncMode.IsFinite),"IsFinite");
-            //NUMBER(Double)関数(終わり)
             //List関数
             Variable.AddFunc(new list_addFunc());
             Variable.AddFunc(new list_addRangeFunc());
@@ -83,6 +81,27 @@ namespace AliceScript
             if (e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.NUMBER && e.CurentVariable.Tuple != null)
             {
                 e.CurentVariable.Tuple.RemoveRange(e.Args[0].AsInt(),e.Args[1].AsInt());
+            }
+        }
+    }
+    class ConvertFunc : FunctionBase
+    {
+        public ConvertFunc()
+        {
+            this.Name = "Convert";
+            this.MinimumArgCounts = 1;
+            this.Run += ConvertFunc_Run;
+        }
+
+        private void ConvertFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args[0].Type == Variable.VarType.TYPE)
+            {
+                e.Return = e.CurentVariable.Convert(e.Args[0].VariableType);
+            }
+            else
+            {
+                ThrowErrorManerger.OnThrowError("Type型である必要があります",Exceptions.COULDNT_CONVERT_VARIABLE);
             }
         }
     }
@@ -211,48 +230,7 @@ namespace AliceScript
             }
         }
     }
-    class NumberFuncs : FunctionBase
-    {
-        public NumberFuncs(NumberFuncMode mode)
-        {
-            m_Mode = mode;
-            this.RequestType = Variable.VarType.NUMBER;
-            this.Run += NumberFuncs_Run;
-        }
-
-        private void NumberFuncs_Run(object sender, FunctionBaseEventArgs e)
-        {
-            switch (m_Mode)
-            {
-                case NumberFuncMode.IsSubnormal:
-                    {
-                        e.Return = new Variable(double.IsSubnormal(e.CurentVariable.Value));
-                        break;
-                    }
-                case NumberFuncMode.IsInifinity:
-                    {
-                        e.Return = new Variable(double.IsInfinity(e.CurentVariable.Value));
-                        break;
-                    }
-                case NumberFuncMode.IsNegative:
-                    {
-                        e.Return = new Variable(double.IsNegative(e.CurentVariable.Value));
-                        break;
-                    }
-                case NumberFuncMode.IsFinite:
-                    {
-                        e.Return = new Variable(double.IsFinite(e.CurentVariable.Value));
-                        break;
-                    }
-            }
-        }
-
-        private NumberFuncMode m_Mode;
-        public enum NumberFuncMode
-        {
-            IsFinite,IsInifinity,IsNegative,IsSubnormal
-        }
-    }
+   
     class KeysFunc : FunctionBase
     {
         public KeysFunc()
@@ -509,7 +487,20 @@ namespace AliceScript
     }
 
     //ここより下は変数(Variable)オブジェクトの関数です
-    
+    class type_ActivateFunc : FunctionBase
+    {
+        public type_ActivateFunc()
+        {
+            this.Name = "Activate";
+            this.RequestType = Variable.VarType.TYPE;
+            this.Run += Type_ActivateFunc_Run;
+        }
+
+        private void Type_ActivateFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(e.CurentVariable.VariableType);
+        }
+    }
     class string_TrimFunc : FunctionBase
     {
         public string_TrimFunc(int trimtype = 0)

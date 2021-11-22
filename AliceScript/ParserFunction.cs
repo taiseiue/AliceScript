@@ -601,7 +601,7 @@ namespace AliceScript
                 function.isNative = isNative;
                 if((s_functions.ContainsKey(name) && s_functions[name].IsVirtual))
                 {
-                    //Overrideした関数にもVirtual属性を引き継ぐ
+                    //オーバーライドした関数にもVirtual属性を引き継ぐ
                     function.IsVirtual = true;
                 }
             }

@@ -431,7 +431,6 @@ namespace AliceScript
             catch (System.IO.IOException) { return FileType.READERROR; } // ■読み取りエラー
             catch (System.UnauthorizedAccessException) { return FileType.READERROR; } // ■読み取りエラー
         }
-
         /// <summary>Readメソッド呼び出し時にファイルから読み出したテキスト文字列内容を取得します。</summary>
         /// <remarks>ファイルからテキストが取り出せなかった場合はnullとなります。</remarks>
         internal string Text { get { return text; } }

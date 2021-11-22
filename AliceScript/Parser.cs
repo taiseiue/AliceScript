@@ -250,7 +250,7 @@ namespace AliceScript
             }
 
 
-            char next = script.TryCurrent(); // we've already moved forward
+            char next = script.TryCurrent(); // 前進済み
             bool done = listToMerge.Count == 0 &&
                         (next == Constants.END_STATEMENT ||
                         ((action == Constants.NULL_ACTION) && (current.Type != Variable.VarType.BOOLEAN)) ||
@@ -264,7 +264,7 @@ namespace AliceScript
                     return false;
                 }
 
-                // If there is no numerical result, we are not in a math expression.
+                // 数値結果がない場合は、数式ではありません
                 listToMerge.Add(current);
                 return true;
             }

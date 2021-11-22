@@ -98,3 +98,13 @@ AliceScript1120の変更点
 ・Null合体代入演算子[??=]の実装
 ・Null合体演算子が正しく機能しない場合がある不具合を修正
 ・'不均等'関連の例外を日本語化
+
+AliceScript1121の変更点
+・互換性維持の観点から、Number型に対するプロパティ及び関数は実装されなくなりました
+・その型の変数を生成するActivate関数の実装
+・その変数を指定した型に変換するConvert関数の実装
+
+AliceScript1122の変更点
+・AlicePackage形式の一新
+・ScriptにTag、Generationプロパティを追加
+・include、dllimport、iceimport関数でパッケージ内のファイルを読み込み可能に

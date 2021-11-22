@@ -9,15 +9,19 @@ namespace AliceScript
 {
     public class ParsingScript
     {
-        private string m_data;          // contains the whole script
-        private int m_from;             // a pointer to the script
-        private string m_filename;      // filename containing the script
-        private string m_originalScript;// original raw script
-        private int m_scriptOffset = 0; // used in functions defined in bigger scripts
-        private Dictionary<int, int> m_char2Line = null; // pointers to the original lines
-        private string m_tag;
-
-        public string Tag
+        private string m_data;          // スクリプト全体が含まれます
+        private int m_from;             // スクリプトへのポインタ
+        private string m_filename;      // スクリプトのファイル名
+        private string m_originalScript;// 生のスクリプト
+        private int m_scriptOffset = 0; // 大きなスクリプトで定義された関数で使用されます
+        private int m_generation = 1;   // スクリプトの世代
+        private Dictionary<int, int> m_char2Line = null; // 元の行へのポインタ
+        private object m_tag;           // 現在のスクリプトに関連付けられたオブジェクト。これは多用途で使用されます
+        private AlicePackage m_package=null;//現在のスクリプトが実行されているパッケージ
+        /// <summary>
+        /// このスクリプトに関連付けられたオブジェクトです
+        /// </summary>
+        public object Tag
         {
             get
             {
@@ -28,11 +32,33 @@ namespace AliceScript
                 m_tag = value;
             }
         }
+        /// <summary>
+        /// これが実行されているパッケージを表します
+        /// </summary>
+        public AlicePackage Package
+        {
+            get { return m_package; }
+            set { m_package = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプトの世代数を取得または設定します
+        /// </summary>
+        public int Generation
+        {
+            get { return m_generation; }
+            set { m_generation = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプトのポインタを取得または設定します
+        /// </summary>
         public int Pointer
         {
             get { return m_from; }
             set { m_from = value; }
         }
+        /// <summary>
+        /// 現在のスクリプト全体を取得または設定します
+        /// </summary>
         public string String
         {
             get { return m_data; }
@@ -91,7 +117,7 @@ namespace AliceScript
 
         public string CurrentAssign { get; set; }
 
-        
+
 
         public string CurrentModule { get; set; }
 
@@ -108,10 +134,10 @@ namespace AliceScript
 
         public List<int> PointersBack { get; set; } = new List<int>();
 
-        string m_functionName = "";
+        private string m_functionName = "";
         public string FunctionName
         {
-            get { return m_functionName;  }
+            get { return m_functionName; }
             set { m_functionName = value.ToLower(); }
         }
 
@@ -150,6 +176,9 @@ namespace AliceScript
             AllLabels = other.AllLabels;
             LabelToFile = other.LabelToFile;
             FunctionName = other.FunctionName;
+            Tag = other.Tag;
+            Package = other.Package;
+            Generation = other.Generation + 1;
         }
 
         public int Size() { return m_data.Length; }
@@ -344,17 +373,17 @@ namespace AliceScript
         {
             return m_from >= 3 ? m_data[m_from - 3] : Constants.EMPTY;
         }
-        public char TryPreviewWithoutSpace(int step, out string text,out int far)
+        public char TryPreviewWithoutSpace(int step, out string text, out int far)
         {
             text = "";
             far = 0;
-            char lastchar=Constants.EMPTY;
-            if(m_from <= m_from - step) { return Constants.EMPTY; }
+            char lastchar = Constants.EMPTY;
+            if (m_from <= m_from - step) { return Constants.EMPTY; }
             for (int i = 1; i < step; i++)
             {
                 far++;
-                char c=m_data[m_from-i];
-                if(c!=' ')
+                char c = m_data[m_from - i];
+                if (c != ' ')
                 {
                     text = c + text;
                     lastchar = c;
@@ -387,7 +416,13 @@ namespace AliceScript
         }
 
         public void Forward(int delta = 1) { m_from += delta; }
-        public void Backward(int delta = 1) { if (m_from >= delta) m_from -= delta; }
+        public void Backward(int delta = 1)
+        {
+            if (m_from >= delta)
+            {
+                m_from -= delta;
+            }
+        }
 
         public void MoveForwardIf(char[] arr)
         {
@@ -446,7 +481,7 @@ namespace AliceScript
         {
             bool isList;
             List<Variable> args = Utils.GetArgs(this,
-                                                start, end, (outList) => { isList = outList; } );
+                                                start, end, (outList) => { isList = outList; });
             return args;
         }
         public async Task<List<Variable>> GetFunctionArgsAsync(char start = Constants.START_ARG,
@@ -511,7 +546,7 @@ namespace AliceScript
 
             Variable result = null;
 
-           
+
             if (InTryBlock)
             {
                 bool before = ThrowErrorManerger.InTryBlock;
@@ -536,14 +571,11 @@ namespace AliceScript
 
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE, this, parseExc);
                         }
                         else
                         {
-                            if (parseExc.Message != "Object [stack] doesn't exist.")
-                            {
-                                throw;
-                            }
+                            throw;
                         }
                     }
                 }
@@ -554,7 +586,7 @@ namespace AliceScript
                         ParsingException parseExc = new ParsingException(exc.Message, this, exc);
                         if (ThrowErrorManerger.HandleError)
                         {
-                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE,this, parseExc);
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE, this, parseExc);
                         }
                         else
                         {
@@ -578,7 +610,7 @@ namespace AliceScript
 
             Variable result = null;
 
-           
+
             if (InTryBlock)
             {
                 result = await Parser.AliceScriptAsync(this, toArray);
@@ -589,14 +621,39 @@ namespace AliceScript
                 {
                     result = await Parser.AliceScriptAsync(this, toArray);
                 }
-                catch (ParsingException)
+                catch (HandledErrorException)
                 {
-                    throw;
+
+                }
+                catch (ParsingException parseExc)
+                {
+                    if (!this.InTryBlock)
+                    {
+
+                        if (ThrowErrorManerger.HandleError)
+                        {
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE, this, parseExc);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
                 }
                 catch (Exception exc)
                 {
-                    ParsingException parseExc = new ParsingException(exc.Message, this, exc);
-                    throw parseExc;
+                    if (!this.InTryBlock)
+                    {
+                        ParsingException parseExc = new ParsingException(exc.Message, this, exc);
+                        if (ThrowErrorManerger.HandleError)
+                        {
+                            ThrowErrorManerger.OnThrowError(parseExc.Message, Exceptions.NONE, this, parseExc);
+                        }
+                        else
+                        {
+                            throw parseExc;
+                        }
+                    }
                 }
             }
             return result;
@@ -613,35 +670,50 @@ namespace AliceScript
 
         public ParsingScript GetTempScript(string str, int startIndex = 0)
         {
-            ParsingScript tempScript  = new ParsingScript(str, startIndex);
-            tempScript.Filename       = this.Filename;
-            tempScript.InTryBlock     = this.InTryBlock;
-            tempScript.ParentScript   = this;
-            tempScript.Char2Line      = this.Char2Line;
+            ParsingScript tempScript = new ParsingScript(str, startIndex);
+            tempScript.Filename = this.Filename;
+            tempScript.InTryBlock = this.InTryBlock;
+            tempScript.ParentScript = this;
+            tempScript.Char2Line = this.Char2Line;
             tempScript.OriginalScript = this.OriginalScript;
-            tempScript.InTryBlock     = this.InTryBlock;
-            tempScript.StackLevel     = this.StackLevel;
-            tempScript.AllLabels      = this.AllLabels;
-            tempScript.LabelToFile    = this.LabelToFile;
-            tempScript.FunctionName   = this.FunctionName;
+            tempScript.InTryBlock = this.InTryBlock;
+            tempScript.StackLevel = this.StackLevel;
+            tempScript.AllLabels = this.AllLabels;
+            tempScript.LabelToFile = this.LabelToFile;
+            tempScript.FunctionName = this.FunctionName;
+            tempScript.Tag = this.Tag;
+            tempScript.Package = this.Package;
+            tempScript.Generation = this.Generation + 1;
 
             return tempScript;
         }
 
         public ParsingScript GetIncludeFileScript(string filename)
         {
-            string pathname = GetFilePath(filename);
-
-            string includeFile = Utils.GetFileLines(pathname);
+            string pathname = "";
+            string includeFile = GetIncludeFileLine(filename,out pathname);
             Dictionary<int, int> char2Line;
             var includeScript = Utils.ConvertToScript(includeFile, out char2Line, pathname);
             ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
             tempScript.Filename = pathname;
-            tempScript.OriginalScript = includeFile.Replace(Environment.NewLine,Constants.END_LINE.ToString());
+            tempScript.OriginalScript = includeFile.Replace(Environment.NewLine, Constants.END_LINE.ToString());
             tempScript.ParentScript = this;
             tempScript.InTryBlock = InTryBlock;
+            tempScript.Tag = this.Tag;
+            tempScript.Package = this.Package;
+            tempScript.Generation = this.Generation + 1;
 
             return tempScript;
+        }
+        private string GetIncludeFileLine(string filename,out string pathname)
+        {
+            pathname = filename;
+            if (Package != null&&Package.ExistsEntry(pathname))
+            {
+                return AlicePackage.GetEntryScript(Package.archive.GetEntry(pathname),pathname);
+            }
+            pathname = GetFilePath(filename);
+            return Utils.GetFileLines(pathname);
         }
     }
 

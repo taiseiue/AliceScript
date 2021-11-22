@@ -140,6 +140,7 @@ namespace AliceScript
             FunctionBaseManerger.Add(new ImportFunc());
             FunctionBaseManerger.Add(new ImportFunc(true));
             FunctionBaseManerger.Add(new DllImportFunc());
+            FunctionBaseManerger.Add(new IceImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
             FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
@@ -205,7 +206,7 @@ namespace AliceScript
             return result;
         }
 
-        public Variable Process(string script, string filename = "", bool mainFile = false)
+        public Variable Process(string script, string filename = "", bool mainFile = false,object tag=null,AlicePackage package=null)
         {
             Dictionary<int, int> char2Line;
             string data = Utils.ConvertToScript(script, out char2Line, filename);
@@ -217,6 +218,8 @@ namespace AliceScript
             ParsingScript toParse = new ParsingScript(data, 0, char2Line);
             toParse.OriginalScript = script;
             toParse.Filename = filename;
+            toParse.Tag = tag;
+            toParse.Package = package;
 
             if (mainFile)
             {

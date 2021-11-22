@@ -520,6 +520,7 @@ namespace AliceScript.NameSpaces
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalLineNumber, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalLine, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Labels, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Generation, this));
 
             Script = script;
         }
@@ -539,7 +540,7 @@ namespace AliceScript.NameSpaces
             private Interpreter_ScriptObject Host;
             internal enum Interpreter_ScriptObject_Property_Mode
             {
-                IsMainFile,FileName,PWD,OriginalScript,FunctionName,InTryBlock, StillValid, Size, OriginalLineNumber, OriginalLine, Labels
+                IsMainFile,FileName,PWD,OriginalScript,FunctionName,InTryBlock, StillValid, Size, OriginalLineNumber, OriginalLine, Labels,Generation
             }
             private void Interpreter_ScriptObject_Property_Getting(object sender, PropertyGettingEventArgs e)
             {
@@ -610,6 +611,11 @@ namespace AliceScript.NameSpaces
                                 v.Tuple.Add(new Variable(s));
                             }
                             e.Value = v;
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Generation:
+                        {
+                            e.Value = new Variable(Host.Script.Generation);
                             break;
                         }
                 }
