@@ -237,6 +237,18 @@ namespace AliceScript
         /// <summary>
         /// クオーテーションが不均等です
         /// </summary>
-        UNBALANCED_QUOTES=0x039
+        UNBALANCED_QUOTES=0x039,
+        /// <summary>
+        /// ライブラリはすでに読み込まれています
+        /// </summary>
+        LIBRARY_ALREADY_LOADED=0x03a,
+        /// <summary>
+        /// パッケージが存在しません
+        /// </summary>
+        COULDNT_FIND_PACKAGE=0x03b,
+        /// <summary>
+        /// 互換性のないパッケージです
+        /// </summary>
+        NOT_COMPATIBLE_PACKAGES=0x03c
     }
 }

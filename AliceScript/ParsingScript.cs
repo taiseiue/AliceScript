@@ -690,8 +690,8 @@ namespace AliceScript
 
         public ParsingScript GetIncludeFileScript(string filename)
         {
-            string pathname = "";
-            string includeFile = GetIncludeFileLine(filename,out pathname);
+            string pathname = "";bool isPackageFile;
+            string includeFile = GetIncludeFileLine(filename,out pathname,out isPackageFile);
             Dictionary<int, int> char2Line;
             var includeScript = Utils.ConvertToScript(includeFile, out char2Line, pathname);
             ParsingScript tempScript = new ParsingScript(includeScript, 0, char2Line);
@@ -700,18 +700,23 @@ namespace AliceScript
             tempScript.ParentScript = this;
             tempScript.InTryBlock = InTryBlock;
             tempScript.Tag = this.Tag;
-            tempScript.Package = this.Package;
             tempScript.Generation = this.Generation + 1;
+            if (isPackageFile)
+            {
+                tempScript.Package = this.Package;
+            }
 
             return tempScript;
         }
-        private string GetIncludeFileLine(string filename,out string pathname)
+        private string GetIncludeFileLine(string filename,out string pathname,out bool isPackageFile)
         {
             pathname = filename;
             if (Package != null&&Package.ExistsEntry(pathname))
             {
+                isPackageFile = true;
                 return AlicePackage.GetEntryScript(Package.archive.GetEntry(pathname),pathname);
             }
+            isPackageFile = false;
             pathname = GetFilePath(filename);
             return Utils.GetFileLines(pathname);
         }

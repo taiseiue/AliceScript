@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,6 +38,14 @@ namespace AliceScript
                     instance = new Interpreter();
                 }
                 return instance;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return Assembly.GetExecutingAssembly().GetName().Name;
             }
         }
 
@@ -167,6 +176,8 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.LABEL_OPERATOR, new LabelFunction());
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
+
+            FunctionBaseManerger.Add(new GetPackageFunc());
 
             if (File.Exists(Alice.Runtime_File_Path))
             {

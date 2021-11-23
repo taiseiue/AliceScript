@@ -17,7 +17,7 @@ namespace AliceScript
     {
 
 
-        private string m_default = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root></root>";
+        private string m_default = "<?xml version=\"1.0\" encoding=\"utf-8\"?><package></package>";
         /// <summary>
         /// 読み込み時のファイルパスです。Save()のパスを省略した時の保存先でもあります
         /// </summary>
@@ -115,9 +115,9 @@ namespace AliceScript
                 }
                 XmlDocument xml = new XmlDocument();
                 xml.LoadXml(xmlText);
-                if (xml.SelectSingleNode("root/" + path) != null)
+                if (xml.SelectSingleNode("package/" + path) != null)
                 {
-                    string str = xml.SelectSingleNode("root/" + path).InnerText;
+                    string str = xml.SelectSingleNode("package/" + path).InnerText;
 
                     if (str.StartsWith("link="))
                     {
@@ -167,7 +167,7 @@ namespace AliceScript
 
                 XmlDocument xml = new XmlDocument();
                 xml.LoadXml(xmlText);
-                if (xml.SelectSingleNode("root/" + path) != null)
+                if (xml.SelectSingleNode("package/" + path) != null)
                 {
 
                     return true;
@@ -201,9 +201,9 @@ namespace AliceScript
 
             xml.LoadXml(xmlText);
 
-            if (xml.SelectSingleNode("root/" + path) != null)
+            if (xml.SelectSingleNode("package/" + path) != null)
             {
-                xml.SelectSingleNode("root/" + path).InnerText = SecurityElement.Escape(value); xmlText = xml.OuterXml; WritedEventArgs ws = new WritedEventArgs();
+                xml.SelectSingleNode("package/" + path).InnerText = SecurityElement.Escape(value); xmlText = xml.OuterXml; WritedEventArgs ws = new WritedEventArgs();
                 ws.Path = path;
                 ws.Value = value; Writed?.Invoke(null, ws); return;
             }
@@ -212,7 +212,7 @@ namespace AliceScript
 
             }
 
-            XmlNode nownode = xml.SelectSingleNode("root");
+            XmlNode nownode = xml.SelectSingleNode("package");
             string[] nodes = path.Split('/');
             XmlNode oldnode;
 
@@ -257,7 +257,7 @@ namespace AliceScript
                 if (path.EndsWith("/")) { path = path + "/default"; }
                 XmlDocument xml = new XmlDocument();
                 xml.LoadXml(xmlText);
-                xml.SelectSingleNode("root/" + path).ParentNode.RemoveChild(xml.SelectSingleNode("root/" + path));
+                xml.SelectSingleNode("package/" + path).ParentNode.RemoveChild(xml.SelectSingleNode("package/" + path));
                 xmlText = xml.OuterXml;
                 return (true);
             }

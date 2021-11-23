@@ -24,8 +24,16 @@ namespace AliceScript.Interop
                             if (t.IsClass && t.IsPublic && !t.IsAbstract &&
                                 t.GetInterface(ipluginName) != null)
                             {
+                            if (Loadeds.Contains(asm.GetHashCode()))
+                            {
+                                ThrowErrorManerger.OnThrowError("そのライブラリはすでに読み込まれています", Exceptions.LIBRARY_ALREADY_LOADED);
+                            }
+                            else
+                            {
+                                Loadeds.Add(asm.GetHashCode());
                                 ((ILibrary)asm.CreateInstance(t.FullName)).Main();
                             }
+                        }
                         }
                         catch { }
                     }
@@ -54,7 +62,15 @@ namespace AliceScript.Interop
                             if (t.IsClass && t.IsPublic && !t.IsAbstract &&
                                 t.GetInterface(ipluginName) != null)
                             {
-                                ((ILibrary)asm.CreateInstance(t.FullName)).Main();
+                                if (Loadeds.Contains(asm.GetHashCode()))
+                                {
+                                    ThrowErrorManerger.OnThrowError("そのライブラリはすでに読み込まれています",Exceptions.LIBRARY_ALREADY_LOADED);
+                                }
+                                else
+                                {
+                                    Loadeds.Add(asm.GetHashCode());
+                                    ((ILibrary)asm.CreateInstance(t.FullName)).Main();
+                                }
                             }
                         }
                         catch { }
@@ -66,6 +82,7 @@ namespace AliceScript.Interop
             }
 
         }
+        private static List<int> Loadeds = new List<int>();
     }
    public static class GCManerger
     {

@@ -108,3 +108,8 @@ AliceScript1122の変更点
 ・AlicePackage形式の一新
 ・ScriptにTag、Generationプロパティを追加
 ・include、dllimport、iceimport関数でパッケージ内のファイルを読み込み可能に
+
+AliceScript1123の変更点
+・AlicePackageにmanifest.xmlが必要になりました
+・パッケージエントリポイントを任意に変更可能になりました
+・現在実行中のパッケージを表すAlicePackageObjectおよびそれを取得するGetPackage関数を実装しました
