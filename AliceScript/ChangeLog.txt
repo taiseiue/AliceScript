@@ -136,3 +136,5 @@ Alice.Runtime1204の変更点
 ・最大値、最小値を求めるmath_max,math_min関数を実装
 ・Interpreter_Consts関数が定数の値ではなく名前の一覧を返すように改善
 ・Path関連の関数実装
+
+以上で、AliceScriptRC2への機能追加を終了します。変更はAliceSisterにも反映されます。
