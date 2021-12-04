@@ -118,24 +118,7 @@ namespace AliceScript
                 if (xml.SelectSingleNode("package/" + path) != null)
                 {
                     string str = xml.SelectSingleNode("package/" + path).InnerText;
-
-                    if (str.StartsWith("link="))
-                    {
-                        //リンクされていることを検出
-                        string vs = Read(str.Replace("link=", ""), defaultText);
-                        if (vs.Contains("[canlink]"))
-                        {
-                            return vs;
-                        }
-                        else
-                        {
-                            return defaultText;
-                        }
-                    }
-                    else
-                    {
                         return str;
-                    }
                 }
                 else
                 {
@@ -145,13 +128,78 @@ namespace AliceScript
             catch { return defaultText; }
 
         }
-        private bool ContainsAttrible(XmlNode node, string value)
+        /// <summary>
+        /// 指定されたパスにある属性値を読み込みます
+        /// </summary>
+        /// <param name="path">読み込みたいパス</param>
+        /// <param name="name">読み込みたい属性の名前</param>
+        /// <param name="defaultText">読み込みに失敗した場合に返されるテキスト(省略可)</param>
+        /// <returns>指定されたパスに存在する属性値</returns>
+        public string ReadAttribute(string path,string name,string defaultText = "")
         {
-            foreach (XmlAttribute attribute in node.Attributes)
+            try
             {
-                if (attribute.Value == value) { return true; }
+                if (path.EndsWith("/")) { path = path + "/default"; }
+
+                if (!Exists(path))
+                {
+                    Write(path, defaultText);
+                    return defaultText;
+                }
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml(xmlText);
+                if (xml.SelectSingleNode("package/" + path) != null)
+                {
+                    var node = xml.SelectSingleNode("package/" + path);
+                    if (ContainsAttribute(node, name))
+                    {
+                        return ((XmlElement)node).GetAttribute(name);
+                    }
+                    else
+                    {
+                        return defaultText;
+                    }
+                }
+                else
+                {
+                    return defaultText;
+                }
             }
-            return false;
+            catch { return defaultText; }
+        }
+        /// <summary>
+        /// 指定されたパスに指定された属性があるかどうかを確認します
+        /// </summary>
+        /// <param name="path">存在を確認したいパス</param>
+        /// <param name="name">存在を確認したい属性の名前</param>
+        /// <returns>存在している場合はTrue、存在していない場合はFalseを返します</returns>
+        public bool ExistsAttribute(string path,string name)
+        {
+            try
+            {
+                if (path.EndsWith("/")) { path = path + "/default"; }
+
+                if (!Exists(path))
+                {
+                    return false;
+                }
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml(xmlText);
+                if (xml.SelectSingleNode("package/" + path) != null)
+                {
+                    var node = xml.SelectSingleNode("package/" + path);
+                    return (ContainsAttribute(node, name)) ;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch { return false; }
+        }
+        private bool ContainsAttribute(XmlNode node, string name)
+        {
+            return ((XmlElement)node).HasAttribute(name);
         }
         /// <summary>
         /// 指定されたパスが存在するかどうか確認します

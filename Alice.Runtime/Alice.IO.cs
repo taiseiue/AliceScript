@@ -34,7 +34,293 @@ namespace AliceScript.NameSpaces
             space.Add(new directory_getdirectoriesFunc());
             space.Add(new directory_currentdirectoryFunc());
 
+            space.Add(new path_ChangeExtensionFunc());
+            space.Add(new path_CombineFunc());
+            space.Add(new path_EndsInDirectorySeparatorFunc());
+            space.Add(new path_get_DirectoryNameFunc());
+            space.Add(new path_get_ExtensionFunc());
+            space.Add(new path_get_FileNameFunc());
+            space.Add(new path_get_FileNameWithoutExtensionFunc());
+            space.Add(new path_get_FullPathFunc());
+            space.Add(new path_get_GetRelativePathFunc());
+            space.Add(new path_get_PathRootFunc());
+            space.Add(new path_get_RandomFileNameFunc());
+            space.Add(new path_get_TempFileNameFunc());
+            space.Add(new path_get_TempPathFunc());
+            space.Add(new path_HasExtensionFunc());
+            space.Add(new path_IsPathFullyQualifiedFunc());
+            space.Add(new path_IsPathRootedFunc());
+            space.Add(new path_JoinFunc());
+            space.Add(new path_TrimEndingDirectorySeparatorFunc());
+
             NameSpaceManerger.Add(space);
+        }
+    }
+    class path_ChangeExtensionFunc : FunctionBase
+    {
+        public path_ChangeExtensionFunc()
+        {
+            this.Name = "path_ChangeExtension";
+            this.MinimumArgCounts = 2;
+            this.Run += Path_ChangeExtensionFunc_Run;
+        }
+
+        private void Path_ChangeExtensionFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.ChangeExtension(e.Args[0].AsString(),e.Args[1].AsString()));
+        }
+    }
+    class path_CombineFunc : FunctionBase
+    {
+        public path_CombineFunc()
+        {
+            this.Name = "path_Combine";
+            this.MinimumArgCounts = 2;
+            this.Run += Path_CombineFunc_Run;
+        }
+
+        private void Path_CombineFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            List<string> vs = new List<string>();
+            foreach(Variable v in e.Args)
+            {
+                vs.Add(v.AsString());
+            }
+            e.Return = new Variable(Path.Combine(vs.ToArray()));
+        }
+    }
+    class path_EndsInDirectorySeparatorFunc : FunctionBase
+    {
+        public path_EndsInDirectorySeparatorFunc()
+        {
+            this.Name = "path_EndsInDirectorySeparator";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_EndsInDirectorySeparatorFunc_Run;
+        }
+
+        private void Path_EndsInDirectorySeparatorFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.EndsInDirectorySeparator(e.Args[0].AsString()));
+        }
+    }
+    class path_get_DirectoryNameFunc : FunctionBase
+    {
+        public path_get_DirectoryNameFunc()
+        {
+            this.Name = "path_get_DirectoryName";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_DirectoryNameFunc_Run;
+        }
+
+        private void Path_get_DirectoryNameFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetDirectoryName(e.Args[0].AsString()));
+        }
+    }
+    class path_get_ExtensionFunc : FunctionBase
+    {
+        public path_get_ExtensionFunc()
+        {
+            this.Name = "path_get_Extension";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_ExtensionFunc_Run;
+        }
+
+        private void Path_get_ExtensionFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetExtension(e.Args[0].AsString()));
+        }
+    }
+    class path_get_FileNameFunc : FunctionBase
+    {
+        public path_get_FileNameFunc()
+        {
+            this.Name = "path_get_FileName";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_FileNameFunc_Run;
+        }
+
+        private void Path_get_FileNameFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetFileName(e.Args[0].AsString()));
+        }
+    }
+    class path_get_FileNameWithoutExtensionFunc : FunctionBase
+    {
+        public path_get_FileNameWithoutExtensionFunc()
+        {
+            this.Name = "path_get_FileNameWithoutExtension";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_FileNameWithoutExtensionFunc_Run;
+        }
+
+        private void Path_get_FileNameWithoutExtensionFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetFileNameWithoutExtension(e.Args[0].AsString()));
+        }
+    }
+    class path_get_FullPathFunc : FunctionBase
+    {
+        public path_get_FullPathFunc()
+        {
+            this.Name = "path_get_FullPath";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_FullPathFunc_Run;
+        }
+
+        private void Path_get_FullPathFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 1)
+            {
+                e.Return = new Variable(Path.GetFullPath(e.Args[0].AsString(),e.Args[1].AsString()));
+            }
+            else
+            {
+                e.Return = new Variable(Path.GetFullPath(e.Args[0].AsString()));
+            }
+        }
+    }
+    class path_get_PathRootFunc : FunctionBase
+    {
+        public path_get_PathRootFunc()
+        {
+            this.Name = "path_get_PathRoot";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_get_PathRootFunc_Run;
+        }
+
+        private void Path_get_PathRootFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetPathRoot(e.Args[0].AsString()));
+        }
+    }
+    class path_get_RandomFileNameFunc : FunctionBase
+    {
+        public path_get_RandomFileNameFunc()
+        {
+            this.Name = "path_get_RandomFileName";
+            this.MinimumArgCounts = 0;
+            this.Run += Path_get_RandomFileNameFunc_Run;
+        }
+
+        private void Path_get_RandomFileNameFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetRandomFileName());
+        }
+    }
+    class path_get_GetRelativePathFunc : FunctionBase
+    {
+        public path_get_GetRelativePathFunc()
+        {
+            this.Name = "path_get_RelativePath";
+            this.MinimumArgCounts = 2;
+            this.Run += Path_get_GetRelativePathFunc_Run;
+        }
+
+        private void Path_get_GetRelativePathFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetRelativePath(e.Args[0].AsString(),e.Args[1].AsString()));
+        }
+    }
+    class path_get_TempFileNameFunc : FunctionBase
+    {
+        public path_get_TempFileNameFunc()
+        {
+            this.Name = "path_get_TempFileName";
+            this.Run += Path_get_TempFileNameFunc_Run;
+        }
+
+        private void Path_get_TempFileNameFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetTempFileName());
+        }
+    }
+    class path_get_TempPathFunc : FunctionBase
+    {
+        public path_get_TempPathFunc()
+        {
+            this.Name = "path_get_TempPath";
+            this.Run += Path_get_TempPathFunc_Run;
+        }
+
+        private void Path_get_TempPathFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.GetTempPath());
+        }
+    }
+    class path_HasExtensionFunc : FunctionBase
+    {
+        public path_HasExtensionFunc()
+        {
+            this.Name = "path_HasExtension";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_HasExtensionFunc_Run;
+        }
+
+        private void Path_HasExtensionFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.HasExtension(e.Args[0].AsString()));
+        }
+    }
+    class path_IsPathFullyQualifiedFunc : FunctionBase
+    {
+        public path_IsPathFullyQualifiedFunc()
+        {
+            this.Name = "path_IsPathFullyQualified";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_IsPathFullyQualifiedFunc_Run;
+        }
+
+        private void Path_IsPathFullyQualifiedFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.IsPathFullyQualified(e.Args[0].AsString()));
+        }
+    }
+    class path_IsPathRootedFunc : FunctionBase
+    {
+        public path_IsPathRootedFunc()
+        {
+            this.Name = "path_IsPathRooted";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_IsPathRootedFunc_Run;
+        }
+
+        private void Path_IsPathRootedFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.IsPathRooted(e.Args[0].AsString()));
+        }
+    }
+    class path_JoinFunc : FunctionBase
+    {
+        public path_JoinFunc()
+        {
+            this.Name = "path_Join";
+            this.MinimumArgCounts = 2;
+            this.Run += Path_JoinFunc_Run;
+        }
+
+        private void Path_JoinFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            List<string> vs = new List<string>();
+            foreach (Variable v in e.Args)
+            {
+                vs.Add(v.AsString());
+            }
+            e.Return = new Variable(Path.Join(vs.ToArray()));
+        }
+    }
+    class path_TrimEndingDirectorySeparatorFunc : FunctionBase
+    {
+        public path_TrimEndingDirectorySeparatorFunc()
+        {
+            this.Name = "path_TrimEndingDirectorySeparator";
+            this.MinimumArgCounts = 1;
+            this.Run += Path_TrimEndingDirectorySeparatorFunc_Run;
+        }
+
+        private void Path_TrimEndingDirectorySeparatorFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Path.TrimEndingDirectorySeparator(e.Args[0].AsString()));
         }
     }
     class file_read_textFunc : FunctionBase

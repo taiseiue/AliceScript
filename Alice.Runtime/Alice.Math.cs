@@ -38,8 +38,74 @@ namespace AliceScript.NameSpaces
             space.Add(new math_truncateFunc());
             space.Add(new math_isPrimeFunc());
             space.Add(new math_powFunc());
+            space.Add(new math_RoundFunc());
+            space.Add(new math_MinMaxFunc(true));
+            space.Add(new math_MinMaxFunc(false));
 
             NameSpaceManerger.Add(space);
+        }
+    }
+    class math_MinMaxFunc : FunctionBase
+    {
+        public math_MinMaxFunc(bool max)
+        {
+            Mode = max;
+            if (Mode)
+            {
+                this.Name = "math_max";
+            }
+            else
+            {
+                this.Name = "math_min";
+            }
+            this.MinimumArgCounts = 2;
+            this.Run += Math_MinMaxFunc_Run;
+        }
+
+        private void Math_MinMaxFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            double returnValue = 0;
+            foreach(Variable v in e.Args)
+            {
+                if (Mode)
+                {
+                    if (v.Value > returnValue)
+                    {
+                        returnValue = v.Value;
+                    }
+                }
+                else
+                {
+                    if(v.Value < returnValue)
+                    {
+                        returnValue = v.Value;
+                    }
+                }
+            }
+            e.Return = new Variable(returnValue);
+        }
+
+        private bool Mode { get; set; }
+    }
+    class math_RoundFunc : FunctionBase
+    {
+        public math_RoundFunc()
+        {
+            this.Name = "math_round";
+            this.MinimumArgCounts = 1;
+            this.Run += Math_RoundFunc_Run;
+        }
+
+        private void Math_RoundFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Args.Count > 1)
+            {
+                e.Return = new Variable(Math.Round(e.Args[0].AsDouble(),e.Args[1].AsInt()));
+            }
+            else
+            {
+                e.Return = new Variable(Math.Round(e.Args[0].AsDouble()));
+            }
         }
     }
     class math_powFunc : FunctionBase
@@ -370,7 +436,7 @@ namespace AliceScript.NameSpaces
 
         private void Math_expFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.Args[0].AsDouble());
+            e.Return = new Variable(Math.Exp(e.Args[0].AsDouble()));
         }
     }
     class math_floorFunc : FunctionBase
@@ -384,7 +450,7 @@ namespace AliceScript.NameSpaces
 
         private void Math_floorFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.Args[0].AsDouble());
+            e.Return = new Variable(Math.Floor(e.Args[0].AsDouble()));
         }
     }
     class math_fusedmultiplyaddFunc : FunctionBase

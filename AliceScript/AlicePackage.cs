@@ -21,8 +21,14 @@ namespace AliceScript
         /// パッケージの説明
         /// </summary>
         public string Description { get; set; }
+        /// <summary>
+        /// パッケージの発行者
+        /// </summary>
+        public string Publisher { get; set; }
 
         internal ZipArchive archive { get; set; }
+
+        private const string ConfigFileName = "manifest.xml";
 
         public static void Load(string path)
         {
@@ -46,7 +52,7 @@ namespace AliceScript
                     ThrowErrorManerger.OnThrowError("パッケージを展開できません", Exceptions.BAD_PACKAGE);
                     return;
                 }
-                ZipArchiveEntry e = a.GetEntry(@"manifest.xml");
+                ZipArchiveEntry e = a.GetEntry(ConfigFileName);
                 if (e == null)
                 {
                     ThrowErrorManerger.OnThrowError("パッケージ設定ファイル:[manifest.xml]が見つかりません", Exceptions.BAD_PACKAGE);
@@ -56,20 +62,19 @@ namespace AliceScript
                     //見つかった時は開く
                     AlicePackage package = new AlicePackage();
                     package.archive = a;
-                    string xml = GetEntryScript(e, "manifest.xml");
+                    string xml = GetEntryScript(e, ConfigFileName);
                     if (xml == null)
                     {
                         return;
                     }
                     XMLConfig config = new XMLConfig();
                     config.XMLText = xml;
-                    if (config.Exists("name") && config.Exists("entrypoint"))
+                    if (config.Exists("name") && config.Exists("script"))
                     {
                         package.Name = config.Read("name");
                         package.Version = config.Read("version");
                         package.Description = config.Read("description");
-
-                        string entrypoint = config.Read("entrypoint");
+                        package.Publisher = config.Read("publisher");
                         string supportinterpreter = config.Read("supportinterpreter");
                         if (supportinterpreter != "" && supportinterpreter != "any")
                         {
@@ -80,16 +85,24 @@ namespace AliceScript
                                 return;
                             }
                         }
-                        ZipArchiveEntry entry = a.GetEntry(entrypoint);
-                        if (entry==null)
+                        string script = config.Read("script");
+                        string srcname = ConfigFileName;
+                        if (config.ExistsAttribute("script", "path"))
                         {
-                            ThrowErrorManerger.OnThrowError("エントリポイント:["+entrypoint+"]が見つかりません", Exceptions.BAD_PACKAGE);
+                            string entrypoint = config.ReadAttribute("script","path");
+                            srcname = entrypoint;
+                            ZipArchiveEntry entry = a.GetEntry(entrypoint);
+                            if (entry == null)
+                            {
+                                ThrowErrorManerger.OnThrowError("エントリポイント:[" + entrypoint + "]が見つかりません", Exceptions.BAD_PACKAGE);
+                                return;
+                            }
+                            else
+                            {
+                                script = GetEntryScript(entry, entrypoint);
+                            }
                         }
-                        else
-                        {
-                            string script = GetEntryScript(entry,entrypoint);
-                            Interpreter.Instance.Process(script, filename+"\\"+entrypoint, true, null, package);
-                        }
+                        Interpreter.Instance.Process(script, filename + "\\" +srcname, true, null, package);
                     }
                     else
                     {
@@ -194,6 +207,7 @@ namespace AliceScript
                 this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Name));
                 this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Version));
                 this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Description));
+                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Publisher));
             }
             public AlicePackage Package { get; set; }
             private class AlicePackageObjectProperty : PropertyBase
@@ -227,12 +241,17 @@ namespace AliceScript
                                 e.Value = new Variable(Host.Package.Description);
                                 break;
                             }
+                        case AlicePackageObjectPropertyMode.Publisher:
+                            {
+                                e.Value = new Variable(Host.Package.Publisher);
+                                break;
+                            }
                     }
                 }
 
                 public enum AlicePackageObjectPropertyMode
                 {
-                    Name, Version, Description
+                    Name, Version, Description, Publisher
                 }
                 public AlicePackageObjectPropertyMode Mode { get; set; }
                 public AlicePackageObject Host { get; set; }

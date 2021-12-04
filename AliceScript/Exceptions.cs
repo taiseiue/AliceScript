@@ -249,6 +249,14 @@ namespace AliceScript
         /// <summary>
         /// 互換性のないパッケージです
         /// </summary>
-        NOT_COMPATIBLE_PACKAGES=0x03c
+        NOT_COMPATIBLE_PACKAGES=0x03c,
+        /// <summary>
+        /// 定数に値を代入することはできません
+        /// </summary>
+        CANT_ASSIGN_VALUE_TO_CONSTANT=0x03d,
+        /// <summary>
+        /// 変数はすでに定義されています
+        /// </summary>
+        VARIABLE_ALREADY_DEFINED=0x03e
     }
 }

@@ -297,7 +297,38 @@ namespace AliceScript
             m_propertyMap.Clear();
             m_propertyStringMap.Clear();
         }
-
+        public bool IsNull()
+        {
+            switch (Type)
+            {
+                case VarType.NONE: return true;
+                default:return false;
+                case VarType.ARRAY:
+                    {
+                        return (Tuple==null);
+                    }
+                case VarType.DELEGATE:
+                    {
+                        return (Delegate==null);
+                    }
+                case VarType.BYTES:
+                    {
+                        return (ByteArray==null);
+                    }
+                case VarType.STRING:
+                    {
+                        return (String==null);
+                    }
+                case VarType.POINTER:
+                    {
+                        return (Pointer==null);
+                    }
+                case VarType.OBJECT:
+                    {
+                        return (Object==null);
+                    }
+            }
+        }
         public bool Equals(Variable other)
         {
             if (Type != other.Type)
@@ -373,7 +404,13 @@ namespace AliceScript
             }
             return AsString() == other.AsString();
         }
-        public Variable Convert(VarType type)
+        /// <summary>
+        /// 明示的キャスト(as)を実行する時に呼ばれます。この変換は最も広範囲の型変換をサポートします
+        /// </summary>
+        /// <param name="type">変換したい型</param>
+        /// <param name="throwError">変換に失敗した際に例外をスローするか</param>
+        /// <returns>変換された型</returns>
+        public Variable Convert(VarType type, bool throwError = false)
         {
             switch (type)
             {
@@ -477,6 +514,10 @@ namespace AliceScript
                     }
             }
             //変換に失敗または非対応
+            if (throwError)
+            {
+                ThrowErrorManerger.OnThrowError(Constants.TypeToString(Type) + "型を" + Constants.TypeToString(type) + "型に変換することはできません", Exceptions.COULDNT_CONVERT_VARIABLE);
+            }
             return Variable.EmptyInstance;
         }
 
@@ -685,15 +726,6 @@ namespace AliceScript
                 m_tuple.Insert(index, v);
             }
         }
-
-
-        public bool Exists(string hash)
-        {
-            string lower = hash.ToLower();
-            return m_dictionary.ContainsKey(lower);
-        }
-
-
         public int FindIndex(Variable val)
         {
             if (this.Type != VarType.ARRAY)
@@ -705,76 +737,24 @@ namespace AliceScript
 
         public virtual bool AsBool()
         {
-            if (Type == VarType.BOOLEAN)
-            {
-                return m_bool;
-            }
-
-            return false;
+            return m_bool;
         }
 
         public virtual int AsInt()
         {
-            int result = 0;
-            if (Type == VarType.BOOLEAN)
-            {
-                if (Bool) { return 1; } else { return 0; }
-            }
-            if (Type == VarType.NUMBER || Value != 0.0)
-            {
-                return (int)Value;
-            }
-            if (Type == VarType.STRING)
-            {
-                Int32.TryParse(String, out result);
-            }
-
-            return result;
+            return (int)Value;
         }
         public virtual float AsFloat()
         {
-            float result = 0;
-            if (Type == VarType.NUMBER || Value != 0.0)
-            {
-                return (float)Value;
-            }
-            if (Type == VarType.STRING)
-            {
-                float.TryParse(String, out result);
-            }
-
-            return result;
+            return (float)Value;
         }
         public virtual long AsLong()
         {
-            long result = 0;
-            if (Type == VarType.NUMBER || Value != 0.0)
-            {
-                return (long)Value;
-            }
-            if (Type == VarType.STRING)
-            {
-                long.TryParse(String, out result);
-            }
-            return result;
+            return (long)Value;
         }
         public virtual double AsDouble()
         {
-            double result = 0.0;
-            if (Type == VarType.BOOLEAN)
-            {
-                if (Bool) { return 1.0; } else { return 0.0; }
-            }
-            if (Type == VarType.NUMBER)
-            {// || (Value != 0.0 && Value != Double.NaN)) {
-                return Value;
-            }
-            if (Type == VarType.STRING)
-            {
-                Double.TryParse(String, out result);
-            }
-
-            return result;
+            return Value;
         }
 
         public virtual DelegateObject AsDelegate()
@@ -784,10 +764,6 @@ namespace AliceScript
 
         public virtual byte[] AsByteArray()
         {
-            if (Type == VarType.STRING)
-            {
-                return Encoding.Unicode.GetBytes(m_string);
-            }
             return m_byteArray;
         }
         public virtual VarType AsType()
@@ -1258,33 +1234,7 @@ namespace AliceScript
             return result;
         }
 
-        public bool CheckNull()
-        {
-            switch (Type)
-            {
-                case VarType.ARRAY:
-                    {
-                        return (Tuple == null);
-                    }
-                case VarType.DELEGATE:
-                    {
-                        return (Delegate == null);
-                    }
-                case VarType.BYTES:
-                    {
-                        return (ByteArray == null);
-                    }
-                case VarType.OBJECT:
-                    {
-                        return (Object == null);
-                    }
-                default:
-                    {
-                        return false;
-                    }
-            }
-
-        }
+       
 
         public List<Variable> GetProperties()
         {
@@ -1537,8 +1487,14 @@ namespace AliceScript
         public string Action { get; set; }
         public VarType Type
         {
-            get;
-            set;
+            get
+            {
+                return m_type;
+            }
+            set
+            {
+                m_type = value;
+            }
         }
         /// <summary>
         /// タイプ型の表すタイプです。変数の型ではないことに注意してください
@@ -1577,6 +1533,7 @@ namespace AliceScript
         protected bool m_bool;
         protected DateTime m_datetime;
         protected DelegateObject m_delegate;
+        protected VarType m_type;
         private CustomFunction m_customFunctionGet;
         private CustomFunction m_customFunctionSet;
         protected List<Variable> m_tuple;

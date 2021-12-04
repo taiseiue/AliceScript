@@ -337,7 +337,7 @@ namespace alice
                 {
                     script += Constants.END_STATEMENT;
                 }
-
+                
                 ProcessScript(script);
                 cmdPtr = commands.Count - 1;
             }

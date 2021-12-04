@@ -113,3 +113,26 @@ AliceScript1123の変更点
 ・AlicePackageにmanifest.xmlが必要になりました
 ・パッケージエントリポイントを任意に変更可能になりました
 ・現在実行中のパッケージを表すAlicePackageObjectおよびそれを取得するGetPackage関数を実装しました
+
+AliceScript1127の変更点
+・AlicePackageでScriptタグが利用可能になりました
+・AlicePackageのEntryPointタグは廃止されました。代わりにScriptタグを使用することを検討してください
+・AlicePackageに発行者を表すPublisherプロパティが追加されました
+
+AliceScript1204の変更点
+・型指定修飾子が定義されました
+・関数またはデリゲートで引数の型指定function(type name)が導入されました
+・Bool型、Number型間の暗黙的な変換は使用できなくなりました
+・String型から数値型への暗黙的な変換は使用できなくなりました
+・String演算で値が返却されない不具合を修正
+・Nullの定義を拡大
+・定数の使用に丸括弧が必要な不具合を修正、定数を変数と同じように扱うことが可能になりました
+・変数の定義にvarキーワードが必須になりました
+・varキーワードで定義済みの変数への値の代入ができなくなりました。
+・constキーワードで定数を定義することができるようになりました
+
+Alice.Runtime1204の変更点
+・math_Floorが正しく動作しない不具合を修正
+・最大値、最小値を求めるmath_max,math_min関数を実装
+・Interpreter_Consts関数が定数の値ではなく名前の一覧を返すように改善
+・Path関連の関数実装

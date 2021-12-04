@@ -318,19 +318,26 @@ namespace AliceScript
                     return impl;
                 }
             }
-
+            //ローカルスコープに存在するか確認
             string scopeName = script == null || script.Filename == null ? "" : script.Filename;
             impl = GetLocalScopeVariable(name, scopeName);
             if (impl != null)
             {
                 return impl;
             }
-
+            
             if (s_variables.TryGetValue(name, out impl))
             {
                 return impl.NewInstance();
             }
 
+            //定数に存在するか確認
+            if (Constants.CONSTS.ContainsKey(name))
+            {
+                return new GetVarFunction(Constants.CONSTS[name]);
+            }
+
+            //関数として取得を続行
             return GetFunction(name, script);
         }
         
@@ -425,7 +432,7 @@ namespace AliceScript
         }
 
         public static void AddGlobalOrLocalVariable(string name, GetVarFunction function,
-            ParsingScript script = null, bool localIfPossible = false)
+            ParsingScript script = null, bool localIfPossible = false,bool registVar=false)
         {
             name          = Constants.ConvertName(name);
             Utils.CheckLegalName(name, script);
@@ -452,7 +459,7 @@ namespace AliceScript
             }
             else
             {
-                AddGlobal(name, function, false /* not native */);
+                AddGlobal(name, function, false /* not native */,registVar);
             }
         }
 
@@ -668,15 +675,29 @@ namespace AliceScript
         }
 
         public static void AddGlobal(string name, ParserFunction function,
-                                     bool isNative = true)
+                                     bool isNative = true,bool registVar=false)
         {
             Utils.CheckLegalName(name);
             name = Constants.ConvertName(name);
             NormalizeValue(function);
             function.isNative = isNative;
-
+            if (Constants.CONSTS.ContainsKey(name))
+            {
+                ThrowErrorManerger.OnThrowError("定数に値を代入することはできません",Exceptions.CANT_ASSIGN_VALUE_TO_CONSTANT);
+                return;
+            }
             var handle = OnVariableChange;
-            bool exists = handle != null && s_variables.ContainsKey(name);
+            bool exists = s_variables.ContainsKey(name);
+            if (exists && registVar)
+            {
+                ThrowErrorManerger.OnThrowError("変数["+name+"]はすでに定義されています", Exceptions.VARIABLE_ALREADY_DEFINED);
+                return;
+            }
+            else if(!exists&&!registVar)
+            {
+                ThrowErrorManerger.OnThrowError("変数["+name+"]は定義されていません", Exceptions.COULDNT_FIND_VARIABLE);
+                return;
+            }
             s_variables[name] = function;
 
             function.Name = Constants.GetRealName(name);

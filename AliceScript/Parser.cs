@@ -581,12 +581,18 @@ namespace AliceScript
             {
                 leftCell = leftCell.Convert(rightCell.VariableType);
             //[??]演算子、Null合体演算子ですべての型に適応できます
-            }else if (leftCell.Action == "??")
+            }
+            else if (leftCell.Action == "??")
             {
-                if (leftCell.Type == Variable.VarType.NONE)
+                if (leftCell.IsNull())
                 {
                     leftCell = rightCell;
                 }
+            //[==]または[===]演算子、右辺がNullを表す型でかつ左辺がNullの場合、Trueを返す
+            }
+            else if ((leftCell.Action=="=="||leftCell.Action=="===")&&rightCell.Type == Variable.VarType.NONE && leftCell.IsNull())
+            {
+                leftCell = Variable.True;
             }
             else if (leftCell.Type == Variable.VarType.NUMBER &&
                 rightCell.Type == Variable.VarType.NUMBER)
@@ -600,7 +606,7 @@ namespace AliceScript
             }
             else if (leftCell.Type == Variable.VarType.STRING || rightCell.Type == Variable.VarType.STRING)
             {
-                MergeStrings(leftCell, rightCell, script);
+                leftCell=MergeStrings(leftCell, rightCell, script);
             }
             else if (leftCell.Type == Variable.VarType.ARRAY)
             {
@@ -710,52 +716,43 @@ namespace AliceScript
             }
         }
 
-        static void MergeStrings(Variable leftCell, Variable rightCell, ParsingScript script)
+        static Variable MergeStrings(Variable leftCell, Variable rightCell, ParsingScript script)
         {
             switch (leftCell.Action)
             {
                 case "+":
-                    leftCell.String = leftCell.AsString() + rightCell.AsString();
-                    break;
+                    return new Variable(leftCell.AsString() + rightCell.AsString());
                 case "<":
                     string arg1 = leftCell.AsString();
                     string arg2 = rightCell.AsString();
-                    leftCell = new Variable(string.Compare(arg1, arg2) < 0);
-                    break;
+                    return new Variable(string.Compare(arg1, arg2) < 0);
                 case ">":
-                    leftCell = new Variable(
+                    return new Variable(
                      string.Compare(leftCell.AsString(), rightCell.AsString()) > 0);
-                    break;
                 case "<=":
-                    leftCell = new Variable(
+                    return new Variable(
                       string.Compare(leftCell.AsString(), rightCell.AsString()) <= 0);
-                    break;
                 case ">=":
-                    leftCell = new Variable(
+                    return new Variable(
                       string.Compare(leftCell.AsString(), rightCell.AsString()) >= 0);
-                    break;
                 case "===":
-                    leftCell = new Variable(
+                    return new Variable(
                         (leftCell.Type == rightCell.Type &&
                          leftCell.AsString() == rightCell.AsString()) ||
                         (leftCell.Type == Variable.VarType.UNDEFINED &&
                          rightCell.AsString() == Constants.UNDEFINED) ||
                         (rightCell.Type == Variable.VarType.UNDEFINED &&
                          leftCell.AsString() == Constants.UNDEFINED));
-                    break;
                 case "!==":
-                    leftCell = new Variable(
+                    return new Variable(
                         leftCell.Type != rightCell.Type ||
                         leftCell.AsString() != rightCell.AsString());
-                    break;
                 case "==":
-                    leftCell = new Variable(
+                    return new Variable(
                      string.Compare(leftCell.AsString(), rightCell.AsString()) == 0);
-                    break;
                 case "!=":
-                    leftCell = new Variable(
+                    return new Variable(
                       string.Compare(leftCell.AsString(), rightCell.AsString()) != 0);
-                    break;
                 case ":":
                     leftCell.SetHashVariable(leftCell.AsString(), rightCell);
                     break;
@@ -766,6 +763,7 @@ namespace AliceScript
                          ,script, leftCell.Action);
                     break;
             }
+            return leftCell;
         }
         private static Variable MergeArray(Variable leftCell, Variable rightCell, ParsingScript script)
         {

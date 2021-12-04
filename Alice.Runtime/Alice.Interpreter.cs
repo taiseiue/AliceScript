@@ -498,8 +498,7 @@ namespace AliceScript.NameSpaces
             Variable v = new Variable(Variable.VarType.ARRAY);
             foreach(string s in Constants.CONSTS.Keys)
             {
-                Variable v2 = Constants.CONSTS[s];
-                v.Tuple.Add(v2);
+                v.Tuple.Add(Variable.FromText(s));
             }
             e.Return = v;
         }

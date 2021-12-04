@@ -209,7 +209,7 @@ namespace AliceScript
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>
         {
-            CASE, RETURN, THROW, TYPE_OF, VAR
+            CASE, RETURN, THROW, TYPE_OF, VAR,"const"
         };
 
         // 言語構造の予約。これらを演算したり返すことは無意味
@@ -253,7 +253,7 @@ namespace AliceScript
             {BREAK,new Variable(Variable.VarType.BREAK) },
             //ループを次に進めます
             {CONTINUE,new Variable(Variable.VarType.CONTINUE) },
-            {"string",Variable.AsType(Variable.VarType.STRING) },
+            {"string", Variable.AsType(Variable.VarType.STRING) },
             {"number",Variable.AsType(Variable.VarType.NUMBER) },
             {"array",Variable.AsType(Variable.VarType.ARRAY) },
             {"bytes",Variable.AsType(Variable.VarType.BYTES) },
@@ -263,8 +263,13 @@ namespace AliceScript
             {"delegate",Variable.AsType(Variable.VarType.DELEGATE) },
             {"bool",Variable.AsType(Variable.VarType.BOOLEAN) },
             {"type",Variable.AsType(Variable.VarType.TYPE) }
-        };
 
+        };
+        //型指定修飾子
+        public static List<string> TYPE_MODIFER = new List<string>{
+             "string","number","array","bytes","object","enum","pointer","delegate","bool","type"
+        };
+        //算術演算子
         public static List<string> ARITHMETIC_EXPR = new List<string>
         {
             "*", "*=" , "+", "+=" , "-", "-=", "/", "/=", "%", "%=", ">", "<", ">=", "<="
