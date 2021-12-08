@@ -52,6 +52,43 @@ namespace alice
                 {
                     Alice.ExecuteFile(Path.GetFileName(fn),mainfile);
                 }
+            }else if (pa.Flags.Contains("p") || pa.Flags.Contains("pkg") || pa.Flags.Contains("package"))
+            {
+                //パッケージ実行モード
+                if (pa.Values.ContainsKey("print"))
+                {
+                    if (pa.Values["print"].ToLower() == "off")
+                    {
+                        allow_print = false;
+                    }
+                    else
+                    {
+                        print_redirect_files.Add(pa.Values["print"]);
+                    }
+                }
+                if (pa.Values.ContainsKey("throw"))
+                {
+                    if (pa.Values["throw"].ToLower() == "off")
+                    {
+                        allow_throw = false;
+                    }
+                    else
+                    {
+                        throw_redirect_files.Add(pa.Values["throw"]);
+                    }
+                }
+                if (pa.Values.ContainsKey("runtime"))
+                {
+                    Alice.Runtime_File_Path = pa.Values["runtime"];
+                }
+                bool mainfile = pa.Flags.Contains("mainfile");
+                ThrowErrorManerger.HandleError = true;
+                ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
+                Interpreter.Instance.OnOutput += Instance_OnOutput;
+                foreach (string fn in pa.Files)
+                {
+                    AlicePackage.Load(Path.GetFileName(fn));
+                }
             }
             else
             {

@@ -20,6 +20,31 @@ namespace AliceScript
                 m_fucntions = value;
             }
         }
+        public CustomFunction Function
+        {
+            get
+            {
+                CustomFunction r=null;
+                for (int i = 0; i < m_fucntions.Count; i++)
+                {
+                    if (i == 0)
+                    {
+                        r= m_fucntions[i];
+                        r.Children = new List<CustomFunction>();
+                    }
+                    else
+                    {
+                        r.Children.Add(m_fucntions[i]);
+                    }
+                }
+                return r;
+            }
+            set
+            {
+                m_fucntions.Clear();
+                m_fucntions.Add(value);
+            }
+        }
         public int Length
         {
             get

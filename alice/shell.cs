@@ -430,7 +430,7 @@ namespace alice
                 SetCursor(prompt, sb.ToString(), delta + 1);
             }
         }
-
+        private static ParsingScript CurrentScript=null;
         private static void ProcessScript(string script, string filename = "")
         {
             s_PrintingCompleted = false;
@@ -447,9 +447,16 @@ namespace alice
                 }
                 else
                 {
-                    result = System.Threading.Tasks.Task.Run(() =>
-                      //Interpreter.Instance.ProcessAsync(script, filename)).Result;
-                      Interpreter.Instance.Process(script, filename, true)).Result;
+                        //Interpreter.Instance.ProcessAsync(script, filename)).Result;
+                        if (CurrentScript == null)
+                        {
+                            CurrentScript = Alice.GetScript(script, filename, true);
+                        }
+                        else
+                        {
+                            CurrentScript=CurrentScript.GetTempScript(script);
+                        }
+                    result = CurrentScript.Process();
                 }
             }
             catch (Exception exc)

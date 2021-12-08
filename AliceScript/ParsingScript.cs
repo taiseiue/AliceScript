@@ -15,9 +15,11 @@ namespace AliceScript
         private string m_originalScript;// 生のスクリプト
         private int m_scriptOffset = 0; // 大きなスクリプトで定義された関数で使用されます
         private int m_generation = 1;   // スクリプトの世代
-        private Dictionary<int, int> m_char2Line = null; // 元の行へのポインタ
         private object m_tag;           // 現在のスクリプトに関連付けられたオブジェクト。これは多用途で使用されます
-        private AlicePackage m_package=null;//現在のスクリプトが実行されているパッケージ
+        private AlicePackage m_package = null;//現在のスクリプトが実行されているパッケージ
+        private Dictionary<int, int> m_char2Line = null; // 元の行へのポインタ
+        private Dictionary<string, ParserFunction> m_variables = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された変数
+        private Dictionary<string, ParserFunction> m_functions = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された関数
         /// <summary>
         /// このスクリプトに関連付けられたオブジェクトです
         /// </summary>
@@ -63,6 +65,22 @@ namespace AliceScript
         {
             get { return m_data; }
             set { m_data = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプト内で定義された変数
+        /// </summary>
+        public Dictionary<string,ParserFunction> Variables
+        {
+            get { return m_variables; }
+            set { m_variables = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプト内で定義された関数
+        /// </summary>
+        public Dictionary <string, ParserFunction> Functions
+        {
+            get { return m_functions; }
+            set { m_functions = value; }
         }
         public string Rest
         {
@@ -117,9 +135,6 @@ namespace AliceScript
 
         public string CurrentAssign { get; set; }
 
-
-
-        public string CurrentModule { get; set; }
 
         public Dictionary<string, Dictionary<string, int>> AllLabels
         {
@@ -198,7 +213,66 @@ namespace AliceScript
             }
             return path;
         }
-
+        public bool TryGetVariable(string name,out ParserFunction function)
+        {
+            if(Variables.TryGetValue(name,out function))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null&&ParentScript.TryGetVariable(name,out function))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool ContainsVariable(string name)
+        {
+            if (Variables.ContainsKey(name))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.ContainsVariable(name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool TryGetFunction(string name, out ParserFunction function)
+        {
+            if (Functions.TryGetValue(name, out function))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.TryGetFunction(name, out function))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool ContainsFunction(string name)
+        {
+            if (Functions.ContainsKey(name))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.ContainsFunction(name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public bool StartsWith(string str, bool caseSensitive = true)
         {
             if (String.IsNullOrEmpty(str) || str.Length > m_data.Length - m_from)
@@ -219,18 +293,6 @@ namespace AliceScript
 
             return true;
         }
-
-        public bool ProcessReturn()
-        {
-            if (PointersBack.Count > 0)
-            {
-                Pointer = PointersBack[PointersBack.Count - 1];
-                PointersBack.RemoveAt(PointersBack.Count - 1);
-                return true;
-            }
-            return false;
-        }
-
         public int Find(char ch, int from = -1)
         { return m_data.IndexOf(ch, from < 0 ? m_from : from); }
 
@@ -373,25 +435,6 @@ namespace AliceScript
         {
             return m_from >= 3 ? m_data[m_from - 3] : Constants.EMPTY;
         }
-        public char TryPreviewWithoutSpace(int step, out string text, out int far)
-        {
-            text = "";
-            far = 0;
-            char lastchar = Constants.EMPTY;
-            if (m_from <= m_from - step) { return Constants.EMPTY; }
-            for (int i = 1; i < step; i++)
-            {
-                far++;
-                char c = m_data[m_from - i];
-                if (c != ' ')
-                {
-                    text = c + text;
-                    lastchar = c;
-                }
-            }
-            return lastchar;
-        }
-
         public string FromPrev(int backChars = 1, int maxChars = Constants.MAX_CHARS_TO_SHOW)
         {
             int from = Math.Max(0, m_from - backChars);
@@ -399,22 +442,6 @@ namespace AliceScript
             string result = m_data.Substring(from, max);
             return result;
         }
-
-        public bool IsPrevious(string str)
-        {
-            if (string.IsNullOrEmpty(str))
-            {
-                return true;
-            }
-            if (m_from < str.Length || m_data.Length < str.Length)
-            {
-                return false;
-            }
-
-            var substr = m_data.Substring(m_from - str.Length, str.Length);
-            return substr.Equals(str, StringComparison.OrdinalIgnoreCase);
-        }
-
         public void Forward(int delta = 1) { m_from += delta; }
         public void Backward(int delta = 1)
         {
@@ -666,6 +693,16 @@ namespace AliceScript
                 Execute(Constants.END_LINE_ARRAY);
                 GoToNextStatement();
             }
+        }
+        public Variable Process()
+        {
+            Variable result = null;
+            while (this.Pointer < m_data.Length)
+            {
+                result = this.Execute();
+                this.GoToNextStatement();
+            }
+            return result;
         }
 
         public ParsingScript GetTempScript(string str, int startIndex = 0)

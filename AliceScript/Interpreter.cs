@@ -217,7 +217,27 @@ namespace AliceScript
             Variable result = await ProcessAsync(script, filename, mainFile);
             return result;
         }
+        public ParsingScript GetScript(string script, string filename = "", bool mainFile = false, object tag = null, AlicePackage package = null)
+        {
+            Dictionary<int, int> char2Line;
+            string data = Utils.ConvertToScript(script, out char2Line, filename);
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                return null;
+            }
 
+            ParsingScript toParse = new ParsingScript(data, 0, char2Line);
+            toParse.OriginalScript = script;
+            toParse.Filename = filename;
+            toParse.Tag = tag;
+            toParse.Package = package;
+
+            if (mainFile)
+            {
+                toParse.MainFilename = toParse.Filename;
+            }
+            return toParse;
+        }
         public Variable Process(string script, string filename = "", bool mainFile = false,object tag=null,AlicePackage package=null)
         {
             Dictionary<int, int> char2Line;
@@ -356,7 +376,7 @@ namespace AliceScript
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
-                               new GetVarFunction(current));
+                               new GetVarFunction(current),script);
                 Variable result = ProcessBlock(script);
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
@@ -410,7 +430,7 @@ namespace AliceScript
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
-                               new GetVarFunction(current));
+                               new GetVarFunction(current),script);
                 Variable result = await ProcessBlockAsync(script);
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
@@ -849,9 +869,9 @@ namespace AliceScript
                 ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc);
+                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc,script);
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc);
+                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc,script);
 
                 result = ProcessBlock(script);
                 ParserFunction.PopLocalVariable(exceptionName);
@@ -914,9 +934,9 @@ namespace AliceScript
                 ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc);
+                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc,script);
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc);
+                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc,script);
 
                 result = await ProcessBlockAsync(script);
                 ParserFunction.PopLocalVariable(exceptionName);

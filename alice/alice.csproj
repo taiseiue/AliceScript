@@ -7,7 +7,25 @@
     <Product>AliceScript</Product>
     <Description>AliceScriptの実行環境です</Description>
     <Copyright>(c)Copylight WSOFT 2021</Copyright>
+    <PackageProjectUrl>https://alice.wsoft.gq</PackageProjectUrl>
+    <PackageIcon>alice_logo.png</PackageIcon>
+    <ApplicationIcon>alice_logo.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Program.cs~RF23c7b253.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="alice_logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\WSOFT_Documents\Alice\alice_logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AliceScript\AliceScript.csproj" />

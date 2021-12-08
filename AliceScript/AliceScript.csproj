@@ -9,6 +9,7 @@
     <AssemblyVersion>1.0.0.2</AssemblyVersion>
     <PackageProjectUrl>https://alice.wsoft.gq</PackageProjectUrl>
     <PackageIcon>alice_logo.png</PackageIcon>
+    <ApplicationIcon>alice_logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,6 +18,10 @@
 
   <ItemGroup>
     <None Remove="VariableFunction.cs~RF7f8c5.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="alice_logo.ico" />
   </ItemGroup>
 
   <ItemGroup>

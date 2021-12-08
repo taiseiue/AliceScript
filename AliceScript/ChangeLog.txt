@@ -138,3 +138,7 @@ Alice.Runtime1204の変更点
 ・Path関連の関数実装
 
 以上で、AliceScriptRC2への機能追加を終了します。変更はAliceSisterにも反映されます。
+
+AliceScript1208の変更点
+・デリゲートの簡易呼び出しを実装
+・変数/関数のスコープを実装(不完全)

@@ -116,10 +116,7 @@ namespace AliceScript
         public Variable(VarType type)
         {
             Type = type;
-            if (Type == VarType.ARRAY)
-            {
-                SetAsArray();
-            }
+            Activate();
         }
         public Variable(double d)
         {
@@ -966,7 +963,28 @@ namespace AliceScript
             }
             return sb.ToString();
         }
-
+        public void Activate()
+        {
+            switch (Type)
+            {
+                case VarType.ARRAY:
+                    {
+                        if (m_tuple == null)
+                        {
+                            m_tuple = new List<Variable>();
+                        }
+                        break;
+                    }
+                case VarType.DELEGATE:
+                    {
+                        if (m_delegate == null)
+                        {
+                            m_delegate = new DelegateObject();
+                        }
+                        break;
+                    }
+            }
+        }
         public void SetAsArray()
         {
             Type = VarType.ARRAY;

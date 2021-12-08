@@ -53,6 +53,17 @@ namespace AliceScript
             return Interpreter.Instance.ProcessFileAsync(filename,mainFile);
         }
         /// <summary>
+        /// AliceScriptのコードからスクリプトを生成します
+        /// </summary>
+        /// <param name="code">生成元のコード</param>
+        /// <param name="filename">スクリプトのファイル名</param>
+        /// <param name="mainFile">メインファイルとして処理するか否か</param>
+        /// <returns>生成されたスクリプト</returns>
+        public static ParsingScript GetScript(string code,string filename="",bool mainFile = false)
+        {
+            return Interpreter.Instance.GetScript(code,filename,mainFile);
+        }
+        /// <summary>
         /// プログラムが終了を求めているときに発生するイベントです
         /// </summary>
         public static event Exiting Exiting;
