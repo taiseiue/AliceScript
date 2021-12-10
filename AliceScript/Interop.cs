@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 
 namespace AliceScript.Interop
 {
-    class NetLibraryLoader
+    internal class NetLibraryLoader
     {
         public static void LoadLibrary(string path)
         {
             try
+            {
+                string ipluginName = typeof(ILibrary).FullName;
+                //アセンブリとして読み込む
+                System.Reflection.Assembly asm =
+                    System.Reflection.Assembly.LoadFrom(path);
+                foreach (Type t in asm.GetTypes())
                 {
-                    string ipluginName = typeof(ILibrary).FullName;
-                    //アセンブリとして読み込む
-                    System.Reflection.Assembly asm =
-                        System.Reflection.Assembly.LoadFrom(path);
-                    foreach (Type t in asm.GetTypes())
+                    try
                     {
-                        try
+                        //アセンブリ内のすべての型について、
+                        //プラグインとして有効か調べる
+                        if (t.IsClass && t.IsPublic && !t.IsAbstract &&
+                            t.GetInterface(ipluginName) != null)
                         {
-                            //アセンブリ内のすべての型について、
-                            //プラグインとして有効か調べる
-                            if (t.IsClass && t.IsPublic && !t.IsAbstract &&
-                                t.GetInterface(ipluginName) != null)
-                            {
                             if (Loadeds.Contains(asm.GetHashCode()))
                             {
                                 ThrowErrorManerger.OnThrowError("そのライブラリはすでに読み込まれています", Exceptions.LIBRARY_ALREADY_LOADED);
@@ -34,14 +33,14 @@ namespace AliceScript.Interop
                                 ((ILibrary)asm.CreateInstance(t.FullName)).Main();
                             }
                         }
-                        }
-                        catch { }
                     }
+                    catch { }
                 }
-                catch
-                {
-                }
-           
+            }
+            catch
+            {
+            }
+
         }
         public static void LoadLibrary(byte[] rawassembly)
         {
@@ -64,7 +63,7 @@ namespace AliceScript.Interop
                             {
                                 if (Loadeds.Contains(asm.GetHashCode()))
                                 {
-                                    ThrowErrorManerger.OnThrowError("そのライブラリはすでに読み込まれています",Exceptions.LIBRARY_ALREADY_LOADED);
+                                    ThrowErrorManerger.OnThrowError("そのライブラリはすでに読み込まれています", Exceptions.LIBRARY_ALREADY_LOADED);
                                 }
                                 else
                                 {
@@ -84,7 +83,7 @@ namespace AliceScript.Interop
         }
         private static List<int> Loadeds = new List<int>();
     }
-   public static class GCManerger
+    public static class GCManerger
     {
         public static bool CollectAfterExecute = false;
     }

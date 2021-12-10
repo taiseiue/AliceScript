@@ -181,7 +181,7 @@ namespace AliceScript
                 var ind = arg.IndexOf('=');
                 if (ind <= 0)
                 {
-                    if (!FunctionExists(arg,script) && !Constants.CONSTS.ContainsKey(arg))
+                    if (!FunctionExists(arg,script))
                     {
                         AddGlobalOrLocalVariable(arg, new GetVarFunction(new Variable(Variable.VarType.NONE)), script);
                     }
@@ -798,10 +798,11 @@ namespace AliceScript
     public class CustomFunction : ParserFunction
     {
         public CustomFunction(string funcName,
-                                string body, string[] args, ParsingScript script)
+                                string body, string[] args, ParsingScript script,object tag=null)
         {
             Name = funcName;
             m_body = body;
+            m_tag = tag;
             //正確な変数名の一覧
             List<string> trueArgs = new List<string>();
             //m_args = RealArgs = args;
@@ -1130,7 +1131,7 @@ namespace AliceScript
             Variable result = null;
             ParsingScript tempScript = Utils.GetTempScript(m_body, m_stackLevel, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
-
+            tempScript.Tag = m_tag;
 
 
             while (tempScript.Pointer < m_body.Length - 1 &&
@@ -1279,6 +1280,7 @@ namespace AliceScript
         }
 
         protected string m_body;
+        protected object m_tag;
         protected string[] m_args;
         protected ParsingScript m_parentScript = null;
         protected int m_parentOffset = 0;
@@ -2084,7 +2086,7 @@ namespace AliceScript
             if (registConst)
             {
                 //定数定義
-                if (!FunctionExists(m_name,script) && !Constants.CONSTS.ContainsKey(m_name))
+                if (!FunctionExists(m_name,script))
                 {
                     // Check if the variable to be set has the form of x[a][b]...,
                     // meaning that this is an array element.
@@ -2092,7 +2094,7 @@ namespace AliceScript
 
                     if (arrayIndices.Count == 0)
                     {
-                        Constants.CONSTS.Add(m_name,varValue);
+                        baseScript.Consts.Add(m_name,new GetVarFunction(varValue));
                         Variable retVar = varValue.DeepClone();
                         retVar.CurrentAssign = m_name;
                         return retVar;
@@ -2105,7 +2107,7 @@ namespace AliceScript
 
                     ExtendArray(array, arrayIndices, 0, varValue);
 
-                    Constants.CONSTS.Add(m_name, varValue);
+                    baseScript.Consts.Add(m_name, new GetVarFunction(varValue));
                     return array;
                 }
                 else

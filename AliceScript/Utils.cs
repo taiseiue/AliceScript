@@ -463,7 +463,7 @@ namespace AliceScript
         {
             string str = obj.ToString().ToLower();
             double num = 0;
-            if (script!=null&&DelegateCreator.KnownLines.Contains(script.OriginalLine)) { return 0; }
+            if(script.Tag is string s && s == "DELEGATE") { return 0; }
             if (!CanConvertToDouble(str, out num) &&
                 script != null)
             {

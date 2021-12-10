@@ -332,6 +332,10 @@ namespace AliceScript
             }
 
             //定数に存在するか確認
+            if(script!=null&&script.TryGetConst(name,out impl)&&impl!=null)
+            {
+                return impl.NewInstance();
+            }
             if (Constants.CONSTS.ContainsKey(name))
             {
                 return new GetVarFunction(Constants.CONSTS[name]);
@@ -375,7 +379,7 @@ namespace AliceScript
         {
             name = Constants.ConvertName(name);
             ParserFunction impl;
-            if (script.Functions.TryGetValue(name, out impl))
+            if (script.TryGetFunction(name, out impl))
             {
                 //ローカル関数として登録されている
                 return impl.NewInstance();
@@ -567,7 +571,7 @@ namespace AliceScript
 
         public static bool LocalNameExists(string name, ParsingScript script)
         {
-            if (script != null && (script.ContainsVariable(name) || script.Functions.ContainsKey(name)))
+            if (script != null && (script.ContainsVariable(name) || script.ContainsFunction(name) || script.ContainsConst(name)))
             {
                 return true;
             }
@@ -583,7 +587,7 @@ namespace AliceScript
         public static bool GlobalNameExists(string name)
         {
             name = Constants.ConvertName(name);
-            return s_variables.ContainsKey(name) || s_functions.ContainsKey(name);
+            return s_variables.ContainsKey(name) || s_functions.ContainsKey(name)||Constants.CONSTS.ContainsKey(name);
         }
 
         public static Variable RegisterEnum(string varName, string enumName)
@@ -630,7 +634,7 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません", Exceptions.FUNCTION_IS_ALREADY_DEFINED);
             }
         }
-        public static void RegisterScriptFunction(string name,ParserFunction function,ParsingScript script,bool isNative=true)
+        public static void RegisterScriptFunction(string name,ParserFunction function,ParsingScript script,bool isNative=true,bool isLocal=true)
         {
             //TODO:ローカル関数の登録
             name = Constants.ConvertName(name);
@@ -646,10 +650,21 @@ namespace AliceScript
                     name = s_namespacePrefix + name;
                 }
             }
-            if (!s_functions.ContainsKey(name) || (s_functions.ContainsKey(name) && s_functions[name].IsVirtual))
+            ParserFunction impl=null;
+            if(isLocal&&(!script.ContainsFunction(name)||(script.TryGetFunction(name,out impl) && impl.IsVirtual)))
+            {
+                //ローカル関数でまだ登録されていないか、すでに登録されていて、オーバーライド可能な場合
+                script.Functions[name] = function;
+                function.isNative = isNative;
+                if (impl != null)
+                {
+                    impl.IsVirtual = true;
+                }
+            }
+            else if (!isLocal&&(!s_functions.ContainsKey(name) || (s_functions.ContainsKey(name) && s_functions[name].IsVirtual)))
             {
                 //まだ登録されていないか、すでに登録されていて、オーバーライド可能な場合
-                script.Functions[name] = function;
+                s_functions[name] = function;
                 function.isNative = isNative;
                 if ((s_functions.ContainsKey(name) && s_functions[name].IsVirtual))
                 {

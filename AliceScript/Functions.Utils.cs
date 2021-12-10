@@ -83,17 +83,12 @@ namespace AliceScript
             //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。下の式は将来使用するために残されています。
             //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
 
-            if (!KnownLines.Contains(script.OriginalLine))
-            {
-                KnownLines.Add(script.OriginalLine);
-            }
             script.MoveForwardIf(Constants.END_GROUP);
-            CustomFunction customFunc = new CustomFunction("", body, args, script);
+            CustomFunction customFunc = new CustomFunction("", body, args, script,"DELEGATE");
             customFunc.ParentScript = script;
             customFunc.ParentOffset = parentOffset;
             return new Variable(customFunc);
         }
-        internal static List<string> KnownLines = new List<string>();
     }
 
     internal class PointerFunction : ActionFunction
