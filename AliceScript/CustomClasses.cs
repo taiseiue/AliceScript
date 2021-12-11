@@ -97,13 +97,27 @@ namespace AliceScript
     }
     public static class ClassManerger
     {
-        public static void Add(ObjectBase obj)
+        public static void Add(ObjectBase obj,ParsingScript script=null)
         {
-            ParserFunction.RegisterFunction(obj.Name,new GetVarFunction(new Variable(obj)),true);
+            if (script == null)
+            {
+                ParserFunction.RegisterFunction(obj.Name, new GetVarFunction(new Variable(obj)), true);
+            }
+            else
+            {
+                ParserFunction.RegisterScriptFunction(obj.Name, new GetVarFunction(new Variable(obj)),script);
+            }
         }
-        public static void Remove(ObjectBase obj)
+        public static void Remove(ObjectBase obj,ParsingScript script)
         {
-            ParserFunction.UnregisterFunction(obj.Name);
+            if (script == null)
+            {
+                ParserFunction.UnregisterFunction(obj.Name);
+            }
+            else
+            {
+                ParserFunction.UnregisterScriptFunction(obj.Name,script);
+            }
         }
     }
 

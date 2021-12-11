@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 
 namespace AliceScript
 {
-    class Import
+    internal class Import
     {
 
     }
@@ -25,13 +24,13 @@ namespace AliceScript
         {
             return NameSpaces.ContainsKey(name);
         }
-        public static void Load(string name)
+        public static void Load(string name, ParsingScript script)
         {
-            NameSpaces[name].Load();
+            NameSpaces[name].Load(script);
         }
-        public static void UnLoad(string name)
+        public static void UnLoad(string name, ParsingScript script)
         {
-            NameSpaces[name].UnLoad();
+            NameSpaces[name].UnLoad(script);
         }
     }
     public class NameSpace
@@ -56,9 +55,9 @@ namespace AliceScript
         {
             Classes.Add(obj);
         }
-        public void Add(string name,string val)
+        public void Add(string name, string val)
         {
-            Enums.Add(name,val);
+            Enums.Add(name, val);
         }
         public void Remove(FunctionBase func)
         {
@@ -68,14 +67,15 @@ namespace AliceScript
         {
             Functions.Clear();
         }
-        public event EventHandler<CancelEventArgs> Loading;
-        public event EventHandler<CancelEventArgs> UnLoading;
-        public virtual void Load()
+        public event EventHandler<ImportEventArgs> Loading;
+        public event EventHandler<ImportEventArgs> UnLoading;
+        public virtual void Load(ParsingScript script)
         {
             int ecount = 0;
-            CancelEventArgs e = new CancelEventArgs();
+            ImportEventArgs e = new ImportEventArgs();
             e.Cancel = false;
-            Loading?.Invoke(this,e);
+            e.Script = script;
+            Loading?.Invoke(this, e);
             if (e.Cancel)
             {
                 return;
@@ -84,34 +84,35 @@ namespace AliceScript
             {
                 try
                 {
-                    FunctionBaseManerger.Add(func);
+                    FunctionBaseManerger.Add(func,func.Name,script);
                 }
                 catch { ecount++; }
             }
-            foreach(ObjectBase obj in Classes)
+            foreach (ObjectBase obj in Classes)
             {
                 try
                 {
-                    ClassManerger.Add(obj);
+                    ClassManerger.Add(obj,script);
                 }
                 catch { ecount++; }
             }
-            foreach(string s in Enums.Keys)
+            foreach (string s in Enums.Keys)
             {
                 try
                 {
-                    FunctionBase.RegisterEnum(s,Enums[s]);
+                    FunctionBase.RegisterEnum(s, Enums[s],script);
                 }
                 catch { ecount++; }
             }
-            
+
             if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
         }
-        public virtual void UnLoad()
+        public virtual void UnLoad(ParsingScript script)
         {
             int ecount = 0;
-            CancelEventArgs e = new CancelEventArgs();
+            ImportEventArgs e = new ImportEventArgs();
             e.Cancel = false;
+            e.Script = script;
             UnLoading?.Invoke(this, e);
             if (e.Cancel)
             {
@@ -121,7 +122,7 @@ namespace AliceScript
             {
                 try
                 {
-                    FunctionBaseManerger.Remove(func);
+                    FunctionBaseManerger.Remove(func,func.Name,script);
                 }
                 catch { ecount++; }
             }
@@ -129,15 +130,15 @@ namespace AliceScript
             {
                 try
                 {
-                    ClassManerger.Remove(obj);
+                    ClassManerger.Remove(obj,script);
                 }
                 catch { ecount++; }
             }
-            foreach(string s in Enums.Keys)
+            foreach (string s in Enums.Keys)
             {
                 try
                 {
-                    FunctionBase.UnregisterFunction(s);
+                    FunctionBase.UnregisterScriptFunction(s,script);
                 }
                 catch { ecount++; }
             }
@@ -147,26 +148,32 @@ namespace AliceScript
         {
             get
             {
-                return Functions.Count+Classes.Count;
+                return Functions.Count + Classes.Count;
             }
         }
 
     }
-    class DllImportFunc : FunctionBase
+    public class ImportEventArgs : EventArgs
+    {
+        public bool Cancel { get; set; }
+        public ParsingScript Script { get; set; }
+    }
+
+    internal class DllImportFunc : FunctionBase
     {
         public DllImportFunc()
         {
             this.FunctionName = "Dllimport";
-            this.MinimumArgCounts =1;
+            this.MinimumArgCounts = 1;
             this.Run += ImportFunc_Run;
         }
 
         private void ImportFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             string filename = e.Args[0].AsString();
-            if (e.Script.Package != null&&e.Script.Package.ExistsEntry(filename))
+            if (e.Script.Package != null && e.Script.Package.ExistsEntry(filename))
             {
-                Interop.NetLibraryLoader.LoadLibrary(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename),filename));
+                Interop.NetLibraryLoader.LoadLibrary(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename), filename));
                 return;
             }
             if (File.Exists(filename))
@@ -175,11 +182,12 @@ namespace AliceScript
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("ファイルが見つかりません",Exceptions.FILE_NOT_FOUND,e.Script);
+                ThrowErrorManerger.OnThrowError("ファイルが見つかりません", Exceptions.FILE_NOT_FOUND, e.Script);
             }
         }
     }
-    class IceImportFunc : FunctionBase
+
+    internal class IceImportFunc : FunctionBase
     {
         public IceImportFunc()
         {
@@ -193,15 +201,16 @@ namespace AliceScript
             string filename = e.Args[0].AsString();
             if (e.Script.Package != null && e.Script.Package.ExistsEntry(filename))
             {
-                AlicePackage.LoadData(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename),filename));
+                AlicePackage.LoadData(AlicePackage.GetEntryData(e.Script.Package.archive.GetEntry(filename), filename));
                 return;
             }
             AlicePackage.Load(filename);
         }
     }
-    class ImportFunc : FunctionBase
+
+    internal class ImportFunc : FunctionBase
     {
-        public ImportFunc(bool isunimport=false)
+        public ImportFunc(bool isunimport = false)
         {
             if (isunimport)
             {
@@ -231,26 +240,27 @@ namespace AliceScript
                         {
                             if (NameSpaceManerger.NameSpaces.ContainsKey(file))
                             {
-                                NameSpaceManerger.UnLoad(file);
+                                NameSpaceManerger.UnLoad(file, e.Script);
                             }
-                            else {
-                                ThrowErrorManerger.OnThrowError("該当する名前空間は読み込まれていません",Exceptions.NAMESPACE_NOT_LOADED,e.Script);
+                            else
+                            {
+                                ThrowErrorManerger.OnThrowError("該当する名前空間は読み込まれていません", Exceptions.NAMESPACE_NOT_LOADED, e.Script);
                             }
                         }
                         else
                         {
-                            NameSpaceManerger.Load(file);
+                            NameSpaceManerger.Load(file, e.Script);
                         }
                         return;
                     }
                     else
                     {
-                        ThrowErrorManerger.OnThrowError("該当する名前空間がありません",Exceptions.NAMESPACE_NOT_FOUND,e.Script);
+                        ThrowErrorManerger.OnThrowError("該当する名前空間がありません", Exceptions.NAMESPACE_NOT_FOUND, e.Script);
                     }
 
                 }
             }
         }
     }
- 
+
 }

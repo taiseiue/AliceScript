@@ -172,7 +172,8 @@ namespace alice
                 if (allow_throw)
                 {
                     AliceScript.Utils.PrintColor(throwmsg, ConsoleColor.Red);
-                    DumpVariables();
+                    DumpLocalVariables(e.Script);
+                    DumpGlobalVariables();
                 }
                 if (throw_redirect_files.Count > 0)
                 {
@@ -200,9 +201,22 @@ namespace alice
                 return s.Substring(-space / 2).Remove(width);
             }
         }
-        public static void DumpVariables()
+        private static void AddDictionaryScriptVariables(ParsingScript script,ref Dictionary<string,ParserFunction> dic)
         {
-            Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
+            foreach(string s in script.Variables.Keys)
+            {
+                dic.Add(s,script.Variables[s]);
+            }
+            if (script.ParentScript != null)
+            {
+                AddDictionaryScriptVariables(script.ParentScript,ref dic);
+            }
+        }
+        public static void DumpLocalVariables(ParsingScript script)
+        {
+            if (script == null) { return; }
+            Dictionary<string,ParserFunction> dic = new Dictionary<string,ParserFunction>();
+            AddDictionaryScriptVariables(script,ref dic);
             if (dic.Count <= 0)
             {
                 Console.WriteLine("定義されている変数がありません");
@@ -219,27 +233,79 @@ namespace alice
             contents.Add("Content");
             foreach (string s in dic.Keys)
             {
-                names.Add(s);
-                if (s.Length > namemax)
+                if (dic[s] is GetVarFunction vf)
                 {
-                    namemax = s.Length;
-                }
-                string type = dic[s].Type.ToString();
-                types.Add(type);
-                if (type.Length > typemax)
-                {
-                    typemax = type.Length;
-                }
-                string content = dic[s].AsString();
-                contents.Add(content);
-                if (content.Length > contentmax)
-                {
-                    contentmax = content.Length;
+                    names.Add(s);
+                    if (s.Length > namemax)
+                    {
+                        namemax = s.Length;
+                    }
+                    string type = vf.Value.Type.ToString();
+                    types.Add(type);
+                    if (type.Length > typemax)
+                    {
+                        typemax = type.Length;
+                    }
+                    string content = vf.Value.AsString();
+                    contents.Add(content);
+                    if (content.Length > contentmax)
+                    {
+                        contentmax = content.Length;
+                    }
                 }
             }
             for (int i = 0; i < names.Count; i++)
             {
-                string print = "|";
+                string print = "|Local|";
+                print += Centering(names[i], namemax + 2) + "|";
+                print += Centering(types[i], typemax + 2) + "|";
+                print += Centering(contents[i], contentmax + 2) + "|";
+                Console.WriteLine(print);
+            }
+        }
+        public static void DumpGlobalVariables()
+        {
+            Dictionary<string, ParserFunction> dic = ParserFunction.s_variables;
+            if (dic.Count <= 0)
+            {
+                Console.WriteLine("定義されている変数がありません");
+                return;
+            }
+            List<string> names = new List<string>();
+            List<string> types = new List<string>();
+            List<string> contents = new List<string>();
+            int namemax = 4;
+            int typemax = 4;
+            int contentmax = 7;
+            names.Add("Name");
+            types.Add("Type");
+            contents.Add("Content");
+            foreach (string s in dic.Keys)
+            {
+                if (dic[s] is GetVarFunction vf)
+                {
+                    names.Add(s);
+                    if (s.Length > namemax)
+                    {
+                        namemax = s.Length;
+                    }
+                    string type = vf.Value.Type.ToString();
+                    types.Add(type);
+                    if (type.Length > typemax)
+                    {
+                        typemax = type.Length;
+                    }
+                    string content = vf.Value.AsString();
+                    contents.Add(content);
+                    if (content.Length > contentmax)
+                    {
+                        contentmax = content.Length;
+                    }
+                }
+            }
+            for (int i = 0; i < names.Count; i++)
+            {
+                string print = "|Global|";
                 print += Centering(names[i],namemax+2)+"|";
                 print += Centering(types[i], typemax + 2) + "|";
                 print += Centering(contents[i], contentmax + 2) + "|";

@@ -370,14 +370,14 @@ namespace AliceScript.NameSpaces
     {
         public Interpreter_VariablesFunc()
         {
-            this.Name = "Interpreter_Variables";
+            this.Name = "Interpreter_GlobalVariables";
             this.Run += Interpreter_VariablesFunc_Run;
         }
 
         private void Interpreter_VariablesFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             Variable v = new Variable(Variable.VarType.ARRAY);
-            foreach (string s in Diagnosis.Variables.Keys)
+            foreach (string s in ParserFunction.s_variables.Keys)
             {
                 v.Tuple.Add(new Variable(s));
             }
@@ -395,13 +395,15 @@ namespace AliceScript.NameSpaces
 
         private void Interpreter_GetVariable_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (Diagnosis.Variables.ContainsKey(e.Args[0].AsString()))
+            ParserFunction impl;
+            string name = e.Args[0].AsString();
+            if ((e.Script.TryGetVariable(name,out impl)||ParserFunction.s_functions.TryGetValue(name,out impl))&&impl is GetVarFunction vf)
             {
-                e.Return = Diagnosis.Variables[e.Args[0].AsString()];
+                e.Return = vf.Value;
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("指定された変数名の変数は定義されていません",Exceptions.COULDNT_FIND_VARIABLE,e.Script);
+                ThrowErrorManerger.OnThrowError("指定された名前の変数は定義されていません",Exceptions.COULDNT_FIND_VARIABLE,e.Script);
             }
         }
     }

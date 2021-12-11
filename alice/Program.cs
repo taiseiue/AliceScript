@@ -121,12 +121,8 @@ namespace alice
                 if (allow_throw)
                 {
                     AliceScript.Utils.PrintColor("エラー:" + e.Message + " 行" + e.Script.OriginalLineNumber + " コード:" + e.Script.OriginalLine + " ファイル名:" + Path.GetFileName(e.Script.Filename) + "\r\n", ConsoleColor.Red);
-                    Dictionary<string, AliceScript.Variable> dic = AliceScript.Diagnosis.Variables;
-                    Console.WriteLine("変数の内容\r\n| 変数名 | 内容 |");
-                    foreach (string s in dic.Keys)
-                    {
-                        Console.WriteLine("| " + s + " | " + dic[s].AsString() + " |");
-                    }
+                    Shell.DumpLocalVariables(e.Script);
+                    Shell.DumpGlobalVariables();
                 }
                 if (throw_redirect_files.Count > 0)
                 {

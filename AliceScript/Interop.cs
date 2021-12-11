@@ -34,18 +34,14 @@ namespace AliceScript.Interop
                             }
                         }
                     }
-                    catch { }
+                    catch(Exception ex) { ThrowErrorManerger.OnThrowError(ex.Message,Exceptions.LIBRARY_EXCEPTION); }
                 }
             }
-            catch
-            {
-            }
+            catch (Exception ex) { ThrowErrorManerger.OnThrowError(ex.Message, Exceptions.LIBRARY_EXCEPTION); }
 
         }
         public static void LoadLibrary(byte[] rawassembly)
         {
-
-            {
                 try
                 {
                     string ipluginName = typeof(ILibrary).FullName;
@@ -72,13 +68,10 @@ namespace AliceScript.Interop
                                 }
                             }
                         }
-                        catch { }
-                    }
+                        catch (Exception ex) { ThrowErrorManerger.OnThrowError(ex.Message, Exceptions.LIBRARY_EXCEPTION); }
                 }
-                catch
-                {
                 }
-            }
+                catch (Exception ex) { ThrowErrorManerger.OnThrowError(ex.Message, Exceptions.LIBRARY_EXCEPTION); }
 
         }
         private static List<int> Loadeds = new List<int>();

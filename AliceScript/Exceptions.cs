@@ -257,6 +257,14 @@ namespace AliceScript
         /// <summary>
         /// 変数はすでに定義されています
         /// </summary>
-        VARIABLE_ALREADY_DEFINED=0x03e
+        VARIABLE_ALREADY_DEFINED=0x03e,
+        /// <summary>
+        /// その関数はグローバル関数ではありません
+        /// </summary>
+        FUNCTION_NOT_GLOBAL=0x03f,
+        /// <summary>
+        /// ライブラリで発生した例外です
+        /// </summary>
+        LIBRARY_EXCEPTION=0x040
     }
 }

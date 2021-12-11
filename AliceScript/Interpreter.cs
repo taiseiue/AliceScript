@@ -166,7 +166,7 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.NAMESPACE, new NamespaceFunction());
             ParserFunction.RegisterFunction(Constants.SINGLETON, new SingletonFunction());
             ParserFunction.RegisterFunction(Constants.VAR, new VarFunction());
-            ParserFunction.RegisterFunction("const", new ConstFunction());
+            ParserFunction.RegisterFunction(Constants.CONST,new VarFunction(true));
 
             ParserFunction.RegisterFunction(Constants.ADD_DATA, new DataFunction(DataFunction.DataMode.ADD));
             ParserFunction.RegisterFunction(Constants.COLLECT_DATA, new DataFunction(DataFunction.DataMode.SUBSCRIBE));
@@ -375,9 +375,13 @@ namespace AliceScript
             {
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
+                
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
-                               new GetVarFunction(current),script);
-                Variable result = ProcessBlock(script);
+                               new GetVarFunction(current), mainScript,false,true);
+                Variable result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     //script.Pointer = startForCondition;
@@ -429,9 +433,13 @@ namespace AliceScript
             {
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
+
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
-                               new GetVarFunction(current),script);
-                Variable result = await ProcessBlockAsync(script);
+                               new GetVarFunction(current), mainScript, false, true);
+                Variable result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     //script.Pointer = startForCondition;
@@ -459,6 +467,8 @@ namespace AliceScript
             ParsingScript condScript = script.GetTempScript(forTokens[1] + Constants.END_STATEMENT);
             ParsingScript loopScript = script.GetTempScript(forTokens[2] + Constants.END_STATEMENT);
 
+            condScript.Variables = loopScript.Variables = initScript.Variables;
+
             initScript.Execute(null, 0);
 
             int cycles = 0;
@@ -480,7 +490,11 @@ namespace AliceScript
                 }
 
                 script.Pointer = startForCondition;
-                Variable result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.Variables = initScript.Variables;
+                Variable result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     //script.Pointer = startForCondition;
@@ -510,6 +524,7 @@ namespace AliceScript
             ParsingScript condScript = script.GetTempScript(forTokens[1] + Constants.END_STATEMENT);
             ParsingScript loopScript = script.GetTempScript(forTokens[2] + Constants.END_STATEMENT);
 
+            condScript.Variables = loopScript.Variables = initScript.Variables;
             await initScript.ExecuteAsync(null, 0);
 
             int cycles = 0;
@@ -531,7 +546,11 @@ namespace AliceScript
                 }
 
                 script.Pointer = startForCondition;
-                Variable result = await ProcessBlockAsync(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.Variables = initScript.Variables;
+                Variable result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     //script.Pointer = startForCondition;
@@ -574,7 +593,10 @@ namespace AliceScript
                     return Variable.EmptyInstance;
                 }
 
-                result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -614,7 +636,10 @@ namespace AliceScript
                     ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます", Exceptions.TOO_MANY_REPETITIONS);
                 }
 
-                result = await ProcessBlockAsync(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                      Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result =await mainScript.ProcessAsync();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -639,7 +664,10 @@ namespace AliceScript
             {
                 script.Pointer = startDoCondition;
 
-                result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                      Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startDoCondition;
@@ -667,7 +695,10 @@ namespace AliceScript
             }
             script.MoveForwardIf(':');
 
-            Variable result = ProcessBlock(script);
+            string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                      Constants.END_ARG);
+            ParsingScript mainScript = script.GetTempScript(body);
+            Variable result = mainScript.Process();
             script.MoveBackIfPrevious('}');
 
             return result;
@@ -692,7 +723,10 @@ namespace AliceScript
                 }
                 if (nextToken == Constants.DEFAULT && !caseDone)
                 {
-                    result = ProcessBlock(script);
+                    string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                      Constants.END_ARG);
+                    ParsingScript mainScript = script.GetTempScript(body);
+                    result = mainScript.Process();
                     break;
                 }
                 if (!caseDone)
@@ -703,8 +737,11 @@ namespace AliceScript
                     if (switchValue.Type == caseValue.Type && switchValue.Equals(caseValue))
                     {
                         caseDone = true;
-                        result = ProcessBlock(script);
-                        if (script.Prev == '}')
+                        string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                      Constants.END_ARG);
+                        ParsingScript mainScript = script.GetTempScript(body);
+                        result = mainScript.Process();
+                        if (mainScript.Prev == '}')
                         {
                             break;
                         }
@@ -712,7 +749,7 @@ namespace AliceScript
                     }
                 }
             }
-            script.MoveForwardIfNotPrevious('}');
+          //  script.MoveForwardIfNotPrevious('}');
             script.GoToNextStatement();
             return result;
         }
@@ -726,7 +763,10 @@ namespace AliceScript
 
             if (isTrue)
             {
-                result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result = mainScript.Process();
 
                 if (result.IsReturn ||
                     result.Type == Variable.VarType.BREAK ||
@@ -760,7 +800,10 @@ namespace AliceScript
             else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
-                result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result = mainScript.Process();
             }
 
             return result.IsReturn ||
@@ -777,7 +820,10 @@ namespace AliceScript
 
             if (isTrue)
             {
-                result = await ProcessBlockAsync(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result =await mainScript.ProcessAsync();
 
                 if (result.IsReturn ||
                     result.Type == Variable.VarType.BREAK ||
@@ -811,7 +857,10 @@ namespace AliceScript
             else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
-                result = await ProcessBlockAsync(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result =await mainScript.ProcessAsync();
             }
 
             return result.IsReturn ||
@@ -831,7 +880,10 @@ namespace AliceScript
             script.InTryBlock = true;
             try
             {
-                result = ProcessBlock(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result = mainScript.Process();
             }
             catch (Exception exc)
             {
@@ -869,12 +921,14 @@ namespace AliceScript
                 ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc,script);
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc,script);
 
-                result = ProcessBlock(script);
-                ParserFunction.PopLocalVariable(exceptionName);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.Variables.Add(exceptionName, excMsgFunc);
+                mainScript.Variables.Add(exceptionName + ".Stack", excStackFunc);
+                result = mainScript.Process();
             }
             else
             {
@@ -896,7 +950,10 @@ namespace AliceScript
             script.InTryBlock = true;
             try
             {
-                result = await ProcessBlockAsync(script);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                result =await mainScript.ProcessAsync();
             }
             catch (Exception exc)
             {
@@ -934,12 +991,13 @@ namespace AliceScript
                 ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName, excMsgFunc,script);
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
-                ParserFunction.AddGlobalOrLocalVariable(exceptionName + ".Stack", excStackFunc,script);
-
-                result = await ProcessBlockAsync(script);
-                ParserFunction.PopLocalVariable(exceptionName);
+                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
+                                                       Constants.END_ARG);
+                ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.Variables.Add(exceptionName,excMsgFunc);
+                mainScript.Variables.Add(exceptionName+".Stack",excStackFunc);
+                result =await mainScript.ProcessAsync();
             }
             else
             {
@@ -993,56 +1051,6 @@ namespace AliceScript
                 result += Environment.NewLine + "  " + stackLevel.Name + "()";
             }
 
-            return result;
-        }
-
-        private Variable ProcessBlock(ParsingScript script)
-        {
-            int blockStart = script.Pointer;
-            Variable result = null;
-
-            while (script.StillValid())
-            {
-                int endGroupRead = script.GoToNextStatement();
-                if (endGroupRead > 0 || !script.StillValid())
-                {
-                    return result != null ? result : new Variable();
-                }
-
-                result = script.Execute();
-
-                if (result.IsReturn ||
-                    result.Type == Variable.VarType.BREAK ||
-                    result.Type == Variable.VarType.CONTINUE)
-                {
-                    return result;
-                }
-            }
-            return result;
-        }
-
-        private async Task<Variable> ProcessBlockAsync(ParsingScript script)
-        {
-            int blockStart = script.Pointer;
-            Variable result = null;
-
-            while (script.StillValid())
-            {
-                int endGroupRead = script.GoToNextStatement();
-                if (endGroupRead > 0 || !script.StillValid())
-                {
-                    return result != null ? result : new Variable();
-                }
-
-                result = await script.ExecuteAsync();
-
-                if (result.IsReturn ||
-                    result.Type == Variable.VarType.BREAK ||
-                    result.Type == Variable.VarType.CONTINUE)
-                {
-                    return result;
-                }
-            }
             return result;
         }
 

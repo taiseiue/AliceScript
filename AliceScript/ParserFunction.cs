@@ -80,7 +80,7 @@ namespace AliceScript
         public static ParserFunction CheckString(ParsingScript script, string item, char ch)
         {
             if (item.Length > 1 &&
-              ((item[0] == Constants.QUOTE && item[item.Length - 1] == Constants.QUOTE) ||
+              (((item[0] == Constants.QUOTE) && item[item.Length - 1] == Constants.QUOTE) ||
                (item[0] == Constants.QUOTE1 && item[item.Length - 1] == Constants.QUOTE1)))
             {
                 // We are dealing with a string.
@@ -590,15 +590,21 @@ namespace AliceScript
             return s_variables.ContainsKey(name) || s_functions.ContainsKey(name)||Constants.CONSTS.ContainsKey(name);
         }
 
-        public static Variable RegisterEnum(string varName, string enumName)
+        public static Variable RegisterEnum(string varName, string enumName,ParsingScript script=null)
         {
             Variable enumVar = EnumFunction.UseExistingEnum(enumName);
             if (enumVar == Variable.EmptyInstance)
             {
                 return enumVar;
             }
-
-            RegisterFunction(varName, new GetVarFunction(enumVar));
+            if (script == null)
+            {
+                RegisterFunction(varName, new GetVarFunction(enumVar));
+            }
+            else
+            {
+                RegisterScriptFunction(varName,new GetVarFunction(enumVar),script);
+            }
             return enumVar;
         }
 
@@ -636,7 +642,6 @@ namespace AliceScript
         }
         public static void RegisterScriptFunction(string name,ParserFunction function,ParsingScript script,bool isNative=true,bool isLocal=true)
         {
-            //TODO:ローカル関数の登録
             name = Constants.ConvertName(name);
             function.Name = Constants.GetRealName(name);
 
@@ -676,6 +681,15 @@ namespace AliceScript
             {
                 ThrowErrorManerger.OnThrowError("指定された関数はすでに登録されていて、オーバーライドできません", Exceptions.FUNCTION_IS_ALREADY_DEFINED);
             }
+        }
+        public static bool UnregisterScriptFunction(string name,ParsingScript script)
+        {
+            name = Constants.ConvertName(name);
+            if (script != null && script.Functions.Remove(name))
+            {
+                return true;
+            }
+            return s_functions.Remove(name);
         }
         public static bool UnregisterFunction(string name)
         {

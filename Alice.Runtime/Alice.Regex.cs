@@ -24,13 +24,13 @@ namespace AliceScript.NameSpaces
             NameSpaceManerger.Add(space);
         }
 
-        private static void Space_UnLoading(object sender, System.ComponentModel.CancelEventArgs e)
+        private static void Space_UnLoading(object sender, ImportEventArgs e)
         {
             Variable.RemoveFunc(new str_IsMatchFunc());
             Variable.AddFunc(new str_MatchesFunc());
         }
 
-        private static void Space_Loading(object sender, System.ComponentModel.CancelEventArgs e)
+        private static void Space_Loading(object sender, ImportEventArgs e)
         {
             Variable.AddFunc(new str_IsMatchFunc());
             Variable.AddFunc(new str_MatchesFunc());

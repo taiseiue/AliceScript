@@ -158,7 +158,10 @@ namespace AliceScript
                         }
                         else
                         {
-                            text = text.Replace(match.Value, args[mn].AsString());
+                            if (args != null)
+                            {
+                                text = text.Replace(match.Value, args[mn].AsString());
+                            }
                         }
                     }
                     else

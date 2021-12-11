@@ -1276,6 +1276,14 @@ namespace AliceScript
                 allSet.Add(key.ToLower());
                 all.Add(key);
             }
+            foreach(string name in Functions.Keys)
+            {
+                FunctionBase fb = Functions[name];
+                if (fb.RequestType == VarType.NONE || fb.RequestType == Type)
+                {
+                    all.Add(name);
+                }
+            }
 
             if (Object is ScriptObject)
             {

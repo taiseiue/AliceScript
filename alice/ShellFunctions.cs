@@ -15,7 +15,8 @@ namespace alice
 
         private void Shell_dumpFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            Shell.DumpVariables();
+            Shell.DumpLocalVariables(e.Script);
+            Shell.DumpGlobalVariables();
         }
     }
 }

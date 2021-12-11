@@ -248,6 +248,11 @@ namespace AliceScript
             tempScript.InTryBlock = script == null ? false : script.InTryBlock;
             tempScript.ClassInstance = instance;
             tempScript.StackLevel = stackLevel;
+            if (script != null)
+            {
+                tempScript.Package = script.Package;
+                tempScript.Tag = script.Tag;
+            }
 
             return tempScript;
         }
@@ -502,7 +507,7 @@ namespace AliceScript
                 try
                 {
                     //2進表現では浮動小数点型の表現ができないためdoubleと最も近い精度である整数値型long(Int64)を使用します
-                    num = Convert.ToInt64(m.Value.Substring(2));
+                    num = Convert.ToInt64(m.Value.Substring(2),2);
                     return true;
                 }
                 catch

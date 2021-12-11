@@ -8,6 +8,7 @@ namespace AliceScript
 {
     public partial class Constants
     {
+        public const char ATMARK = '@';
         public const char START_ARG = '(';
         public const char END_ARG = ')';
         public const char START_ARRAY = '[';
@@ -90,6 +91,7 @@ namespace AliceScript
         public const string ADD_ALL_TO_HASH = "AddAllToHash";
         public const string CANCEL_RUN = "CancelRun";
         public const string CHECK_LOADER_MAIN = "LoaderMain";
+        public const string CONST = "const";
         public const string CONTAINS = "contains";
         public const string CURRENT_PATH = "CurrentPath";
         public const string CLONE = "Clone";

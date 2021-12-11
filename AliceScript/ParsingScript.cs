@@ -743,6 +743,16 @@ namespace AliceScript
             }
             return result;
         }
+        public async Task<Variable> ProcessAsync()
+        {
+            Variable result = null;
+            while (this.Pointer < m_data.Length)
+            {
+                result =await this.ExecuteAsync();
+                this.GoToNextStatement();
+            }
+            return result;
+        }
 
         public ParsingScript GetTempScript(string str, int startIndex = 0)
         {

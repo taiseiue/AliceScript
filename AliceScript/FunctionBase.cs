@@ -181,7 +181,8 @@ namespace AliceScript
         /// </summary>
         /// <param name="func">登録される関数</param>
         /// <param name="name">登録される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
-        public static void Add(FunctionBase func, string name = "")
+        /// <param name="script">登録したいスクリプト(この項目を省略するとグローバルに登録されます)</param>
+        public static void Add(FunctionBase func, string name = "",ParsingScript script=null)
         {
 
             string fname = func.Name;
@@ -189,18 +190,26 @@ namespace AliceScript
             {
                 fname = name;
             }
-            ParserFunction.RegisterFunction(fname, func);
-            if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+            if (script == null)
             {
-                Constants.FUNCT_WITH_SPACE_ONCE.Add(fname);
+                //グローバルに登録
+                ParserFunction.RegisterFunction(fname, func);
+                if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+                {
+                    Constants.FUNCT_WITH_SPACE_ONCE.Add(fname);
+                }
+                else if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE))
+                {
+                    Constants.FUNCT_WITH_SPACE.Add(fname);
+                }
+                if (func.Attribute.HasFlag(FunctionAttribute.CONTROL_FLOW))
+                {
+                    Constants.CONTROL_FLOW.Add(fname);
+                }
             }
-            else if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE))
+            else
             {
-                Constants.FUNCT_WITH_SPACE.Add(fname);
-            }
-            if (func.Attribute.HasFlag(FunctionAttribute.CONTROL_FLOW))
-            {
-                Constants.CONTROL_FLOW.Add(fname);
+                ParserFunction.RegisterScriptFunction(fname,func,script);
             }
             if (func.Attribute.HasFlag(FunctionAttribute.VIRTUAL))
             {
@@ -212,45 +221,35 @@ namespace AliceScript
         /// </summary>
         /// <param name="func">登録解除される関数</param>
         /// <param name="name">登録解除される関数の名前(この項目を省略するとfunc.Nameが使用されます)</param>
-        public static void Remove(FunctionBase func, string name = "")
+        /// <param name="name">登録解除される関数の場所(この項目を省略するとグローバルからのみ解除されます)</param>
+        public static void Remove(FunctionBase func, string name = "",ParsingScript script=null)
         {
             string fname = name;
             if (!string.IsNullOrEmpty(name))
             {
                 fname = name;
             }
-            ParserFunction.UnregisterFunction(fname);
-            if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+            if (script == null)
             {
-                Constants.FUNCT_WITH_SPACE_ONCE.Remove(fname);
+                ParserFunction.UnregisterFunction(fname);
+                if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+                {
+                    Constants.FUNCT_WITH_SPACE_ONCE.Remove(fname);
+                }
+                else if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE))
+                {
+                    Constants.FUNCT_WITH_SPACE.Remove(fname);
+                }
+                if (func.Attribute.HasFlag(FunctionAttribute.CONTROL_FLOW))
+                {
+                    Constants.CONTROL_FLOW.Remove(fname);
+                }
             }
-            else if (func.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE))
+            else
             {
-                Constants.FUNCT_WITH_SPACE.Remove(fname);
-            }
-            if (func.Attribute.HasFlag(FunctionAttribute.CONTROL_FLOW))
-            {
-                Constants.CONTROL_FLOW.Remove(fname);
+                ParserFunction.UnregisterScriptFunction(fname,script);
             }
 
-        }
-        /// <summary>
-        /// インタプリタに関数が登録されているかどうかを調べます
-        /// </summary>
-        /// <param name="func">調べたい関数</param>
-        /// <returns>インタプリタに登録されているかどうかを示す値</returns>
-        public static bool Exists(FunctionBase func)
-        {
-            return ParserFunction.s_functions.ContainsValue(func);
-        }
-        /// <summary>
-        /// インタプリタに関数が登録されているかどうかを調べます
-        /// </summary>
-        /// <param name="func">調べたい関数の名前</param>
-        /// <returns>インタプリタに登録されているかどうかを示す値</returns>
-        public static bool Exists(string name)
-        {
-            return ParserFunction.s_functions.ContainsKey(name);
         }
         /// <summary>
         /// 現在インタプリタに登録されている関数の名前の一覧を取得します
