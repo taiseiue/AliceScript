@@ -42,8 +42,6 @@ namespace AliceScript
         Dictionary<string, TrieCell> m_children = new Dictionary<string, TrieCell>();
 
         public int Level { get; set; }
-        public WordHint WordHint { get { return m_wordHint; } }
-        public Dictionary<string, TrieCell> Children { get { return m_children; } }
 
         public TrieCell(string name = "", WordHint wordHint = null, int level = 0)
         {

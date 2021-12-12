@@ -16,7 +16,6 @@ namespace AliceScript.NameSpaces
             Variable.AddFunc(new list_FirstOrLastFunc(true));
             Variable.AddFunc(new list_flattenFunc());
             Variable.AddFunc(new list_marge2Func());
-            Variable.AddFunc(new list_FindIndexFunc());
             Variable.AddFunc(new list_ForeachFunc());
 
             Variable.AddFunc(new bytes_toBase64Func());
@@ -110,109 +109,101 @@ namespace AliceScript.NameSpaces
 
         private void List_ReverseFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.CurentVariable.Tuple.Reverse();
-        }
-    }
-    class list_flattenFunc : FunctionBase
-    {
-        public list_flattenFunc()
-        {
-            this.FunctionName = "Flatten";
-            this.RequestType = Variable.VarType.ARRAY;
-            this.Run += List_flattenFunc_Run;
-        }
-
-        private void List_flattenFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Variable v = new Variable();
-            foreach (var strLst in e.CurentVariable.Tuple)
+            if (e.Args.Count > 1)
             {
-                if (strLst.Type == Variable.VarType.ARRAY)
-                {
-                    v.Tuple.AddRange(strLst.Tuple);
-                }
-                else
-                {
-                    v.Tuple.Add(strLst);
-                }
-            }
-            e.CurentVariable.Tuple = v.Tuple;
-        }
-    }
-
-    class list_marge2Func : FunctionBase
-    {
-        public list_marge2Func()
-        {
-
-            this.FunctionName = "Merge";
-            this.RequestType = Variable.VarType.ARRAY;
-            this.Run += List_marge2Func_Run;
-        }
-
-        private void List_marge2Func_Run(object sender, FunctionBaseEventArgs e)
-        {
-            Variable r = new Variable(Variable.VarType.ARRAY);
-
-            r.Tuple.AddRange(e.CurentVariable.Tuple);
-
-            foreach (Variable v1 in e.Args)
-            {
-                if (v1.Type == Variable.VarType.ARRAY)
-                {
-                    r.Tuple.AddRange(v1.Tuple);
-                }
-                else
-                {
-                    r.Tuple.Add(v1);
-                }
-            }
-
-            e.CurentVariable.Tuple = r.Tuple;
-        }
-    }
-    class list_FindIndexFunc : FunctionBase
-    {
-        public list_FindIndexFunc()
-        {
-            this.FunctionName = Constants.FIND_INDEX;
-            this.RequestType = Variable.VarType.ARRAY;
-            this.MinimumArgCounts = 1;
-            this.Run += List_FindIndexFunc_Run;
-        }
-
-        private void List_FindIndexFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            e.Return = new Variable(e.CurentVariable.FindIndex(e.Args[0]));
-        }
-    }
-    class list_FirstOrLastFunc : FunctionBase
-    {
-        public list_FirstOrLastFunc(bool isLast = false)
-        {
-            m_Last = isLast;
-            if (m_Last)
-            {
-                this.FunctionName = Constants.LAST;
+                e.CurentVariable.Tuple.Reverse(e.Args[0].AsInt(), e.Args[1].AsInt());
             }
             else
             {
-                this.FunctionName = Constants.FIRST;
-            }
-            this.RequestType = Variable.VarType.ARRAY;
-            this.Run += List_FirstOrLastFunc_Run;
-        }
-
-        private void List_FirstOrLastFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (e.CurentVariable.Tuple != null && e.CurentVariable.Tuple.Count > 0)
-            {
-                e.Return = m_Last ? e.CurentVariable.Tuple[0] : e.CurentVariable.Tuple[e.CurentVariable.Tuple.Count - 1];
+                e.CurentVariable.Tuple.Reverse();
             }
         }
-
-        private bool m_Last;
     }
+        class list_flattenFunc : FunctionBase
+        {
+            public list_flattenFunc()
+            {
+                this.FunctionName = "Flatten";
+                this.RequestType = Variable.VarType.ARRAY;
+                this.Run += List_flattenFunc_Run;
+            }
 
-   
-}
+            private void List_flattenFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                Variable v = new Variable();
+                foreach (var strLst in e.CurentVariable.Tuple)
+                {
+                    if (strLst.Type == Variable.VarType.ARRAY)
+                    {
+                        v.Tuple.AddRange(strLst.Tuple);
+                    }
+                    else
+                    {
+                        v.Tuple.Add(strLst);
+                    }
+                }
+                e.CurentVariable.Tuple = v.Tuple;
+            }
+        }
+
+        class list_marge2Func : FunctionBase
+        {
+            public list_marge2Func()
+            {
+
+                this.FunctionName = "Merge";
+                this.RequestType = Variable.VarType.ARRAY;
+                this.Run += List_marge2Func_Run;
+            }
+
+            private void List_marge2Func_Run(object sender, FunctionBaseEventArgs e)
+            {
+                Variable r = new Variable(Variable.VarType.ARRAY);
+
+                r.Tuple.AddRange(e.CurentVariable.Tuple);
+
+                foreach (Variable v1 in e.Args)
+                {
+                    if (v1.Type == Variable.VarType.ARRAY)
+                    {
+                        r.Tuple.AddRange(v1.Tuple);
+                    }
+                    else
+                    {
+                        r.Tuple.Add(v1);
+                    }
+                }
+
+                e.CurentVariable.Tuple = r.Tuple;
+            }
+        }
+        class list_FirstOrLastFunc : FunctionBase
+        {
+            public list_FirstOrLastFunc(bool isLast = false)
+            {
+                m_Last = isLast;
+                if (m_Last)
+                {
+                    this.FunctionName = Constants.LAST;
+                }
+                else
+                {
+                    this.FunctionName = Constants.FIRST;
+                }
+                this.RequestType = Variable.VarType.ARRAY;
+                this.Run += List_FirstOrLastFunc_Run;
+            }
+
+            private void List_FirstOrLastFunc_Run(object sender, FunctionBaseEventArgs e)
+            {
+                if (e.CurentVariable.Tuple != null && e.CurentVariable.Tuple.Count > 0)
+                {
+                    e.Return = m_Last ? e.CurentVariable.Tuple[0] : e.CurentVariable.Tuple[e.CurentVariable.Tuple.Count - 1];
+                }
+            }
+
+            private bool m_Last;
+        }
+
+
+    }

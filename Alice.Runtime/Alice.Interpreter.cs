@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AliceScript.NameSpaces
 {
-    static class Alice_Interpreter_Initer
+    internal static class Alice_Interpreter_Initer
     {
         public static void Init()
         {
@@ -20,6 +19,8 @@ namespace AliceScript.NameSpaces
             space.Add(new Interpreter_NamespacesFunc());
             space.Add(new Interpreter_FunctionsFunc());
             space.Add(new Interpreter_VariablesFunc());
+            space.Add(new Interpreter_NameFunc());
+            space.Add(new GetPackageFunc());
             space.Add(new Interpreter_ConstsFunc());
             space.Add(new ScheduleRunFunction(true));
             space.Add(new ScheduleRunFunction(false));
@@ -30,8 +31,8 @@ namespace AliceScript.NameSpaces
             space.Add(new Function_ShowFunc());
             space.Add(new Debug_PrintFunction());
             space.Add(new Debug_PrintFunction(true));
-            space.Add(new Debug_PrintFunction(true,true));
-            space.Add(new Debug_PrintFunction(false,true));
+            space.Add(new Debug_PrintFunction(true, true));
+            space.Add(new Debug_PrintFunction(false, true));
             space.Add(new Debug_IndentFunction());
             space.Add(new Debug_IndentFunction(true));
             space.Add(new Debug_IndentLevelFunction());
@@ -39,7 +40,8 @@ namespace AliceScript.NameSpaces
             NameSpaceManerger.Add(space);
         }
     }
-    class Debug_IndentFunction : FunctionBase
+
+    internal class Debug_IndentFunction : FunctionBase
     {
         public Debug_IndentFunction(bool unindent = false)
         {
@@ -60,7 +62,8 @@ namespace AliceScript.NameSpaces
             if (m_UnIndent && IndentLevel > 0)
             {
                 IndentLevel--;
-            }else if (!m_UnIndent)
+            }
+            else if (!m_UnIndent)
             {
                 IndentLevel++;
             }
@@ -68,7 +71,8 @@ namespace AliceScript.NameSpaces
         public static int IndentLevel = 0;
         private bool m_UnIndent = false;
     }
-    class Debug_IndentLevelFunction : FunctionBase
+
+    internal class Debug_IndentLevelFunction : FunctionBase
     {
         public Debug_IndentLevelFunction()
         {
@@ -85,9 +89,10 @@ namespace AliceScript.NameSpaces
             e.Return = new Variable(Debug_IndentFunction.IndentLevel);
         }
     }
-    class Debug_PrintFunction : FunctionBase
+
+    internal class Debug_PrintFunction : FunctionBase
     {
-        public Debug_PrintFunction(bool iswrite=false,bool isif=false)
+        public Debug_PrintFunction(bool iswrite = false, bool isif = false)
         {
             string name = "Debug_";
             if (iswrite)
@@ -119,7 +124,7 @@ namespace AliceScript.NameSpaces
         private bool m_isWrite = false;
         private void PrintFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (!m_isIf||e.Args[0].AsBool())
+            if (!m_isIf || e.Args[0].AsBool())
             {
                 int countnum = 0;
                 if (m_isIf) { countnum++; }
@@ -134,7 +139,7 @@ namespace AliceScript.NameSpaces
                 else
                 {
                     string format = e.Args[countnum].AsString();
-                    for (int i = 0; i < countnum+1; i++)
+                    for (int i = 0; i < countnum + 1; i++)
                     {
                         e.Args.RemoveAt(0);
                     }
@@ -144,18 +149,19 @@ namespace AliceScript.NameSpaces
         }
 
         public static void AddDebugOutput(string text, ParsingScript script = null,
-                                     bool addLine = true, bool addSpace = true, string start = "",string indent =" ")
+                                     bool addLine = true, bool addSpace = true, string start = "", string indent = " ")
         {
             string indents = "";
             for (int i = 0; i < Debug_IndentFunction.IndentLevel; i++)
             {
                 indents += indent;
             }
-            string output = indents+text + (addLine ? Environment.NewLine : string.Empty);
+            string output = indents + text + (addLine ? Environment.NewLine : string.Empty);
             Interpreter.Instance.AppendDebug(output);
         }
     }
-    class Interpreter_NameExistsFunc : FunctionBase
+
+    internal class Interpreter_NameExistsFunc : FunctionBase
     {
         public Interpreter_NameExistsFunc()
         {
@@ -170,10 +176,11 @@ namespace AliceScript.NameSpaces
             varName = Constants.ConvertName(varName);
 
             bool result = ParserFunction.GetVariable(varName, e.Script) != null;
-            e.Return= new Variable(result);
+            e.Return = new Variable(result);
         }
     }
-    class Function_ShowFunc : FunctionBase
+
+    internal class Function_ShowFunc : FunctionBase
     {
         public Function_ShowFunc()
         {
@@ -196,7 +203,8 @@ namespace AliceScript.NameSpaces
             e.Return = new Variable(body);
         }
     }
-    class gc_collectFunc : FunctionBase
+
+    internal class gc_collectFunc : FunctionBase
     {
         public gc_collectFunc()
         {
@@ -210,7 +218,8 @@ namespace AliceScript.NameSpaces
             GC.Collect();
         }
     }
-    class gc_gettotalmemoryFunc : FunctionBase
+
+    internal class gc_gettotalmemoryFunc : FunctionBase
     {
         public gc_gettotalmemoryFunc()
         {
@@ -224,7 +233,8 @@ namespace AliceScript.NameSpaces
             GC.GetTotalMemory(e.Args[0].AsBool());
         }
     }
-    class gc_collectafterexecuteFunc : FunctionBase
+
+    internal class gc_collectafterexecuteFunc : FunctionBase
     {
         public gc_collectafterexecuteFunc()
         {
@@ -242,7 +252,8 @@ namespace AliceScript.NameSpaces
             e.Return = new Variable(Interop.GCManerger.CollectAfterExecute);
         }
     }
-    class Interpreter_Reset_VariablesFunc : FunctionBase
+
+    internal class Interpreter_Reset_VariablesFunc : FunctionBase
     {
         public Interpreter_Reset_VariablesFunc()
         {
@@ -255,7 +266,8 @@ namespace AliceScript.NameSpaces
             ParserFunction.CleanUpVariables();
         }
     }
-    class Interpreter_Append_OutputOrDataFunc : FunctionBase
+
+    internal class Interpreter_Append_OutputOrDataFunc : FunctionBase
     {
         public Interpreter_Append_OutputOrDataFunc(bool isdata = false)
         {
@@ -276,17 +288,18 @@ namespace AliceScript.NameSpaces
         {
             if (m_isData)
             {
-                e.Return=new Variable(Interpreter.Instance.AppendData(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1))));
+                e.Return = new Variable(Interpreter.Instance.AppendData(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1))));
             }
             else
             {
-                Interpreter.Instance.AppendOutput(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args,1)));
+                Interpreter.Instance.AppendOutput(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1)));
             }
         }
 
-        private bool m_isData=false;
+        private bool m_isData = false;
     }
-    class Interpreter_ProcessOrFileFunc : FunctionBase
+
+    internal class Interpreter_ProcessOrFileFunc : FunctionBase
     {
         public Interpreter_ProcessOrFileFunc(bool isfile = false)
         {
@@ -300,17 +313,18 @@ namespace AliceScript.NameSpaces
         {
             if (m_isFile)
             {
-                e.Return=Interpreter.Instance.ProcessFile(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1)));
+                e.Return = Interpreter.Instance.ProcessFile(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1)));
             }
             else
             {
-                e.Return=Interpreter.Instance.Process(e.Args[0].AsString(),Utils.GetSafeString(e.Args,1), (Utils.GetSafeBool(e.Args, 2)));
+                e.Return = Interpreter.Instance.Process(e.Args[0].AsString(), Utils.GetSafeString(e.Args, 1), (Utils.GetSafeBool(e.Args, 2)));
             }
         }
 
         private bool m_isFile = false;
     }
-    class Interpreter_FunctionsFunc : FunctionBase
+
+    internal class Interpreter_FunctionsFunc : FunctionBase
     {
         public Interpreter_FunctionsFunc()
         {
@@ -348,7 +362,8 @@ namespace AliceScript.NameSpaces
             }
         }
     }
-    class Interpreter_NamespacesFunc : FunctionBase
+
+    internal class Interpreter_NamespacesFunc : FunctionBase
     {
         public Interpreter_NamespacesFunc()
         {
@@ -366,7 +381,8 @@ namespace AliceScript.NameSpaces
             e.Return = v;
         }
     }
-    class Interpreter_VariablesFunc : FunctionBase
+
+    internal class Interpreter_VariablesFunc : FunctionBase
     {
         public Interpreter_VariablesFunc()
         {
@@ -384,7 +400,8 @@ namespace AliceScript.NameSpaces
             e.Return = v;
         }
     }
-    class Interpreter_GetVariable : FunctionBase
+
+    internal class Interpreter_GetVariable : FunctionBase
     {
         public Interpreter_GetVariable()
         {
@@ -397,22 +414,22 @@ namespace AliceScript.NameSpaces
         {
             ParserFunction impl;
             string name = e.Args[0].AsString();
-            if ((e.Script.TryGetVariable(name,out impl)||ParserFunction.s_functions.TryGetValue(name,out impl))&&impl is GetVarFunction vf)
+            if ((e.Script.TryGetVariable(name, out impl) || ParserFunction.s_functions.TryGetValue(name, out impl)) && impl is GetVarFunction vf)
             {
                 e.Return = vf.Value;
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("指定された名前の変数は定義されていません",Exceptions.COULDNT_FIND_VARIABLE,e.Script);
+                ThrowErrorManerger.OnThrowError("指定された名前の変数は定義されていません", Exceptions.COULDNT_FIND_VARIABLE, e.Script);
             }
         }
     }
-    class ScheduleRunFunction : FunctionBase
-    {
-        static Dictionary<string, System.Timers.Timer> m_timers =
-           new Dictionary<string, System.Timers.Timer>();
 
-        bool m_startTimer;
+    internal class ScheduleRunFunction : FunctionBase
+    {
+        private static Dictionary<string, System.Timers.Timer> m_timers =
+           new Dictionary<string, System.Timers.Timer>();
+        private bool m_startTimer;
 
         public ScheduleRunFunction(bool startTimer)
         {
@@ -472,7 +489,8 @@ namespace AliceScript.NameSpaces
             e.Return = Variable.EmptyInstance;
         }
     }
-    class Interpreter_GetScriptFunc : FunctionBase
+
+    internal class Interpreter_GetScriptFunc : FunctionBase
     {
         public Interpreter_GetScriptFunc()
         {
@@ -485,7 +503,8 @@ namespace AliceScript.NameSpaces
             e.Return = new Variable(new Interpreter_ScriptObject(e.Script));
         }
     }
-    class Interpreter_ConstsFunc : FunctionBase
+
+    internal class Interpreter_ConstsFunc : FunctionBase
     {
         public Interpreter_ConstsFunc()
         {
@@ -498,19 +517,113 @@ namespace AliceScript.NameSpaces
         private void Interpreter_ConstsFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             Variable v = new Variable(Variable.VarType.ARRAY);
-            foreach(string s in Constants.CONSTS.Keys)
+            foreach (string s in Constants.CONSTS.Keys)
             {
                 v.Tuple.Add(Variable.FromText(s));
             }
             e.Return = v;
         }
     }
-    class Interpreter_ScriptObject : ObjectBase
+    internal class GetPackageFunc : FunctionBase
+    {
+        public GetPackageFunc()
+        {
+            this.Name = "Interpreter_GetPackage";
+            this.Run += GetPackageFunc_Run;
+        }
+
+        private void GetPackageFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            if (e.Script.Package != null)
+            {
+                e.Return = new Variable(new AlicePackageObject(e.Script.Package));
+            }
+        }
+        internal class AlicePackageObject : ObjectBase
+        {
+            public AlicePackageObject(AlicePackage package)
+            {
+                this.Name = "AlicePackage";
+                Package = package;
+                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Name));
+                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Version));
+                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Description));
+                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Publisher));
+            }
+            public AlicePackage Package { get; set; }
+            private class AlicePackageObjectProperty : PropertyBase
+            {
+                public AlicePackageObjectProperty(AlicePackageObject host, AlicePackageObjectPropertyMode mode)
+                {
+                    Host = host;
+                    Mode = mode;
+                    this.Name = Mode.ToString();
+                    this.HandleEvents = true;
+                    this.CanSet = false;
+                    this.Getting += AlicePackageObjectProperty_Getting;
+                }
+
+                private void AlicePackageObjectProperty_Getting(object sender, PropertyGettingEventArgs e)
+                {
+                    switch (Mode)
+                    {
+                        case AlicePackageObjectPropertyMode.Name:
+                            {
+                                e.Value = new Variable(Host.Package.Name);
+                                break;
+                            }
+                        case AlicePackageObjectPropertyMode.Version:
+                            {
+                                e.Value = new Variable(Host.Package.Version);
+                                break;
+                            }
+                        case AlicePackageObjectPropertyMode.Description:
+                            {
+                                e.Value = new Variable(Host.Package.Description);
+                                break;
+                            }
+                        case AlicePackageObjectPropertyMode.Publisher:
+                            {
+                                e.Value = new Variable(Host.Package.Publisher);
+                                break;
+                            }
+                        case AlicePackageObjectPropertyMode.TargetInterpreter:
+                            {
+                                e.Value = new Variable(Host.Package.TargetInterpreter);
+                                break;
+                            }
+                    }
+                }
+
+                public enum AlicePackageObjectPropertyMode
+                {
+                    Name, Version, Description, Publisher,TargetInterpreter
+                }
+                public AlicePackageObjectPropertyMode Mode { get; set; }
+                public AlicePackageObject Host { get; set; }
+            }
+        }
+    }
+    internal class Interpreter_NameFunc : FunctionBase
+    {
+        public Interpreter_NameFunc()
+        {
+            this.Name = "Interpreter_Name";
+            this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE;
+            this.Run += Interpreter_NameFunc_Run;
+        }
+
+        private void Interpreter_NameFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            e.Return = new Variable(Interpreter.Instance.Name);
+        }
+    }
+    internal class Interpreter_ScriptObject : ObjectBase
     {
         public Interpreter_ScriptObject(ParsingScript script)
         {
             this.Name = "Script";
-            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.IsMainFile,this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.IsMainFile, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.FileName, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.PWD, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalScript, this));
@@ -522,13 +635,19 @@ namespace AliceScript.NameSpaces
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.OriginalLine, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Labels, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Generation, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Functions, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Variables, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Consts, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Parent, this));
+            this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Package, this));
 
             Script = script;
         }
         private ParsingScript Script;
-        class Interpreter_ScriptObject_Property : PropertyBase
+
+        private class Interpreter_ScriptObject_Property : PropertyBase
         {
-            public Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property_Mode mode,Interpreter_ScriptObject host)
+            public Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property_Mode mode, Interpreter_ScriptObject host)
             {
                 Mode = mode;
                 Host = host;
@@ -541,7 +660,7 @@ namespace AliceScript.NameSpaces
             private Interpreter_ScriptObject Host;
             internal enum Interpreter_ScriptObject_Property_Mode
             {
-                IsMainFile,FileName,PWD,OriginalScript,FunctionName,InTryBlock, StillValid, Size, OriginalLineNumber, OriginalLine, Labels,Generation
+                IsMainFile, FileName, PWD, OriginalScript, FunctionName, InTryBlock, StillValid, Size, OriginalLineNumber, OriginalLine, Labels, Generation, Functions, Variables, Consts, Parent,Package
             }
             private void Interpreter_ScriptObject_Property_Getting(object sender, PropertyGettingEventArgs e)
             {
@@ -553,10 +672,10 @@ namespace AliceScript.NameSpaces
                            Host.Script.MainFilename == Host.Script.Filename;
                             e.Value = new Variable(isMain);
                             break;
-                    }
+                        }
                     case Interpreter_ScriptObject_Property_Mode.FileName:
                         {
-                                e.Value= new Variable(Host.Script.Filename);
+                            e.Value = new Variable(Host.Script.Filename);
                             break;
                         }
                     case Interpreter_ScriptObject_Property_Mode.PWD:
@@ -607,7 +726,7 @@ namespace AliceScript.NameSpaces
                                 e.Value = Variable.EmptyInstance;
                                 break;
                             }
-                            foreach(string s in Host.Script.AllLabels.Keys)
+                            foreach (string s in Host.Script.AllLabels.Keys)
                             {
                                 v.Tuple.Add(new Variable(s));
                             }
@@ -617,6 +736,52 @@ namespace AliceScript.NameSpaces
                     case Interpreter_ScriptObject_Property_Mode.Generation:
                         {
                             e.Value = new Variable(Host.Script.Generation);
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Functions:
+                        {
+                            Variable v = new Variable(Variable.VarType.ARRAY);
+                            foreach (string s in Host.Script.Functions.Keys)
+                            {
+                                v.Tuple.Add(new Variable(s));
+                            }
+                            e.Value = v;
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Variables:
+                        {
+                            Variable v = new Variable(Variable.VarType.ARRAY);
+                            foreach (string s in Host.Script.Variables.Keys)
+                            {
+                                v.Tuple.Add(new Variable(s));
+                            }
+                            e.Value = v;
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Consts:
+                        {
+                            Variable v = new Variable(Variable.VarType.ARRAY);
+                            foreach (string s in Host.Script.Consts.Keys)
+                            {
+                                v.Tuple.Add(new Variable(s));
+                            }
+                            e.Value = v;
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Parent:
+                        {
+                            if (Host.Script.ParentScript != null)
+                            {
+                                e.Value = new Variable(new Interpreter_ScriptObject(Host.Script.ParentScript));
+                            }
+                            break;
+                        }
+                    case Interpreter_ScriptObject_Property_Mode.Package:
+                        {
+                            if (Host.Script.Package != null)
+                            {
+                                e.Value = new Variable(new GetPackageFunc.AlicePackageObject(Host.Script.Package));
+                            }
                             break;
                         }
                 }

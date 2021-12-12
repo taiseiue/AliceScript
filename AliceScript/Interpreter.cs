@@ -178,7 +178,6 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
-            FunctionBaseManerger.Add(new GetPackageFunc());
 
             if (File.Exists(Alice.Runtime_File_Path))
             {
@@ -576,10 +575,9 @@ namespace AliceScript
 
             while (stillValid)
             {
-                script.Pointer = startWhileCondition;
-
                 //int startSkipOnBreakChar = from;
                 Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
+                script.Pointer = startWhileCondition;
                 stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
@@ -620,10 +618,9 @@ namespace AliceScript
 
             while (stillValid)
             {
-                script.Pointer = startWhileCondition;
-
                 //int startSkipOnBreakChar = from;
                 Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
+                script.Pointer = startWhileCondition;
                 stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
@@ -876,13 +873,12 @@ namespace AliceScript
 
             Variable result = null;
 
-            bool alreadyInTryBlock = script.InTryBlock;
-            script.InTryBlock = true;
             try
             {
                 string body = Utils.GetBodyBetween(script, Constants.START_ARG,
                                                        Constants.END_ARG);
                 ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.InTryBlock = true;
                 result = mainScript.Process();
             }
             catch (Exception exc)
@@ -891,7 +887,7 @@ namespace AliceScript
             }
             finally
             {
-                script.InTryBlock = alreadyInTryBlock;
+
             }
 
             if (exception != null || result.IsReturn ||
@@ -945,14 +941,12 @@ namespace AliceScript
             Exception exception = null;
 
             Variable result = null;
-
-            bool alreadyInTryBlock = script.InTryBlock;
-            script.InTryBlock = true;
             try
             {
                 string body = Utils.GetBodyBetween(script, Constants.START_ARG,
                                                        Constants.END_ARG);
                 ParsingScript mainScript = script.GetTempScript(body);
+                mainScript.InTryBlock = true;
                 result =await mainScript.ProcessAsync();
             }
             catch (Exception exc)
@@ -961,7 +955,6 @@ namespace AliceScript
             }
             finally
             {
-                script.InTryBlock = alreadyInTryBlock;
             }
 
             if (exception != null || result.IsReturn ||

@@ -16,8 +16,6 @@ namespace AliceScript
             Variable.AddFunc(new ResetFunc());
             Variable.AddFunc(new DeepCloneFunc());
             Variable.AddFunc(new ToStringFunc());
-            Variable.AddFunc(new LengthFunc());
-            Variable.AddFunc(new SizeFunc());
             Variable.AddFunc(new PropertiesFunc());
             Variable.AddFunc(new TypeFunc());
             Variable.AddFunc(new ConvertFunc());
@@ -29,6 +27,8 @@ namespace AliceScript
             Variable.AddFunc(new list_InsertFunc());
             Variable.AddFunc(new RemoveAtFunc());
             Variable.AddFunc(new RemoveFunc());
+            Variable.AddFunc(new SizeFunc());
+            Variable.AddFunc(new LengthFunc());
             //複合関数(終わり)
             //Type関数
             Variable.AddFunc(new type_ActivateFunc());
@@ -301,6 +301,7 @@ namespace AliceScript
         public LengthFunc()
         {
             this.Name = Constants.LENGTH;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.BYTES | Variable.VarType.DELEGATE | Variable.VarType.ARRAY;
             this.Run += ToStringFunc_Run;
         }
 
@@ -314,6 +315,7 @@ namespace AliceScript
         public SizeFunc()
         {
             this.Name = Constants.SIZE;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.BYTES | Variable.VarType.DELEGATE | Variable.VarType.ARRAY;
             this.Run += ToStringFunc_Run;
         }
 

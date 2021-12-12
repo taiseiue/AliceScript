@@ -18,15 +18,6 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError(msg+"には引数が"+expected+"個必要ですが、"+args+"個しか指定されていません",Exceptions.INSUFFICIENT_ARGUMETS);
             }
         }
-        public static void CheckPosInt(Variable variable, ParsingScript script)
-        {
-            CheckInteger(variable, script);
-            if (variable.Value <= 0)
-            {
-                ThrowErrorMsg("次の数の代わりに自然数である必要があります [" +
-                              variable.Value + "]",Exceptions.EXPECTED_NATURAL_NUMBER, script, script.Current.ToString());
-            }
-        }
 
         public static void CheckNonNegativeInt(Variable variable, ParsingScript script)
         {
@@ -54,34 +45,6 @@ namespace AliceScript
                               variable.AsString() + "]",Exceptions.WRONG_TYPE_VARIABLE, script, script.Current.ToString());
             }
         }
-        public static void CheckArray(Variable variable, string name)
-        {
-            if (variable.Tuple == null)
-            {
-                string realName = Constants.GetRealName(name);
-                throw new ArgumentException("An array expected for variable [" +
-                                               realName + "]");
-            }
-        }
-        public static void CheckNotEmpty(ParsingScript script, string varName, string name)
-        {
-            if (!script.StillValid() || string.IsNullOrWhiteSpace(varName))
-            {
-                string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, script, name);
-            }
-        }
-
-        public static void CheckNotNull(object obj, string name, ParsingScript script, int index = -1)
-        {
-            if (obj == null)
-            {
-                string indexStr = index >= 0 ? " の " + (index + 1) : "";
-                string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("次の引数は無効です " + indexStr +
-                                            " 関数:[" + realName + "]",Exceptions.INVAILD_ARGUMENT, script, name);
-            }
-        }
         public static void CheckNotNull(string name, ParserFunction func, ParsingScript script)
         {
             if (func == null)
@@ -101,14 +64,6 @@ namespace AliceScript
             return true;
         }
 
-        public static void CheckNotEnd(ParsingScript script, string name)
-        {
-            if (!script.StillValid())
-            {
-                string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, script, script.Prev.ToString());
-            }
-        }
         public static void CheckNotEnd(ParsingScript script)
         {
             if (!script.StillValid())
@@ -116,16 +71,6 @@ namespace AliceScript
                 ThrowErrorMsg("関数の定義が不完全です", Exceptions.INCOMPLETE_FUNCTION_DEFINITION,script, script.Prev.ToString());
             }
         }
-
-        public static void CheckNotEmpty(string varName, string name)
-        {
-            if (string.IsNullOrEmpty(varName))
-            {
-                string realName = Constants.GetRealName(name);
-                ThrowErrorMsg("次の引数は不完全です [" + realName + "]",Exceptions.INCOMPLETE_ARGUMENTS, null, name);
-            }
-        }
-
         public static void CheckForValidName(string name, ParsingScript script)
         {
             if (string.IsNullOrWhiteSpace(name) || (!Char.IsLetter(name[0]) && name[0] != '_'))

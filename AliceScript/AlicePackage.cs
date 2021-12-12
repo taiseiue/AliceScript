@@ -25,6 +25,10 @@ namespace AliceScript
         /// パッケージの発行者
         /// </summary>
         public string Publisher { get; set; }
+        /// <summary>
+        /// ターゲットのインタプリタ名
+        /// </summary>
+        public string TargetInterpreter { get; set; }
 
         internal ZipArchive archive { get; set; }
 
@@ -183,79 +187,5 @@ namespace AliceScript
         }
 
     }
-    internal class GetPackageFunc : FunctionBase
-    {
-        public GetPackageFunc()
-        {
-            this.Name = "GetPackage";
-            this.Run += GetPackageFunc_Run;
-        }
-
-        private void GetPackageFunc_Run(object sender, FunctionBaseEventArgs e)
-        {
-            if (e.Script.Package != null)
-            {
-                e.Return = new Variable(new AlicePackageObject(e.Script.Package));
-            }
-        }
-        internal class AlicePackageObject : ObjectBase
-        {
-            public AlicePackageObject(AlicePackage package)
-            {
-                this.Name = "AlicePackage";
-                Package = package;
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Name));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Version));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Description));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Publisher));
-            }
-            public AlicePackage Package { get; set; }
-            private class AlicePackageObjectProperty : PropertyBase
-            {
-                public AlicePackageObjectProperty(AlicePackageObject host, AlicePackageObjectPropertyMode mode)
-                {
-                    Host = host;
-                    Mode = mode;
-                    this.Name = Mode.ToString();
-                    this.HandleEvents = true;
-                    this.CanSet = false;
-                    this.Getting += AlicePackageObjectProperty_Getting;
-                }
-
-                private void AlicePackageObjectProperty_Getting(object sender, PropertyGettingEventArgs e)
-                {
-                    switch (Mode)
-                    {
-                        case AlicePackageObjectPropertyMode.Name:
-                            {
-                                e.Value = new Variable(Host.Package.Name);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Version:
-                            {
-                                e.Value = new Variable(Host.Package.Version);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Description:
-                            {
-                                e.Value = new Variable(Host.Package.Description);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Publisher:
-                            {
-                                e.Value = new Variable(Host.Package.Publisher);
-                                break;
-                            }
-                    }
-                }
-
-                public enum AlicePackageObjectPropertyMode
-                {
-                    Name, Version, Description, Publisher
-                }
-                public AlicePackageObjectPropertyMode Mode { get; set; }
-                public AlicePackageObject Host { get; set; }
-            }
-        }
-    }
+   
 }
