@@ -743,12 +743,40 @@ namespace AliceScript
             }
             return result;
         }
+        public Variable ProcessForWhile()
+        {
+            Variable result = null;
+            while (this.Pointer < m_data.Length)
+            {
+                result = this.Execute();
+                if (result.IsReturn||result.Type == Variable.VarType.BREAK)
+                {
+                    return result;
+                }
+                this.GoToNextStatement();
+            }
+            return result;
+        }
         public async Task<Variable> ProcessAsync()
         {
             Variable result = null;
             while (this.Pointer < m_data.Length)
             {
                 result =await this.ExecuteAsync();
+                this.GoToNextStatement();
+            }
+            return result;
+        }
+        public async Task<Variable> ProcessForWhileAsync()
+        {
+            Variable result = null;
+            while (this.Pointer < m_data.Length)
+            {
+                result = await this.ExecuteAsync();
+                if (result.IsReturn || result.Type == Variable.VarType.BREAK)
+                {
+                    return result;
+                }
                 this.GoToNextStatement();
             }
             return result;

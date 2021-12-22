@@ -266,8 +266,8 @@ namespace AliceScript
         }
         private void LockFunction_Run(object sender, FunctionBaseEventArgs e)
         {
-            string body = Utils.GetBodyBetween(e.Script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+            string body = Utils.GetBodyBetween(e.Script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
             ParsingScript parsingScript = e.Script.GetTempScript(body);
             lock (e.Args[0])
             {

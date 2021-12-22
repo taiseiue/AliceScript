@@ -173,3 +173,15 @@ Alice.Runtime1212の変更点
 ・array.Reverseのオーバーロード array.Reverse(index,count);の実装
 ・Interpreter_GetPackage関数を実装
 ・Interpreter_Name関数を実装
+
+AliceScript1213の変更点
+・言語構造内でブロックが実行されない不具合を修正
+・while文およびdo-while文でbreakでループを抜けることができない不具合を修正
+
+AliceScript1222の変更点
+・ユーザー定義関数を暗黙的にデリゲート型オペランドとして解釈
+・AlicePackageにファイル簡易改善検知機能を実装
+・一部例外の表現の改善
+
+Alice.Runtime1222の変更点
+・ScriptオブジェクトにGetVariable、GetConst、GetFunctionメソッドを実装

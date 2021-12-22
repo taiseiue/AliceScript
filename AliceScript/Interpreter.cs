@@ -374,9 +374,9 @@ namespace AliceScript
             {
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
-                
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
                                new GetVarFunction(current), mainScript,false,true);
@@ -433,8 +433,8 @@ namespace AliceScript
                 script.Pointer = startForCondition;
                 Variable current = arrayValue.GetValue(i);
 
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 ParserFunction.AddGlobalOrLocalVariable(varName,
                                new GetVarFunction(current), mainScript, false, true);
@@ -489,17 +489,14 @@ namespace AliceScript
                 }
 
                 script.Pointer = startForCondition;
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.Variables = initScript.Variables;
                 Variable result = mainScript.Process();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
-                    //script.Pointer = startForCondition;
-                    //SkipBlock(script);
-                    //return;
-                    break;
+                    return;
                 }
                 loopScript.Execute(null, 0);
             }
@@ -545,8 +542,8 @@ namespace AliceScript
                 }
 
                 script.Pointer = startForCondition;
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.Variables = initScript.Variables;
                 Variable result = mainScript.Process();
@@ -572,12 +569,14 @@ namespace AliceScript
             int cycles = 0;
             bool stillValid = true;
             Variable result = Variable.EmptyInstance;
-
+            ParsingScript condScript = script.GetTempScript(Utils.GetBodyBetween(script,Constants.START_ARG,Constants.END_ARG));
+            
             while (stillValid)
             {
                 //int startSkipOnBreakChar = from;
-                Variable condResult = script.Execute(Constants.END_ARG_ARRAY);
                 script.Pointer = startWhileCondition;
+                Variable condResult = condScript.Process();
+                condScript.Pointer = 0;
                 stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
@@ -591,10 +590,10 @@ namespace AliceScript
                     return Variable.EmptyInstance;
                 }
 
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
-                result = mainScript.Process();
+                result = mainScript.ProcessForWhile();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -619,8 +618,8 @@ namespace AliceScript
             while (stillValid)
             {
                 //int startSkipOnBreakChar = from;
-                Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
                 script.Pointer = startWhileCondition;
+                Variable condResult = await script.ExecuteAsync(Constants.END_ARG_ARRAY);
                 stillValid = condResult.AsBool();
                 if (!stillValid)
                 {
@@ -633,10 +632,10 @@ namespace AliceScript
                     ThrowErrorManerger.OnThrowError("繰り返しの回数が多すぎます", Exceptions.TOO_MANY_REPETITIONS);
                 }
 
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                      Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
-                result =await mainScript.ProcessAsync();
+                result = await mainScript.ProcessForWhileAsync();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startWhileCondition;
@@ -661,10 +660,10 @@ namespace AliceScript
             {
                 script.Pointer = startDoCondition;
 
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                      Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
-                result = mainScript.Process();
+                result = mainScript.ProcessForWhile();
                 if (result.IsReturn || result.Type == Variable.VarType.BREAK)
                 {
                     script.Pointer = startDoCondition;
@@ -692,8 +691,8 @@ namespace AliceScript
             }
             script.MoveForwardIf(':');
 
-            string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                      Constants.END_ARG);
+            string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
             ParsingScript mainScript = script.GetTempScript(body);
             Variable result = mainScript.Process();
             script.MoveBackIfPrevious('}');
@@ -720,8 +719,8 @@ namespace AliceScript
                 }
                 if (nextToken == Constants.DEFAULT && !caseDone)
                 {
-                    string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                      Constants.END_ARG);
+                    string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                     ParsingScript mainScript = script.GetTempScript(body);
                     result = mainScript.Process();
                     break;
@@ -734,8 +733,8 @@ namespace AliceScript
                     if (switchValue.Type == caseValue.Type && switchValue.Equals(caseValue))
                     {
                         caseDone = true;
-                        string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                      Constants.END_ARG);
+                        string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                         ParsingScript mainScript = script.GetTempScript(body);
                         result = mainScript.Process();
                         if (mainScript.Prev == '}')
@@ -760,8 +759,8 @@ namespace AliceScript
 
             if (isTrue)
             {
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 result = mainScript.Process();
 
@@ -797,8 +796,8 @@ namespace AliceScript
             else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 result = mainScript.Process();
             }
@@ -817,8 +816,8 @@ namespace AliceScript
 
             if (isTrue)
             {
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 result =await mainScript.ProcessAsync();
 
@@ -854,8 +853,8 @@ namespace AliceScript
             else if (Constants.ELSE == nextToken)
             {
                 script.Pointer = nextData.Pointer + 1;
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 result =await mainScript.ProcessAsync();
             }
@@ -875,8 +874,8 @@ namespace AliceScript
 
             try
             {
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.InTryBlock = true;
                 result = mainScript.Process();
@@ -919,8 +918,8 @@ namespace AliceScript
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
 
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.Variables.Add(exceptionName, excMsgFunc);
                 mainScript.Variables.Add(exceptionName + ".Stack", excStackFunc);
@@ -943,8 +942,8 @@ namespace AliceScript
             Variable result = null;
             try
             {
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                        Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.InTryBlock = true;
                 result =await mainScript.ProcessAsync();
@@ -985,8 +984,8 @@ namespace AliceScript
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
-                string body = Utils.GetBodyBetween(script, Constants.START_ARG,
-                                                       Constants.END_ARG);
+                string body = Utils.GetBodyBetween(script, Constants.START_GROUP,
+                                                       Constants.END_GROUP);
                 ParsingScript mainScript = script.GetTempScript(body);
                 mainScript.Variables.Add(exceptionName,excMsgFunc);
                 mainScript.Variables.Add(exceptionName+".Stack",excStackFunc);

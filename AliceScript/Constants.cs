@@ -126,14 +126,13 @@ namespace AliceScript
         public const string TOKEN_COUNTER = "CountTokens";
         public const string TO_STRING = "string";
         public const string VAR = "var";
-        public const string VARIABLE_TYPE = "VariableType";
         public const string WAIT = "wait";
 
         public const string ADD_DATA = "AddDataToCollection";
         public const string COLLECT_DATA = "StartCollectingData";
         public const string GET_DATA = "GetCollectedData";
 
-        // Properties, returned after the variable dot:
+        // プロパティ
         public const string EMPTY_NULL = "EmptyOrNull";
         public const string EMPTY_WHITE = "EmptyOrWhite";
         public const string ENDS_WITH = "EndsWith";
@@ -169,7 +168,7 @@ namespace AliceScript
 
         public const string OBJECT_DEFPROP = "Object.defineProperty";
 
-        // Special property for converting an object to a string:
+
         public const string PROP_TO_STRING = "ToString";
 
         public static string END_ARG_STR = END_ARG.ToString();
@@ -179,10 +178,15 @@ namespace AliceScript
         public static string[] MATH_ACTIONS = { "===", "!==",
                                                 "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
                                                 "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "=","is","as","??"};
-        // Actions: always decreasing by the number of characters.
+
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
         public static string[] CORE_OPERATORS = (new List<string> { TRY, FOR, WHILE }).ToArray();
+
+        // ICEファイルのマーク(ASCIIでI,C,Eとバージョン(1))
+        public static byte[] PACKAGE_MAGIC_NUMBER = { 0x49, 0x43, 0x45,0x01 };
+        // パッケージマニフェストファイルの名前
+        public const string PACKAGE_MANIFEST_FILENAME = "manifest.xml";
 
         public static char[] TERNARY_SEPARATOR = { ':' };
         public static char[] NEXT_ARG_ARRAY = NEXT_ARG.ToString().ToCharArray();
@@ -211,7 +215,7 @@ namespace AliceScript
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>
         {
-            CASE, RETURN, THROW, TYPE_OF, VAR,"const"
+            CASE, RETURN, THROW, TYPE_OF, VAR,CONST
         };
 
         // 言語構造の予約。これらを演算したり返すことは無意味
@@ -276,12 +280,6 @@ namespace AliceScript
         {
             "*", "*=" , "+", "+=" , "-", "-=", "/", "/=", "%", "%=", ">", "<", ">=", "<="
         };
-
-        public static string STATEMENT_SEPARATOR = ";{}";
-        public static string STATEMENT_TOKENS = " ";
-        public static string NUMBER_OPERATORS = "+-*/%";
-
-        public static string ALL_FILES = "*.*";
 
         public const int INDENT = 2;
         public const int DEFAULT_FILE_LINES = 20;

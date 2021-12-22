@@ -342,7 +342,7 @@ namespace AliceScript
             }
 
             //関数として取得を続行
-            return GetFunction(name, script);
+            return GetFunction(name, script,true);
         }
 
         public static Variable GetVariableValue(string name, ParsingScript script = null)
@@ -375,18 +375,26 @@ namespace AliceScript
             return null;
         }
 
-        public static ParserFunction GetFunction(string name, ParsingScript script)
+        public static ParserFunction GetFunction(string name, ParsingScript script,bool toDelegate=false)
         {
             name = Constants.ConvertName(name);
             ParserFunction impl;
             if (script.TryGetFunction(name, out impl))
             {
                 //ローカル関数として登録されている
+                if(toDelegate&&impl is CustomFunction cf)
+                {
+                    return new GetVarFunction(new Variable(cf));
+                }
                 return impl.NewInstance();
             }
             if (s_functions.TryGetValue(name, out impl))
             {
                 //グローバル関数として登録されている
+                if (toDelegate && impl is CustomFunction cf)
+                {
+                    return new GetVarFunction(new Variable(cf));
+                }
                 return impl.NewInstance();
             }
             if (script.TryGetVariable(name, out impl) || s_variables.TryGetValue(name, out impl))

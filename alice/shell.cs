@@ -34,17 +34,34 @@ namespace alice
                     return;
                 }
                 Console.WriteLine();
-                Console.WriteLine("Enterキーを押すとシェルに戻ります。そのほかのキーを押すと終了します。");
+                Console.WriteLine("Ctrl+Cが入力されました");
+                Console.WriteLine("Escキーを押すと、現在のシェルに戻ります");
+                Console.WriteLine("スペースキーを押すと、画面がクリアされます");
+                Console.WriteLine("Endキーを押した後、終了コードを入力するとそのコードで終了します");
                 switch (Console.ReadKey().Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Escape:
                         {
                             e.Cancel = true;
                             break;
                         }
-                    case ConsoleKey.Escape:
+                    case ConsoleKey.End:
                         {
-                            Environment.Exit(0);
+                            while (true)
+                            {
+                                Console.Write("終了コード>");
+                                int i;
+                                if(int.TryParse(Console.ReadLine(),out i)&&i>0)
+                                {
+                                    e.Cancel = true;
+                                    Environment.Exit(i);
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("有効な正の整数を用いて指定してください");
+                                }
+                            }
                             break;
                         }
                     case ConsoleKey.Spacebar:
@@ -110,6 +127,8 @@ namespace alice
 
             //ShellFunctions登録
             FunctionBaseManerger.Add(new shell_dumpFunc());
+            FunctionBaseManerger.Add(new buildpkgFunc());
+            FunctionBaseManerger.Add(new testpkgFunc());
 
             //標準出力
             Interpreter.Instance.OnOutput += Print;
@@ -219,7 +238,6 @@ namespace alice
             AddDictionaryScriptVariables(script,ref dic);
             if (dic.Count <= 0)
             {
-                Console.WriteLine("定義されている変数がありません");
                 return;
             }
             List<string> names = new List<string>();
@@ -268,7 +286,6 @@ namespace alice
             Dictionary<string, ParserFunction> dic = ParserFunction.s_variables;
             if (dic.Count <= 0)
             {
-                Console.WriteLine("定義されている変数がありません");
                 return;
             }
             List<string> names = new List<string>();

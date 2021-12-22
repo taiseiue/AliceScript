@@ -569,27 +569,27 @@ namespace AliceScript.NameSpaces
                     {
                         case AlicePackageObjectPropertyMode.Name:
                             {
-                                e.Value = new Variable(Host.Package.Name);
+                                e.Value = new Variable(Host.Package.Manifest.Name);
                                 break;
                             }
                         case AlicePackageObjectPropertyMode.Version:
                             {
-                                e.Value = new Variable(Host.Package.Version);
+                                e.Value = new Variable(Host.Package.Manifest.Version);
                                 break;
                             }
                         case AlicePackageObjectPropertyMode.Description:
                             {
-                                e.Value = new Variable(Host.Package.Description);
+                                e.Value = new Variable(Host.Package.Manifest.Description);
                                 break;
                             }
                         case AlicePackageObjectPropertyMode.Publisher:
                             {
-                                e.Value = new Variable(Host.Package.Publisher);
+                                e.Value = new Variable(Host.Package.Manifest.Publisher);
                                 break;
                             }
-                        case AlicePackageObjectPropertyMode.TargetInterpreter:
+                        case AlicePackageObjectPropertyMode.Target:
                             {
-                                e.Value = new Variable(Host.Package.TargetInterpreter);
+                                e.Value = new Variable(Host.Package.Manifest.Target);
                                 break;
                             }
                     }
@@ -597,7 +597,7 @@ namespace AliceScript.NameSpaces
 
                 public enum AlicePackageObjectPropertyMode
                 {
-                    Name, Version, Description, Publisher,TargetInterpreter
+                    Name, Version, Description, Publisher,Target
                 }
                 public AlicePackageObjectPropertyMode Mode { get; set; }
                 public AlicePackageObject Host { get; set; }
@@ -641,10 +641,103 @@ namespace AliceScript.NameSpaces
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Parent, this));
             this.AddProperty(new Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property.Interpreter_ScriptObject_Property_Mode.Package, this));
 
+            this.AddFunction(new Interpreter_ScriptObject_GetConst(this));
+            this.AddFunction(new Interpreter_ScriptObject_GetVariable(this));
+            this.AddFunction(new Interpreter_ScriptObject_GetFunction(this));
+            this.AddFunction(new Interpreter_ScriptObject_ExecuteFunction(this));
+            this.AddFunction(new Interpreter_ScriptObject_GetScriptFunction(this));
+
             Script = script;
         }
         private ParsingScript Script;
+        private class Interpreter_ScriptObject_GetVariable : FunctionBase
+        {
+            public Interpreter_ScriptObject_GetVariable(Interpreter_ScriptObject host)
+            {
+                this.Host = host;
+                this.Name = "GetVariable";
+                this.MinimumArgCounts = 1;
+                this.Run += Interpreter_ScriptObject_GetVariable_Run;
+            }
+            public Interpreter_ScriptObject Host { get; set; }
+            private void Interpreter_ScriptObject_GetVariable_Run(object sender, FunctionBaseEventArgs e)
+            {
+                ParserFunction impl;
+                if(Host.Script.TryGetVariable(e.Args[0].AsString(),out impl)&&impl is GetVarFunction vf)
+                {
+                    e.Return = vf.Value;
+                }
+            }
+        }
+        private class Interpreter_ScriptObject_GetConst : FunctionBase
+        {
+            public Interpreter_ScriptObject_GetConst(Interpreter_ScriptObject host)
+            {
+                this.Host = host;
+                this.Name = "GetConst";
+                this.MinimumArgCounts = 1;
+                this.Run += Interpreter_ScriptObject_GetVariable_Run;
+            }
+            public Interpreter_ScriptObject Host { get; set; }
+            private void Interpreter_ScriptObject_GetVariable_Run(object sender, FunctionBaseEventArgs e)
+            {
+                ParserFunction impl;
+                if (Host.Script.TryGetConst(e.Args[0].AsString(), out impl) && impl is GetVarFunction vf)
+                {
+                    e.Return = vf.Value;
+                }
+            }
+        }
+        private class Interpreter_ScriptObject_GetFunction : FunctionBase
+        {
+            public Interpreter_ScriptObject_GetFunction(Interpreter_ScriptObject host)
+            {
+                this.Host = host;
+                this.Name = "GetFunction";
+                this.MinimumArgCounts = 1;
+                this.Run += Interpreter_ScriptObject_GetVariable_Run;
+            }
+            public Interpreter_ScriptObject Host { get; set; }
+            private void Interpreter_ScriptObject_GetVariable_Run(object sender, FunctionBaseEventArgs e)
+            {
+                ParserFunction impl;
+                if (Host.Script.TryGetVariable(e.Args[0].AsString(), out impl) && impl is CustomFunction cf)
+                {
+                    e.Return = new Variable(cf);
+                }
+            }
+        }
+        private class Interpreter_ScriptObject_ExecuteFunction : FunctionBase
+        {
+            public Interpreter_ScriptObject_ExecuteFunction(Interpreter_ScriptObject host)
+            {
+                Host = host;
+                this.Name = "Execute";
+                this.Run += Interpreter_ScriptObject_ExecuteFunction_Run;
+            }
 
+            private void Interpreter_ScriptObject_ExecuteFunction_Run(object sender, FunctionBaseEventArgs e)
+            {
+                e.Return = Host.Script.Process();
+            }
+
+            public Interpreter_ScriptObject Host { get; private set; }
+        }
+        private class Interpreter_ScriptObject_GetScriptFunction : FunctionBase
+        {
+            private Interpreter_ScriptObject Host { get; set; }
+            public Interpreter_ScriptObject_GetScriptFunction(Interpreter_ScriptObject host)
+            {
+                Host = host;
+                this.Name = "GetScript";
+                this.Run += Interpreter_ScriptObject_GetScriptFunction_Run;
+            }
+
+            private void Interpreter_ScriptObject_GetScriptFunction_Run(object sender, FunctionBaseEventArgs e)
+            {
+                e.Return = new Variable(new Interpreter_ScriptObject(Host.Script.GetTempScript(e.Args[0].AsString())));
+            }
+        }
         private class Interpreter_ScriptObject_Property : PropertyBase
         {
             public Interpreter_ScriptObject_Property(Interpreter_ScriptObject_Property_Mode mode, Interpreter_ScriptObject host)

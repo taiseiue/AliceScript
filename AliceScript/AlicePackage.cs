@@ -1,38 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace AliceScript
 {
     public class AlicePackage
     {
-        /// <summary>
-        /// パッケージの名前
-        /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// パッケージのバージョン
-        /// </summary>
-        public string Version { get; set; }
-        /// <summary>
-        /// パッケージの説明
-        /// </summary>
-        public string Description { get; set; }
-        /// <summary>
-        /// パッケージの発行者
-        /// </summary>
-        public string Publisher { get; set; }
-        /// <summary>
-        /// ターゲットのインタプリタ名
-        /// </summary>
-        public string TargetInterpreter { get; set; }
 
         internal ZipArchive archive { get; set; }
 
-        private const string ConfigFileName = "manifest.xml";
+        public PackageManifest Manifest { get; set; }
 
         public static void Load(string path)
         {
@@ -41,13 +21,73 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError("パッケージが見つかりません", Exceptions.FILE_NOT_FOUND);
                 return;
             }
-            LoadArchive(ZipFile.OpenRead(path),path);
+            byte[] file = File.ReadAllBytes(path);
+            LoadData(file,path);
         }
-        public static void LoadData(byte[] data,string filename="")
+        public static void LoadData(byte[] data, string filename = "")
         {
-            LoadArchive(new ZipArchive(new MemoryStream(data)),filename);
+            byte[] magic = data.Take(Constants.PACKAGE_MAGIC_NUMBER.Length).ToArray();
+            if (magic.SequenceEqual(Constants.PACKAGE_MAGIC_NUMBER))
+            {
+                LoadEncodingPackage(data, filename);
+            }
+            else
+            {
+                LoadArchive(new ZipArchive(new MemoryStream(data)), filename);
+            }
         }
-        private static void LoadArchive(ZipArchive a,string filename="")
+        public static PackageManifest GetManifest(string xml)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(xml))
+                {
+                    return null;
+                }
+                XMLConfig config = new XMLConfig();
+                config.XMLText = xml;
+                if (!config.Exists("name") && !config.Exists("script"))
+                {
+                    return null;
+                }
+                PackageManifest manifest = new PackageManifest();
+                manifest.Name = config.Read("name");
+                manifest.Version = config.Read("version");
+                manifest.Description = config.Read("description");
+                manifest.Publisher = config.Read("publisher");
+
+                string sip = config.Read("target");
+                if (!string.IsNullOrEmpty(sip) && sip.ToLower() != "any")
+                {
+                    manifest.Target = new List<string>(sip.Split(','));
+                }
+                else
+                {
+                    manifest.Target = null;
+                }
+                string script = config.Read("script");
+                string path = config.ReadAttribute("script", "path");
+                if (string.IsNullOrEmpty(script) && !string.IsNullOrEmpty(path))
+                {
+                    //リダイレクト
+                    manifest.ScriptPath = path;
+                    manifest.UseInlineScript = false;
+                }
+                else
+                {
+                    //インライン
+                    manifest.Script = script;
+                    manifest.ScriptPath = path;
+                    manifest.UseInlineScript = true;
+                }
+                return manifest;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        private static void LoadArchive(ZipArchive a, string filename = "")
         {
             try
             {
@@ -56,7 +96,7 @@ namespace AliceScript
                     ThrowErrorManerger.OnThrowError("パッケージを展開できません", Exceptions.BAD_PACKAGE);
                     return;
                 }
-                ZipArchiveEntry e = a.GetEntry(ConfigFileName);
+                ZipArchiveEntry e = a.GetEntry(Constants.PACKAGE_MANIFEST_FILENAME);
                 if (e == null)
                 {
                     ThrowErrorManerger.OnThrowError("パッケージ設定ファイル:[manifest.xml]が見つかりません", Exceptions.BAD_PACKAGE);
@@ -66,54 +106,44 @@ namespace AliceScript
                     //見つかった時は開く
                     AlicePackage package = new AlicePackage();
                     package.archive = a;
-                    string xml = GetEntryScript(e, ConfigFileName);
+                    string xml = GetEntryScript(e,Constants.PACKAGE_MANIFEST_FILENAME);
                     if (xml == null)
                     {
                         return;
                     }
-                    XMLConfig config = new XMLConfig();
-                    config.XMLText = xml;
-                    if (config.Exists("name") && config.Exists("script"))
+                    package.Manifest = GetManifest(xml);
+                    if (package.Manifest!=null)
                     {
-                        package.Name = config.Read("name");
-                        package.Version = config.Read("version");
-                        package.Description = config.Read("description");
-                        package.Publisher = config.Read("publisher");
-                        string supportinterpreter = config.Read("supportinterpreter");
-                        if (supportinterpreter != "" && supportinterpreter != "any")
+                        if (package.Manifest.Target!=null)
                         {
-                            List<string> suppports = new List<string>(supportinterpreter.Split(','));
-                            if (!suppports.Contains(Interpreter.Instance.Name))
+                            if (!package.Manifest.Target.Contains(Interpreter.Instance.Name))
                             {
-                                ThrowErrorManerger.OnThrowError("そのパッケージをこのインタプリタで実行することはできません",Exceptions.NOT_COMPATIBLE_PACKAGES);
+                                ThrowErrorManerger.OnThrowError("そのパッケージをこのインタプリタで実行することはできません", Exceptions.NOT_COMPATIBLE_PACKAGES);
                                 return;
                             }
                         }
-                        string script = config.Read("script");
-                        string srcname = ConfigFileName;
-                        if (config.ExistsAttribute("script", "path"))
+                        string srcname=string.IsNullOrEmpty(package.Manifest.ScriptPath) ? Constants.PACKAGE_MANIFEST_FILENAME: package.Manifest.ScriptPath;
+                        if (!package.Manifest.UseInlineScript)
                         {
-                            string entrypoint = config.ReadAttribute("script","path");
-                            srcname = entrypoint;
-                            ZipArchiveEntry entry = a.GetEntry(entrypoint);
+                            ZipArchiveEntry entry = a.GetEntry(srcname);
                             if (entry == null)
                             {
-                                ThrowErrorManerger.OnThrowError("エントリポイント:[" + entrypoint + "]が見つかりません", Exceptions.BAD_PACKAGE);
+                                ThrowErrorManerger.OnThrowError("エントリポイント:[" + srcname + "]が見つかりません", Exceptions.BAD_PACKAGE);
                                 return;
                             }
                             else
                             {
-                                script = GetEntryScript(entry, entrypoint);
+                                package.Manifest.Script = GetEntryScript(entry, srcname);
                             }
                         }
-                        Interpreter.Instance.Process(script, filename + "\\" +srcname, true, null, package);
+                        Interpreter.Instance.Process(package.Manifest.Script, filename + "\\" + srcname, true, null, package);
                     }
                     else
                     {
-                        ThrowErrorManerger.OnThrowError("パッケージ設定ファイルは必要な項目が記述されていません", Exceptions.BAD_PACKAGE);
+                        ThrowErrorManerger.OnThrowError("パッケージマニフェストファイルが不正です", Exceptions.BAD_PACKAGE);
                         return;
                     }
-                    
+
                 }
             }
             catch (Exception ex)
@@ -185,7 +215,155 @@ namespace AliceScript
                 return ms.GetBuffer();
             }
         }
+        public static void CreateEncodingPackage(string filepath, string outfilepath)
+        {
+            int i, len;
+            byte[] buffer = new byte[4096];
+            byte[] data = File.ReadAllBytes(filepath);
 
+            using (FileStream outfs = new FileStream(outfilepath, FileMode.Create, FileAccess.Write))
+            {
+                using (AesManaged aes = new AesManaged())
+                {
+                    aes.BlockSize = 128;              // BlockSize = 16bytes
+                    aes.KeySize = 128;                // KeySize = 16bytes
+                    aes.Mode = CipherMode.CBC;        // CBC mode
+                    aes.Padding = PaddingMode.PKCS7;    // Padding mode is "PKCS7".
+
+                    // KeyとIV ( Initilization Vector ) は、AesManagedにつくらせる
+                    aes.GenerateKey();
+                    aes.GenerateIV();
+
+                    //Encryption interface.
+                    ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                    using (CryptoStream cse = new CryptoStream(outfs, encryptor, CryptoStreamMode.Write))
+                    {
+                        outfs.Write(Constants.PACKAGE_MAGIC_NUMBER, 0, Constants.PACKAGE_MAGIC_NUMBER.Length);     // ファイルヘッダを先頭に埋め込む
+                        outfs.Write(aes.Key,0,16); //次にKeyをファイルに埋め込む
+                        outfs.Write(aes.IV, 0, 16); // 続けてIVもファイルに埋め込む
+                        using (DeflateStream ds = new DeflateStream(cse, CompressionMode.Compress)) //圧縮
+                        {
+                            double size = data.LongLength;
+                            byte[] sum = BitConverter.GetBytes(size);
+                            ds.Write(sum,0,8);//解凍後の実際の長さを書き込む(これを用いて解凍をチェックする)
+                            using (MemoryStream fs=new MemoryStream(data))
+                            {
+                                while ((len = fs.Read(buffer, 0, 4096)) > 0)
+                                {
+                                    ds.Write(buffer, 0, len);
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+            }
+        }
+        
+        public static void LoadEncodingPackage(byte[] data,string filename="")
+        {
+            int i, len;
+            byte[] buffer = new byte[4096];
+
+            using (MemoryStream outfs = new MemoryStream())
+            {
+                
+                using (MemoryStream fs=new MemoryStream(data))
+                {
+                    using (AesManaged aes = new AesManaged())
+                    {
+                        aes.BlockSize = 128;              // BlockSize = 16bytes
+                        aes.KeySize = 128;                // KeySize = 16bytes
+                        aes.Mode = CipherMode.CBC;        // CBC mode
+                        aes.Padding = PaddingMode.PKCS7;    // Padding mode is "PKCS7".
+
+                        int ml = Constants.PACKAGE_MAGIC_NUMBER.Length;
+                        byte[] mark = new byte[ml];
+                        fs.Read(mark, 0, ml);
+                        if (!mark.SequenceEqual(Constants.PACKAGE_MAGIC_NUMBER))
+                        {
+                            ThrowErrorManerger.OnThrowError("エラー:有効なAlicePackageファイルではありません",Exceptions.BAD_PACKAGE);
+                            return;
+                        }
+                        // Key
+                        byte[] key = new byte[16];
+                        fs.Read(key,0,16);
+                        aes.Key = key;
+                        // Initilization Vector
+                        byte[] iv = new byte[16];
+                        fs.Read(iv, 0, 16);
+                        aes.IV = iv;
+                        //Decryption interface.
+                        ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                        using (CryptoStream cse = new CryptoStream(fs, decryptor, CryptoStreamMode.Read))
+                        {
+                            using (DeflateStream ds = new DeflateStream(cse, CompressionMode.Decompress))   //解凍
+                            {
+                                byte[] sum = new byte[8];
+                                ds.Read(sum,0,8);
+                                double size = BitConverter.ToDouble(sum);
+                                while ((len = ds.Read(buffer, 0, 4096)) > 0)
+                                {
+                                    outfs.Write(buffer, 0, len);
+                                }
+                                if (outfs.Length != size)
+                                {
+                                    ThrowErrorManerger.OnThrowError("エラー:AlicePackageが壊れています", Exceptions.BAD_PACKAGE);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                try
+                {
+                    LoadArchive(new ZipArchive(outfs),filename);
+                }
+                catch
+                {
+                    ThrowErrorManerger.OnThrowError("エラー:AlicePackageが壊れています", Exceptions.BAD_PACKAGE);
+                    return;
+                }
+            }
+        }
     }
-   
+    public class PackageManifest
+    {
+        /// <summary>
+        /// パッケージの名前
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// パッケージのバージョン
+        /// </summary>
+        public string Version { get; set; }
+        /// <summary>
+        /// パッケージの説明
+        /// </summary>
+        public string Description { get; set; }
+        /// <summary>
+        /// パッケージの発行者
+        /// </summary>
+        public string Publisher { get; set; }
+        /// <summary>
+        /// ターゲット
+        /// </summary>
+        public List<string> Target { get; set; }
+        /// <summary>
+        /// インラインスクリプトの場合。それ以外の場合はnull。
+        /// </summary>
+        public string Script { get; set; }
+        /// <summary>
+        /// スクリプトファイルのパス
+        /// </summary>
+        public string ScriptPath { get; set; }
+        /// <summary>
+        /// インラインスクリプトを使用するかどうか
+        /// </summary>
+        public bool UseInlineScript { get; set; }
+    }
+
 }

@@ -265,6 +265,10 @@ namespace AliceScript
         /// <summary>
         /// ライブラリで発生した例外です
         /// </summary>
-        LIBRARY_EXCEPTION=0x040
+        LIBRARY_EXCEPTION=0x040,
+        /// <summary>
+        /// 引数が要求された個数よりも多いです
+        /// </summary>
+        TOO_MANY_ARGUREMENTS=0x041
     }
 }

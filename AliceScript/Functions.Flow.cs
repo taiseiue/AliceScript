@@ -1105,12 +1105,12 @@ namespace AliceScript
 
             script.MoveBackIf(Constants.START_GROUP);
 
+            m_args ??= new string[0];
             if (args.Count + m_defaultArgs.Count < m_args.Length)
-            {
-                throw new ArgumentException("Function [" + m_name + "] arguments mismatch: " +
-                                    m_args.Length + " declared, " + args.Count + " supplied");
-            }
-
+             {
+                ThrowErrorManerger.OnThrowError("この関数は、最大で"+(args.Count+m_defaultArgs.Count)+"個の引数を受け取ることができますが、"+m_args.Length+"個の引数が渡されました",Exceptions.TOO_MANY_ARGUREMENTS,script);
+                return Variable.EmptyInstance;
+             }
             Variable result = Run(args, script);
             //このCustomFunctionに子があればそれも実行する
             if (Children != null)
@@ -1135,8 +1135,8 @@ namespace AliceScript
             //これはメソッドで呼び出される。そのため[this]代入分として1を足す。
             if (args.Count + m_defaultArgs.Count+1 < m_args.Length)
             {
-                throw new ArgumentException("Function [" + m_name + "] arguments mismatch: " +
-                                    m_args.Length + " declared, " + args.Count + " supplied");
+                ThrowErrorManerger.OnThrowError("この関数は、最大で" + (args.Count + m_defaultArgs.Count+1) + "個の引数を受け取ることができますが、" + m_args.Length + "個の引数が渡されました", Exceptions.TOO_MANY_ARGUREMENTS, script);
+                return Variable.EmptyInstance;
             }
 
             Variable result = Run(args,script,null,current);
@@ -1163,8 +1163,8 @@ namespace AliceScript
 
             if (args.Count + m_defaultArgs.Count < m_args.Length)
             {
-                throw new ArgumentException("Function [" + m_name + "] arguments mismatch: " +
-                                    m_args.Length + " declared, " + args.Count + " supplied");
+                ThrowErrorManerger.OnThrowError("この関数は、最大で" + (args.Count + m_defaultArgs.Count) + "個の引数を受け取ることができますが、" + m_args.Length + "個の引数が渡されました", Exceptions.TOO_MANY_ARGUREMENTS, script);
+                return Variable.EmptyInstance;
             }
 
             Variable result = await RunAsync(args, script);
