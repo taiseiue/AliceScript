@@ -185,3 +185,7 @@ AliceScript1222の変更点
 
 Alice.Runtime1222の変更点
 ・ScriptオブジェクトにGetVariable、GetConst、GetFunctionメソッドを実装
+
+AliceScript1223の変更点
+・For文でループを抜けた後、余分にステートメントが実行されてしまう可能性のある不具合を修正
+・string.Joinメソッドを追加

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace AliceScript
 {
-    static class VariableFunctionIniter
+    internal static class VariableFunctionIniter
     {
         public static void Init()
         {
@@ -53,6 +51,7 @@ namespace AliceScript
             Variable.AddFunc(new str_EmptyOrWhiteFunc(true));
             Variable.AddFunc(new str_EmptyOrWhiteFunc(false));
             Variable.AddFunc(new str_FormatFunc());
+            Variable.AddFunc(new str_JoinFunc());
             //String関数(終わり)
             //List関数
             Variable.AddFunc(new list_addFunc());
@@ -66,9 +65,10 @@ namespace AliceScript
             //DELEGATE系(終わり)
         }
     }
-    class CustomMethodFunction : FunctionBase
+
+    internal class CustomMethodFunction : FunctionBase
     {
-        public CustomMethodFunction(CustomFunction func,string name="")
+        public CustomMethodFunction(CustomFunction func, string name = "")
         {
             Function = func;
             Name = name;
@@ -89,7 +89,8 @@ namespace AliceScript
 
         public CustomFunction Function { get; set; }
     }
-    class list_RemoveRangeFunc : FunctionBase
+
+    internal class list_RemoveRangeFunc : FunctionBase
     {
         public list_RemoveRangeFunc()
         {
@@ -101,13 +102,14 @@ namespace AliceScript
 
         private void List_RemoveRangeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.NUMBER && e.CurentVariable.Tuple != null)
+            if (e.Args[0].Type == Variable.VarType.NUMBER && e.Args[1].Type == Variable.VarType.NUMBER && e.CurentVariable.Tuple != null)
             {
-                e.CurentVariable.Tuple.RemoveRange(e.Args[0].AsInt(),e.Args[1].AsInt());
+                e.CurentVariable.Tuple.RemoveRange(e.Args[0].AsInt(), e.Args[1].AsInt());
             }
         }
     }
-    class ConvertFunc : FunctionBase
+
+    internal class ConvertFunc : FunctionBase
     {
         public ConvertFunc()
         {
@@ -124,11 +126,12 @@ namespace AliceScript
             }
             else
             {
-                ThrowErrorManerger.OnThrowError("Type型である必要があります",Exceptions.COULDNT_CONVERT_VARIABLE);
+                ThrowErrorManerger.OnThrowError("Type型である必要があります", Exceptions.COULDNT_CONVERT_VARIABLE);
             }
         }
     }
-    class RemoveAtFunc : FunctionBase
+
+    internal class RemoveAtFunc : FunctionBase
     {
         public RemoveAtFunc()
         {
@@ -161,7 +164,8 @@ namespace AliceScript
             }
         }
     }
-    class RemoveFunc : FunctionBase
+
+    internal class RemoveFunc : FunctionBase
     {
         public RemoveFunc()
         {
@@ -177,7 +181,7 @@ namespace AliceScript
             {
                 case Variable.VarType.STRING:
                     {
-                        e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(),""));
+                        e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(), ""));
                         break;
                     }
                 case Variable.VarType.ARRAY:
@@ -202,7 +206,8 @@ namespace AliceScript
             }
         }
     }
-    class IndexOfFunc : FunctionBase
+
+    internal class IndexOfFunc : FunctionBase
     {
         public IndexOfFunc()
         {
@@ -221,17 +226,18 @@ namespace AliceScript
                         if (e.Args.Count == 1)
                         {
                             e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString()));
-                        }else if (e.Args.Count == 2)
+                        }
+                        else if (e.Args.Count == 2)
                         {
-                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt()));
+                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(), e.Args[1].AsInt()));
                         }
                         else
                         {
-                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(),e.Args[1].AsInt(),e.Args[2].AsInt()));
+                            e.Return = new Variable(e.CurentVariable.AsString().IndexOf(e.Args[0].AsString(), e.Args[1].AsInt(), e.Args[2].AsInt()));
                         }
                         break;
                     }
-                    case Variable.VarType.ARRAY:
+                case Variable.VarType.ARRAY:
                     {
                         if (e.CurentVariable.Tuple != null)
                         {
@@ -253,13 +259,13 @@ namespace AliceScript
             }
         }
     }
-   
-    class KeysFunc : FunctionBase
+
+    internal class KeysFunc : FunctionBase
     {
         public KeysFunc()
         {
             this.Name = Constants.KEYS;
-            this.RequestType = Variable.VarType.MAP_NUM|Variable.VarType.MAP_STR;
+            this.RequestType = Variable.VarType.MAP_NUM | Variable.VarType.MAP_STR;
             this.Run += KeysFunc_Run;
 
         }
@@ -269,8 +275,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.GetAllKeys());
         }
     }
-    
-    class PropertiesFunc : FunctionBase
+
+    internal class PropertiesFunc : FunctionBase
     {
         public PropertiesFunc()
         {
@@ -283,7 +289,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.GetProperties());
         }
     }
-    class TypeFunc : FunctionBase
+
+    internal class TypeFunc : FunctionBase
     {
         public TypeFunc()
         {
@@ -296,7 +303,8 @@ namespace AliceScript
             e.Return = Variable.AsType(e.CurentVariable.Type);
         }
     }
-    class LengthFunc : FunctionBase
+
+    internal class LengthFunc : FunctionBase
     {
         public LengthFunc()
         {
@@ -310,7 +318,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.GetLength());
         }
     }
-    class SizeFunc : FunctionBase
+
+    internal class SizeFunc : FunctionBase
     {
         public SizeFunc()
         {
@@ -324,11 +333,12 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.GetSize());
         }
     }
-    class ToStringFunc : FunctionBase
+
+    internal class ToStringFunc : FunctionBase
     {
         public ToStringFunc()
         {
-            this.Name = "To"+Constants.TO_STRING;
+            this.Name = "To" + Constants.TO_STRING;
             this.Run += ToStringFunc_Run;
         }
 
@@ -337,13 +347,14 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString());
         }
     }
-    class ContainsFunc : FunctionBase
+
+    internal class ContainsFunc : FunctionBase
     {
         public ContainsFunc()
         {
             this.Name = Constants.CONTAINS;
             this.MinimumArgCounts = 1;
-            this.RequestType = Variable.VarType.STRING|Variable.VarType.ARRAY|Variable.VarType.DELEGATE;
+            this.RequestType = Variable.VarType.STRING | Variable.VarType.ARRAY | Variable.VarType.DELEGATE;
             this.Run += ContainsFunc_Run;
         }
 
@@ -360,7 +371,7 @@ namespace AliceScript
                         e.Return = new Variable(e.CurentVariable.AsString().Contains(e.Args[0].AsString()));
                         break;
                     }
-                    case Variable.VarType.ARRAY:
+                case Variable.VarType.ARRAY:
                     {
                         e.Return = new Variable(e.CurentVariable.Tuple.Contains(e.Args[0]));
                         break;
@@ -376,7 +387,8 @@ namespace AliceScript
             }
         }
     }
-    class str_EmptyOrWhiteFunc : FunctionBase
+
+    internal class str_EmptyOrWhiteFunc : FunctionBase
     {
         public str_EmptyOrWhiteFunc(bool isNullOr)
         {
@@ -406,7 +418,8 @@ namespace AliceScript
         }
         private bool isNull;
     }
-    class InvokeFunc : FunctionBase
+
+    internal class InvokeFunc : FunctionBase
     {
         public InvokeFunc()
         {
@@ -419,13 +432,14 @@ namespace AliceScript
         {
             if (e.CurentVariable.Delegate != null)
             {
-                e.Return = e.CurentVariable.Delegate.Invoke(e.Args,e.Script);
+                e.Return = e.CurentVariable.Delegate.Invoke(e.Args, e.Script);
             }
 
         }
-       
+
     }
-    class ResetFunc : FunctionBase
+
+    internal class ResetFunc : FunctionBase
     {
         public ResetFunc()
         {
@@ -438,7 +452,8 @@ namespace AliceScript
             e.CurentVariable.Reset();
         }
     }
-    class DeepCloneFunc : FunctionBase
+
+    internal class DeepCloneFunc : FunctionBase
     {
         public DeepCloneFunc()
         {
@@ -451,7 +466,8 @@ namespace AliceScript
             e.Return = e.CurentVariable.DeepClone();
         }
     }
-    class CloneFunc : FunctionBase
+
+    internal class CloneFunc : FunctionBase
     {
         public CloneFunc()
         {
@@ -461,10 +477,11 @@ namespace AliceScript
 
         private void FinalizeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return=e.CurentVariable.Clone();
+            e.Return = e.CurentVariable.Clone();
         }
     }
-    class EqualsFunc : FunctionBase
+
+    internal class EqualsFunc : FunctionBase
     {
         public EqualsFunc()
         {
@@ -478,7 +495,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.Equals(e.Args[0]));
         }
     }
-    class BeginInvokeFunc : FunctionBase
+
+    internal class BeginInvokeFunc : FunctionBase
     {
         public BeginInvokeFunc()
         {
@@ -489,12 +507,13 @@ namespace AliceScript
 
         private void BeginInvokeFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.CurentVariable.Delegate.BeginInvoke(e.Args,e.Script);
+            e.CurentVariable.Delegate.BeginInvoke(e.Args, e.Script);
         }
-      
-        
+
+
     }
-    class DisposeFunc : FunctionBase
+
+    internal class DisposeFunc : FunctionBase
     {
 
         public DisposeFunc()
@@ -512,7 +531,7 @@ namespace AliceScript
     }
 
     //ここより下は変数(Variable)オブジェクトの関数です
-    class type_ActivateFunc : FunctionBase
+    internal class type_ActivateFunc : FunctionBase
     {
         public type_ActivateFunc()
         {
@@ -526,7 +545,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.VariableType);
         }
     }
-    class string_TrimFunc : FunctionBase
+
+    internal class string_TrimFunc : FunctionBase
     {
         public string_TrimFunc(int trimtype = 0)
         {
@@ -552,7 +572,8 @@ namespace AliceScript
             this.RequestType = Variable.VarType.STRING;
             this.Run += String_TrimFunc_Run;
         }
-        int TrimType = 0;
+
+        private int TrimType = 0;
         private void String_TrimFunc_Run(object sender, FunctionBaseEventArgs e)
         {
             switch (TrimType)
@@ -627,7 +648,8 @@ namespace AliceScript
             }
         }
     }
-    class str_CompareToFunc : FunctionBase
+
+    internal class str_CompareToFunc : FunctionBase
     {
         public str_CompareToFunc()
         {
@@ -642,7 +664,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString().CompareTo(e.Args[0].AsString()));
         }
     }
-    class str_IsNormalizedFunc : FunctionBase
+
+    internal class str_IsNormalizedFunc : FunctionBase
     {
         public str_IsNormalizedFunc()
         {
@@ -656,7 +679,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString().IsNormalized());
         }
     }
-    class str_LastIndexOfFunc : FunctionBase
+
+    internal class str_LastIndexOfFunc : FunctionBase
     {
         public str_LastIndexOfFunc()
         {
@@ -689,7 +713,8 @@ namespace AliceScript
 
         }
     }
-    class str_NormalizeFunc : FunctionBase
+
+    internal class str_NormalizeFunc : FunctionBase
     {
         public str_NormalizeFunc()
         {
@@ -703,7 +728,8 @@ namespace AliceScript
             e.Return = new Variable(e.CurentVariable.AsString().Normalize());
         }
     }
-    class str_ReplaceFunc : FunctionBase
+
+    internal class str_ReplaceFunc : FunctionBase
     {
         public str_ReplaceFunc()
         {
@@ -715,10 +741,11 @@ namespace AliceScript
 
         private void Str_ReplaceFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(),e.Args[1].AsString()));
+            e.Return = new Variable(e.CurentVariable.AsString().Replace(e.Args[0].AsString(), e.Args[1].AsString()));
         }
     }
-    class str_SplitFunc : FunctionBase
+
+    internal class str_SplitFunc : FunctionBase
     {
         public str_SplitFunc()
         {
@@ -734,7 +761,7 @@ namespace AliceScript
             {
                 //引数がない場合は文字ずつに分割
                 Variable v = new Variable(Variable.VarType.ARRAY);
-                foreach(char c in e.CurentVariable.AsString())
+                foreach (char c in e.CurentVariable.AsString())
                 {
                     v.Tuple.Add(new Variable(c.ToString()));
                 }
@@ -744,10 +771,11 @@ namespace AliceScript
             {
                 e.Return = new Variable(e.CurentVariable.AsString().Split(new string[] { e.Args[0].AsString() }, StringSplitOptions.None));
             }
-            
+
         }
     }
-    class str_SubStringFunc : FunctionBase
+
+    internal class str_SubStringFunc : FunctionBase
     {
         public str_SubStringFunc()
         {
@@ -768,13 +796,14 @@ namespace AliceScript
                     }
                 case 2:
                     {
-                        e.Return = new Variable(e.CurentVariable.AsString().Substring(e.Args[0].AsInt(),e.Args[1].AsInt()));
+                        e.Return = new Variable(e.CurentVariable.AsString().Substring(e.Args[0].AsInt(), e.Args[1].AsInt()));
                         break;
                     }
             }
         }
     }
-    class str_FormatFunc : FunctionBase
+
+    internal class str_FormatFunc : FunctionBase
     {
         public str_FormatFunc()
         {
@@ -785,10 +814,31 @@ namespace AliceScript
 
         private void Str_FormatFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return=new Variable(StringFormatFunction.Format(e.CurentVariable.AsString(),e.Args));
+            e.Return = new Variable(StringFormatFunction.Format(e.CurentVariable.AsString(), e.Args));
         }
     }
-    class str_ToLowerUpperFunc : FunctionBase
+    internal class str_JoinFunc : FunctionBase
+    {
+        public str_JoinFunc()
+        {
+            this.Name = "Join";
+            this.RequestType=Variable.VarType.STRING;
+            this.MinimumArgCounts = 2;
+            this.Run += Str_JoinFunc_Run;
+        }
+
+        private void Str_JoinFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            List<string> vs = new List<string>();
+            vs.Add(e.CurentVariable.AsString());
+            foreach(Variable v in e.Args)
+            {
+                vs.Add(v.AsString());
+            }
+            e.Return = new Variable(String.Join(e.Args[0].AsString(),vs));
+        }
+    }
+    internal class str_ToLowerUpperFunc : FunctionBase
     {
         public str_ToLowerUpperFunc(bool upper = false)
         {
@@ -803,7 +853,8 @@ namespace AliceScript
             if (Upper)
             {
                 e.Return = new Variable(e.CurentVariable.AsString().ToUpper());
-            }else
+            }
+            else
             {
                 e.Return = new Variable(e.CurentVariable.AsString().ToLower());
             }
@@ -811,8 +862,8 @@ namespace AliceScript
 
         private bool Upper = false;
     }
-   
-    class str_SEWithFunc : FunctionBase
+
+    internal class str_SEWithFunc : FunctionBase
     {
         public str_SEWithFunc(bool endsWith = false)
         {
@@ -848,9 +899,10 @@ namespace AliceScript
             }
         }
 
-        bool EndWith = false;
+        private bool EndWith = false;
     }
-    class str_PadFunc : FunctionBase
+
+    internal class str_PadFunc : FunctionBase
     {
         public str_PadFunc(bool right = false)
         {
@@ -886,10 +938,10 @@ namespace AliceScript
             }
         }
 
-        bool Right = false;
+        private bool Right = false;
     }
-   
-    class list_addFunc : FunctionBase
+
+    internal class list_addFunc : FunctionBase
     {
         public list_addFunc()
         {
@@ -910,7 +962,8 @@ namespace AliceScript
             }
         }
     }
-    class list_addRangeFunc : FunctionBase
+
+    internal class list_addRangeFunc : FunctionBase
     {
         public list_addRangeFunc()
         {
@@ -926,7 +979,7 @@ namespace AliceScript
             {
                 foreach (Variable a in e.Args)
                 {
-                    if (a.Type == Variable.VarType.ARRAY&&a.Tuple!=null)
+                    if (a.Type == Variable.VarType.ARRAY && a.Tuple != null)
                     {
                         e.CurentVariable.Tuple.AddRange(a.Tuple);
                     }
@@ -938,12 +991,13 @@ namespace AliceScript
             }
         }
     }
-    class list_InsertFunc : FunctionBase
+
+    internal class list_InsertFunc : FunctionBase
     {
         public list_InsertFunc()
         {
             this.FunctionName = Constants.INSERT;
-            this.RequestType= Variable.VarType.ARRAY|Variable.VarType.STRING;
+            this.RequestType = Variable.VarType.ARRAY | Variable.VarType.STRING;
             this.MinimumArgCounts = 2;
             this.Run += List_InsertFunc_Run;
         }
@@ -962,17 +1016,18 @@ namespace AliceScript
                     }
                 case Variable.VarType.STRING:
                     {
-                        if (e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.STRING)
+                        if (e.Args[0].Type == Variable.VarType.NUMBER && e.Args[1].Type == Variable.VarType.STRING)
                         {
-                            e.Return = new Variable(e.CurentVariable.AsString().Insert(e.Args[0].AsInt(),e.Args[1].AsString()));
+                            e.Return = new Variable(e.CurentVariable.AsString().Insert(e.Args[0].AsInt(), e.Args[1].AsString()));
                         }
                         break;
                     }
             }
-          
+
         }
     }
-    class list_InsertRangeFunc : FunctionBase
+
+    internal class list_InsertRangeFunc : FunctionBase
     {
         public list_InsertRangeFunc()
         {
@@ -984,11 +1039,11 @@ namespace AliceScript
 
         private void List_InsertFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER&&e.Args[1].Type==Variable.VarType.ARRAY&&e.Args[1].Tuple!=null)
+            if (e.CurentVariable.Tuple != null && e.Args[0].Type == Variable.VarType.NUMBER && e.Args[1].Type == Variable.VarType.ARRAY && e.Args[1].Tuple != null)
             {
                 e.CurentVariable.Tuple.InsertRange(e.Args[0].AsInt(), e.Args[1].Tuple);
             }
         }
     }
-   
+
 }

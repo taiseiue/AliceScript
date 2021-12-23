@@ -501,8 +501,8 @@ namespace AliceScript
                 loopScript.Execute(null, 0);
             }
 
-            script.Pointer = startForCondition;
-            SkipBlock(script);
+          //  script.Pointer = startForCondition;
+          //  SkipBlock(script); 
         }
 
         private async Task ProcessCanonicalForAsync(ParsingScript script, string forString)
@@ -557,8 +557,8 @@ namespace AliceScript
                 await loopScript.ExecuteAsync(null, 0);
             }
 
-            script.Pointer = startForCondition;
-            SkipBlock(script);
+          //  script.Pointer = startForCondition;
+          //  SkipBlock(script);
         }
 
         public Variable ProcessWhile(ParsingScript script)
@@ -889,9 +889,9 @@ namespace AliceScript
 
             }
 
-            if (exception != null || result.IsReturn ||
+            if (exception != null || (result!=null&&(result.IsReturn ||
                 result.Type == Variable.VarType.BREAK ||
-                result.Type == Variable.VarType.CONTINUE)
+                result.Type == Variable.VarType.CONTINUE)))
             {
                 // We are here from the middle of the try-block either because
                 // an exception was thrown or because of a Break/Continue. Skip it.
