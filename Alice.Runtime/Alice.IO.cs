@@ -53,7 +53,38 @@ namespace AliceScript.NameSpaces
             space.Add(new path_JoinFunc());
             space.Add(new path_TrimEndingDirectorySeparatorFunc());
 
+            space.Add(new zip_CreateFromDirectoryFunc());
+            space.Add(new zip_ExtractToDirectoryFunc());
+
             NameSpaceManerger.Add(space);
+        }
+    }
+    class zip_CreateFromDirectoryFunc : FunctionBase
+    {
+        public zip_CreateFromDirectoryFunc()
+        {
+            this.Name = "zip_CreateFromDirectory";
+            this.MinimumArgCounts = 2;
+            this.Run += Zip_CreateFromDirectoryFunc_Run;
+        }
+
+        private void Zip_CreateFromDirectoryFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            ZipFile.CreateFromDirectory(e.Args[0].AsString(),e.Args[1].AsString());
+        }
+    }
+    class zip_ExtractToDirectoryFunc : FunctionBase
+    {
+        public zip_ExtractToDirectoryFunc()
+        {
+            this.Name = "zip_ExtractToDirectory";
+            this.MinimumArgCounts = 2;
+            this.Run += Zip_ExtractToDirectoryFunc_Run;
+        }
+
+        private void Zip_ExtractToDirectoryFunc_Run(object sender, FunctionBaseEventArgs e)
+        {
+            ZipFile.ExtractToDirectory(e.Args[0].AsString(),e.Args[1].AsString());
         }
     }
     class path_ChangeExtensionFunc : FunctionBase

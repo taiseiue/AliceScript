@@ -132,7 +132,7 @@ namespace AliceScript
             String = s;
         }
 
-        public Variable(CustomFunction func)
+        public Variable(FunctionBase func)
         {
             this.Delegate = new DelegateObject(func);
             this.Type = VarType.DELEGATE;
@@ -200,7 +200,14 @@ namespace AliceScript
 
         public Variable(object o)
         {
-            Object = o;
+            if (o == null)
+            {
+                Type=VarType.NONE;
+            }
+            else
+            {
+                Object = o;
+            }
         }
 
 
@@ -326,13 +333,23 @@ namespace AliceScript
                     }
             }
         }
-        public bool Equals(Variable other)
+        /// <summary>
+        /// 現在の変数が他の変数と等価かどうかを評価します
+        /// </summary>
+        /// <param name="other">評価したい変数</param>
+        /// <param name="difftype">型不一致を不等とみなすかどうかを表す値</param>
+        /// <returns>二つの変数が等価かどうかを表す値</returns>
+        public bool Equals(Variable other,bool difftype=true)
         {
-            if (Type != other.Type)
+            if (difftype && Type != other.Type)
             {
                 return false;
             }
-
+            //特例:右辺がNullを示す場合、Nullであるかどうかを返す
+            if (!difftype && other.Type == VarType.NONE)
+            {
+                return IsNull();
+            }
             if (Type == VarType.NUMBER && Value == other.Value)
             {
                 return true;
@@ -1060,7 +1077,7 @@ namespace AliceScript
                 if (result.CustomFunctionSet != null)
                 {
                     var args = new List<Variable> { value };
-                    result.CustomFunctionSet.Run(args, script);
+                    result.CustomFunctionSet.OnRun(args, script);
                     return result;
                 }
                 if (!string.IsNullOrWhiteSpace(result.CustomSet))
@@ -1493,12 +1510,12 @@ namespace AliceScript
             set;
         } = null;
 
-        public CustomFunction CustomFunctionGet
+        public FunctionBase CustomFunctionGet
         {
             get { return m_customFunctionGet; }
             set { m_customFunctionGet = value; }
         }
-        public CustomFunction CustomFunctionSet
+        public FunctionBase CustomFunctionSet
         {
             get { return m_customFunctionSet; }
             set { m_customFunctionSet = value; }
@@ -1560,8 +1577,8 @@ namespace AliceScript
         protected DateTime m_datetime;
         protected DelegateObject m_delegate;
         protected VarType m_type;
-        private CustomFunction m_customFunctionGet;
-        private CustomFunction m_customFunctionSet;
+        private FunctionBase m_customFunctionGet;
+        private FunctionBase m_customFunctionSet;
         protected List<Variable> m_tuple;
         protected byte[] m_byteArray;
         private Dictionary<string, int> m_dictionary = new Dictionary<string, int>();

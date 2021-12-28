@@ -72,7 +72,7 @@ namespace alice
                         }
                     default:
                         {
-                            e.Cancel = false;
+                            Environment.Exit(0);
                             break;
                         }
                 }
@@ -164,6 +164,7 @@ namespace alice
 
         private static void Alice_Exiting(object sender, ExitingEventArgs e)
         {
+            /*
             Console.WriteLine("スクリプトによってシェルが終了されようとしています。");
             Console.WriteLine("Enterキーを押すとシェルに戻ります。そのほかのキーを押すと終了します。");
 
@@ -171,6 +172,7 @@ namespace alice
             {
                 e.Cancel = true;
             }
+            */
         }
 
 

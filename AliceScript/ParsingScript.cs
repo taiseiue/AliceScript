@@ -21,6 +21,7 @@ namespace AliceScript
         private Dictionary<string, ParserFunction> m_variables = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された変数
         private Dictionary<string, ParserFunction> m_consts = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された定数
         private Dictionary<string, ParserFunction> m_functions = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された関数
+        private Dictionary<string, AliceScriptClass> m_classes = new Dictionary<string, AliceScriptClass>();//スクリプトの内部で定義されたクラス
         /// <summary>
         /// このスクリプトに関連付けられたオブジェクトです
         /// </summary>
@@ -90,6 +91,14 @@ namespace AliceScript
         {
             get { return m_consts; }
             set { m_consts = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプト内で定義されたクラス
+        /// </summary>
+        public Dictionary<string,AliceScriptClass> Classes
+        {
+            get { return m_classes; }
+            set { m_classes = value; }
         }
         public string Rest
         {
@@ -306,6 +315,36 @@ namespace AliceScript
             else
             {
                 if (ParentScript != null && ParentScript.ContainsFunction(name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool TryGetClass(string name, out AliceScriptClass cls)
+        {
+            if (Classes.TryGetValue(name, out cls))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.TryGetClass(name, out cls))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool ContainsClass(string name)
+        {
+            if (Classes.ContainsKey(name))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.ContainsClass(name))
                 {
                     return true;
                 }

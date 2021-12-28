@@ -377,14 +377,14 @@ namespace AliceScript
             RegisterClass(className, this);
         }
 
-        public AliceScriptClass(string className, string[] baseClasses)
+        public AliceScriptClass(string className, string[] baseClasses,ParsingScript script)
         {
             Name = className;
             RegisterClass(className, this);
 
             foreach (string baseClass in baseClasses)
             {
-                var bc = AliceScriptClass.GetClass(baseClass);
+                var bc = AliceScriptClass.GetClass(baseClass,script);
                 if (bc == null)
                 {
                     throw new ArgumentException("継承元クラスである [" + baseClass + "] が存在しません");
@@ -438,12 +438,12 @@ namespace AliceScript
             }
         }
 
-        public void AddProperty(string name, Variable property)
+        public void AddProperty(string name, PropertyBase property)
         {
             m_classProperties[name] = property;
         }
 
-        public static AliceScriptClass GetClass(string name)
+        public static AliceScriptClass GetClass(string name,ParsingScript script=null)
         {
             string currNamespace = ParserFunction.GetCurrentNamespace;
             if (!string.IsNullOrWhiteSpace(currNamespace))
@@ -455,19 +455,30 @@ namespace AliceScript
                 }
             }
 
-            AliceScriptClass theClass = null;
-            s_allClasses.TryGetValue(name, out theClass);
-            return theClass;
+            AliceScriptClass theClass = null;ObjectClass oc = null;
+            if (s_allClasses.TryGetValue(name, out theClass))
+            {
+                return theClass;
+            }
+            if(script!=null&&script.TryGetClass(name,out theClass))
+            {
+                return theClass;
+            }
+            if(ClassManerger.Classes.TryGetValue(name,out oc))
+            {
+                return oc;
+            }
+            return null;
         }
 
         private static Dictionary<string, AliceScriptClass> s_allClasses =
             new Dictionary<string, AliceScriptClass>();
         private Dictionary<int, CustomFunction> m_constructors =
             new Dictionary<int, CustomFunction>();
-        private Dictionary<string, CustomFunction> m_customFunctions =
-            new Dictionary<string, CustomFunction>();
-        private Dictionary<string, Variable> m_classProperties =
-            new Dictionary<string, Variable>();
+        private Dictionary<string, FunctionBase> m_customFunctions =
+            new Dictionary<string, FunctionBase>();
+        private Dictionary<string, PropertyBase> m_classProperties =
+            new Dictionary<string, PropertyBase>();
 
         public ParsingScript ParentScript = null;
         public int ParentOffset = 0;
@@ -480,7 +491,7 @@ namespace AliceScript
                                  ParsingScript script = null)
             {
                 InstanceName = instanceName;
-                m_cscsClass = AliceScriptClass.GetClass(className);
+                m_cscsClass = AliceScriptClass.GetClass(className,script);
                 if (m_cscsClass == null)
                 {
                     throw new ArgumentException("継承元クラスである [" + className + "] が存在しません");
@@ -489,40 +500,47 @@ namespace AliceScript
                 // Copy over all the properties defined for this class.
                 foreach (var entry in m_cscsClass.m_classProperties)
                 {
-                    SetProperty(entry.Key, entry.Value);
+                    SetProperty(entry.Key,entry.Value);
                 }
 
                 // Run "constructor" if any is defined for this number of args.
                 CustomFunction constructor = null;
                 if (m_cscsClass.m_constructors.TryGetValue(args.Count, out constructor))
                 {
-                    constructor.Run(args, script, this);
+                    constructor.RunFunc(args, script, this);
                 }
             }
 
             public string InstanceName { get; set; }
 
             private AliceScriptClass m_cscsClass;
-            private Dictionary<string, Variable> m_properties = new Dictionary<string, Variable>();
+            private Dictionary<string, PropertyBase> m_properties = new Dictionary<string, PropertyBase>();
             private HashSet<string> m_propSet = new HashSet<string>();
             private HashSet<string> m_propSetLower = new HashSet<string>();
 
             public override string ToString()
             {
-                CustomFunction customFunction = null;
+                FunctionBase customFunction = null;
                 if (!m_cscsClass.m_customFunctions.TryGetValue(Constants.PROP_TO_STRING.ToLower(),
                      out customFunction))
                 {
                     return m_cscsClass.Name + "." + InstanceName;
                 }
 
-                Variable result = customFunction.Run(null, null, this);
+                Variable result = customFunction.OnRun(null,null,this);
                 return result.ToString();
             }
 
-            public Task<Variable> SetProperty(string name, Variable value)
+            public Task<Variable> SetProperty(string name,Variable value)
             {
-                m_properties[name] = value;
+                m_properties[name].Value = value;
+                m_propSet.Add(name);
+                m_propSetLower.Add(name.ToLower());
+                return Task.FromResult(Variable.EmptyInstance);
+            }
+            public Task<Variable> SetProperty(string name, PropertyBase property)
+            {
+                m_properties[name] = property;
                 m_propSet.Add(name);
                 m_propSetLower.Add(name.ToLower());
                 return Task.FromResult(Variable.EmptyInstance);
@@ -530,12 +548,12 @@ namespace AliceScript
 
             public async Task<Variable> GetProperty(string name, List<Variable> args = null, ParsingScript script = null)
             {
-                if (m_properties.TryGetValue(name, out Variable value))
+                if (m_properties.TryGetValue(name, out PropertyBase value))
                 {
-                    return value;
+                    return value.Value;
                 }
 
-                if (!m_cscsClass.m_customFunctions.TryGetValue(name, out CustomFunction customFunction))
+                if (!m_cscsClass.m_customFunctions.TryGetValue(name, out FunctionBase customFunction))
                 {
                     return null;
                 }
@@ -546,10 +564,10 @@ namespace AliceScript
 
                 foreach (var entry in m_cscsClass.m_classProperties)
                 {
-                    args.Add(entry.Value);
+                    args.Add(entry.Value.Value);
                 }
 
-                Variable result = await customFunction.RunAsync(args, script, this);
+                Variable result = customFunction.OnRun(args, script, this);
                 return result;
             }
 
@@ -558,7 +576,7 @@ namespace AliceScript
                 List<KeyValuePair<string, Variable>> props = new List<KeyValuePair<string, Variable>>();
                 foreach (var entry in m_properties)
                 {
-                    props.Add(new KeyValuePair<string, Variable>(entry.Key, entry.Value));
+                    props.Add(new KeyValuePair<string, Variable>(entry.Key, entry.Value.Value));
                 }
                 return props;
             }
@@ -577,7 +595,7 @@ namespace AliceScript
 
             public bool FunctionExists(string name)
             {
-                if (!m_cscsClass.m_customFunctions.TryGetValue(name, out CustomFunction customFunction))
+                if (!m_cscsClass.m_customFunctions.TryGetValue(name, out FunctionBase customFunction))
                 {
                     return false;
                 }
@@ -681,13 +699,13 @@ namespace AliceScript
             script.MoveForwardIf(Constants.START_ARG);
             List<Variable> args = script.GetFunctionArgs();
 
-            CompiledClass csClass = AliceScriptClass.GetClass(className) as CompiledClass;
+            CompiledClass csClass = AliceScriptClass.GetClass(className,script) as CompiledClass;
             if (csClass != null)
             {
                 ScriptObject obj = csClass.GetImplementation(args);
                 return new Variable(obj);
             }
-            CompiledClassAsync csClassAsync = AliceScriptClass.GetClass(className) as CompiledClassAsync;
+            CompiledClassAsync csClassAsync = AliceScriptClass.GetClass(className,script) as CompiledClassAsync;
             if (csClassAsync != null)
             {
                 ScriptObject obj = csClassAsync.GetImplementationAsync(args).Result;
@@ -707,13 +725,13 @@ namespace AliceScript
             script.MoveForwardIf(Constants.START_ARG);
             List<Variable> args = await script.GetFunctionArgsAsync();
 
-            CompiledClassAsync csClassAsync = AliceScriptClass.GetClass(className) as CompiledClassAsync;
+            CompiledClassAsync csClassAsync = AliceScriptClass.GetClass(className,script) as CompiledClassAsync;
             if (csClassAsync != null)
             {
                 ScriptObject obj = await csClassAsync.GetImplementationAsync(args);
                 return new Variable(obj);
             }
-            CompiledClass csClass = AliceScriptClass.GetClass(className) as CompiledClass;
+            CompiledClass csClass = AliceScriptClass.GetClass(className,script) as CompiledClass;
             if (csClass != null)
             {
                 ScriptObject obj = csClass.GetImplementation(args);
@@ -734,7 +752,7 @@ namespace AliceScript
             string className = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
             className = Constants.ConvertName(className);
             string[] baseClasses = Utils.GetBaseClasses(script);
-            AliceScriptClass newClass = new AliceScriptClass(className, baseClasses);
+            AliceScriptClass newClass = new AliceScriptClass(className, baseClasses,script);
 
             script.MoveForwardIf(Constants.START_GROUP, Constants.SPACE);
 
@@ -753,13 +771,6 @@ namespace AliceScript
             ParsingScript tempScript = script.GetTempScript(body);
             tempScript.CurrentClass = newClass;
             tempScript.DisableBreakpoints = true;
-
-            // Uncomment if want to step into the class creation code when the debugger is attached (unlikely)
-            /*Debugger debugger = script != null && script.Debugger != null ? script.Debugger : Debugger.MainInstance;
-            if (debugger != null)
-            {
-                result = debugger.StepInFunctionIfNeeded(tempScript);
-            }*/
 
             while (tempScript.Pointer < body.Length - 1 &&
                   (result == null || !result.IsReturn))
@@ -813,11 +824,12 @@ namespace AliceScript
         }
     }
 
-    public class CustomFunction : ParserFunction
+    public class CustomFunction : FunctionBase
     {
         public CustomFunction(string funcName,
                                 string body, string[] args, ParsingScript script, object tag = null)
         {
+            this.Attribute = FunctionAttribute.USER_DEFINED;
             Name = funcName;
             m_body = body;
             m_tag = tag;
@@ -1089,10 +1101,7 @@ namespace AliceScript
             }
 
         }
-        internal List<CustomFunction> Children
-        {
-            get;set;
-        }
+        
         protected override Variable Evaluate(ParsingScript script)
         {
 
@@ -1111,7 +1120,7 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError("この関数は、最大で"+(args.Count+m_defaultArgs.Count)+"個の引数を受け取ることができますが、"+m_args.Length+"個の引数が渡されました",Exceptions.TOO_MANY_ARGUREMENTS,script);
                 return Variable.EmptyInstance;
              }
-            Variable result = Run(args, script);
+            Variable result = RunFunc(args, script);
             //このCustomFunctionに子があればそれも実行する
             if (Children != null)
             {
@@ -1139,7 +1148,7 @@ namespace AliceScript
                 return Variable.EmptyInstance;
             }
 
-            Variable result = Run(args,script,null,current);
+            Variable result = RunFunc(args,script,null,current);
             //このCustomFunctionに子があればそれも実行する
             if (Children != null)
             {
@@ -1167,7 +1176,7 @@ namespace AliceScript
                 return Variable.EmptyInstance;
             }
 
-            Variable result = await RunAsync(args, script);
+            Variable result = await RunFuncAsync(args, script);
             //このCustomFunctionに子があればそれも実行する
             if (Children != null)
             {
@@ -1178,8 +1187,11 @@ namespace AliceScript
             }
             return result;
         }
-
-        public Variable Run(List<Variable> args = null, ParsingScript script = null,
+        public override Variable OnRun(List<Variable> args = null, ParsingScript script = null, AliceScriptClass.ClassInstance instance = null, Variable current = null)
+        {
+            return RunFunc(args,script,instance,current);
+        }
+        public Variable RunFunc(List<Variable> args = null, ParsingScript script = null,
                             AliceScriptClass.ClassInstance instance = null,Variable current=null)
         {
             List<KeyValuePair<string, Variable>> args2 = instance == null ? null : instance.GetPropList();
@@ -1213,7 +1225,7 @@ namespace AliceScript
 
             return result;
         }
-        public async Task<Variable> RunAsync(List<Variable> args = null, ParsingScript script = null,
+        public async Task<Variable> RunFuncAsync(List<Variable> args = null, ParsingScript script = null,
                             AliceScriptClass.ClassInstance instance = null)
         {
             List<KeyValuePair<string, Variable>> args2 = instance == null ? null : instance.GetPropList();
@@ -1248,10 +1260,10 @@ namespace AliceScript
             return result;
         }
 
-        public static Task<Variable> Run(string functionName,
+        public static Task<Variable> RunFunc(string functionName,
              Variable arg1 = null, Variable arg2 = null, Variable arg3 = null, ParsingScript script = null)
         {
-            CustomFunction customFunction = ParserFunction.GetFunction(functionName, null) as CustomFunction;
+            CustomFunction customFunction = FunctionBase.GetFunction(functionName, null) as CustomFunction;
 
             if (customFunction == null)
             {
@@ -1272,7 +1284,7 @@ namespace AliceScript
                 args.Add(arg3);
             }
 
-            Variable result = customFunction.Run(args, script);
+            Variable result = customFunction.RunFunc(args, script);
             return Task.FromResult(result);
         }
 
@@ -1777,7 +1789,7 @@ namespace AliceScript
                 {
                     args.AddRange(var.StackVariables);
                 }
-                return var.CustomFunctionGet.Run(args, script);
+                return var.CustomFunctionGet.OnRun(args, script);
             }
             if (var != null && !string.IsNullOrWhiteSpace(var.CustomGet))
             {
@@ -1795,7 +1807,7 @@ namespace AliceScript
                 {
                     args.AddRange(var.StackVariables);
                 }
-                return await var.CustomFunctionGet.RunAsync(args, script);
+                return var.CustomFunctionGet.OnRun(args, script);
             }
             if (!string.IsNullOrWhiteSpace(var.CustomGet))
             {
@@ -2194,7 +2206,7 @@ namespace AliceScript
                     if (script.CurrentClass == null && script.ClassInstance == null)
                     {
 
-                        ParserFunction.AddGlobalOrLocalVariable(m_name, new GetVarFunction(result), baseScript, localIfPossible,registVar,isGlobal);
+                        //ParserFunction.AddGlobalOrLocalVariable(m_name, new GetVarFunction(result), baseScript, localIfPossible,registVar,isGlobal);
                     }
                     return result;
                 }
@@ -2325,7 +2337,7 @@ namespace AliceScript
         {
             if (script.CurrentClass != null)
             {
-                script.CurrentClass.AddProperty(m_name, varValue);
+                script.CurrentClass.AddProperty(m_name,PropertyBase.NewInstance(varValue));
                 return varValue.DeepClone();
             }
             string varName = m_name;
@@ -2357,7 +2369,7 @@ namespace AliceScript
             baseValue.SetProperty(prop, varValue, script, name);
 
 
-            ParserFunction.AddGlobalOrLocalVariable(name, new GetVarFunction(baseValue), script);
+            //ParserFunction.AddGlobalOrLocalVariable(name, new GetVarFunction(baseValue), script);
             //ParserFunction.AddGlobal(name, new GetVarFunction(baseValue), false);
 
             return varValue.DeepClone();
@@ -2367,7 +2379,7 @@ namespace AliceScript
         {
             if (script.CurrentClass != null)
             {
-                script.CurrentClass.AddProperty(m_name, varValue);
+                script.CurrentClass.AddProperty(m_name, PropertyBase.NewInstance(varValue));
                 return varValue.DeepClone();
             }
             string varName = m_name;

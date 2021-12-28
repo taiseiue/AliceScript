@@ -311,13 +311,22 @@ namespace AliceScript.NameSpaces
 
         private void Interpreter_ProcessOrFileFunc_Run(object sender, FunctionBaseEventArgs e)
         {
+            bool mainFile = Utils.GetSafeBool(e.Args, 2);
+            bool inheritanceScript = Utils.GetSafeBool(e.Args, 1,true);
             if (m_isFile)
             {
-                e.Return = Interpreter.Instance.ProcessFile(e.Args[0].AsString(), (Utils.GetSafeBool(e.Args, 1)));
+                e.Return = Interpreter.Instance.ProcessFile(e.Args[0].AsString(), mainFile);
             }
             else
             {
-                e.Return = Interpreter.Instance.Process(e.Args[0].AsString(), Utils.GetSafeString(e.Args, 1), (Utils.GetSafeBool(e.Args, 2)));
+                if (inheritanceScript)
+                {
+                    e.Return = e.Script.GetTempScript(e.Args[0].AsString()).Process();
+                }
+                else
+                {
+                    e.Return = Interpreter.Instance.Process(e.Args[0].AsString(), Utils.GetSafeString(e.Args, 3), mainFile);
+                }
             }
         }
 
@@ -539,71 +548,9 @@ namespace AliceScript.NameSpaces
                 e.Return = new Variable(new AlicePackageObject(e.Script.Package));
             }
         }
-        internal class AlicePackageObject : ObjectBase
-        {
-            public AlicePackageObject(AlicePackage package)
-            {
-                this.Name = "AlicePackage";
-                Package = package;
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Name));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Version));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Description));
-                this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Publisher));
-            }
-            public AlicePackage Package { get; set; }
-            private class AlicePackageObjectProperty : PropertyBase
-            {
-                public AlicePackageObjectProperty(AlicePackageObject host, AlicePackageObjectPropertyMode mode)
-                {
-                    Host = host;
-                    Mode = mode;
-                    this.Name = Mode.ToString();
-                    this.HandleEvents = true;
-                    this.CanSet = false;
-                    this.Getting += AlicePackageObjectProperty_Getting;
-                }
-
-                private void AlicePackageObjectProperty_Getting(object sender, PropertyGettingEventArgs e)
-                {
-                    switch (Mode)
-                    {
-                        case AlicePackageObjectPropertyMode.Name:
-                            {
-                                e.Value = new Variable(Host.Package.Manifest.Name);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Version:
-                            {
-                                e.Value = new Variable(Host.Package.Manifest.Version);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Description:
-                            {
-                                e.Value = new Variable(Host.Package.Manifest.Description);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Publisher:
-                            {
-                                e.Value = new Variable(Host.Package.Manifest.Publisher);
-                                break;
-                            }
-                        case AlicePackageObjectPropertyMode.Target:
-                            {
-                                e.Value = new Variable(Host.Package.Manifest.Target);
-                                break;
-                            }
-                    }
-                }
-
-                public enum AlicePackageObjectPropertyMode
-                {
-                    Name, Version, Description, Publisher,Target
-                }
-                public AlicePackageObjectPropertyMode Mode { get; set; }
-                public AlicePackageObject Host { get; set; }
-            }
-        }
+        
     }
+   
     internal class Interpreter_NameFunc : FunctionBase
     {
         public Interpreter_NameFunc()
@@ -873,7 +820,7 @@ namespace AliceScript.NameSpaces
                         {
                             if (Host.Script.Package != null)
                             {
-                                e.Value = new Variable(new GetPackageFunc.AlicePackageObject(Host.Script.Package));
+                                e.Value = new Variable(new AlicePackageObject(Host.Script.Package));
                             }
                             break;
                         }

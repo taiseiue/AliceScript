@@ -382,18 +382,26 @@ namespace AliceScript
             if (script.TryGetFunction(name, out impl))
             {
                 //ローカル関数として登録されている
-                if(toDelegate&&impl is CustomFunction cf)
+                if(toDelegate&&impl is FunctionBase cf)
                 {
-                    return new GetVarFunction(new Variable(cf));
+                    //かっこなしで呼び出された場合
+                    if (!cf.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE) && !cf.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE) && !cf.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+                    {
+                        return new GetVarFunction(new Variable(cf));
+                    }
                 }
                 return impl.NewInstance();
             }
             if (s_functions.TryGetValue(name, out impl))
             {
                 //グローバル関数として登録されている
-                if (toDelegate && impl is CustomFunction cf)
+                if (toDelegate && impl is FunctionBase cf)
                 {
-                    return new GetVarFunction(new Variable(cf));
+                    //かっこなしで呼び出された場合
+                    if (!cf.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE) && !cf.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE) && !cf.Attribute.HasFlag(FunctionAttribute.FUNCT_WITH_SPACE_ONC))
+                    {
+                        return new GetVarFunction(new Variable(cf));
+                    }
                 }
                 return impl.NewInstance();
             }

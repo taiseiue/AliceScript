@@ -269,6 +269,14 @@ namespace AliceScript
         /// <summary>
         /// 引数が要求された個数よりも多いです
         /// </summary>
-        TOO_MANY_ARGUREMENTS=0x041
+        TOO_MANY_ARGUREMENTS=0x041,
+        /// <summary>
+        /// コンストラクタが実装されていません
+        /// </summary>
+        CONSTRUCTOR_NOT_IMPLEMENT=0x042,
+        /// <summary>
+        /// このプロパティから値を取得することはできません
+        /// </summary>
+        COULDNT_GET_THIS_PROPERTY=0x043
     }
 }

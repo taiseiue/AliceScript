@@ -101,24 +101,25 @@ namespace AliceScript
         {
             if (script == null)
             {
-                ParserFunction.RegisterFunction(obj.Name, new GetVarFunction(new Variable(obj)), true);
+                Classes.Add(obj.Name,new ObjectClass(obj));
             }
             else
             {
-                ParserFunction.RegisterScriptFunction(obj.Name, new GetVarFunction(new Variable(obj)),script);
+                script.Classes.Add(obj.Name,new ObjectClass(obj));
             }
         }
         public static void Remove(ObjectBase obj,ParsingScript script)
         {
             if (script == null)
             {
-                ParserFunction.UnregisterFunction(obj.Name);
+                Classes.Remove(obj.Name);
             }
             else
             {
-                ParserFunction.UnregisterScriptFunction(obj.Name,script);
+                script.Classes.Remove(obj.Name);
             }
         }
+        public static Dictionary<string, ObjectClass> Classes = new Dictionary<string, ObjectClass>();
     }
 
     public abstract class CompiledClassAsync : AliceScriptClass

@@ -177,7 +177,7 @@ namespace AliceScript
         public static string[] OPER_ACTIONS = { "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":", "??="};
         public static string[] MATH_ACTIONS = { "===", "!==",
                                                 "&&", "||", "==", "!=", "<=", ">=", "++", "--", "**",
-                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "=","is","as","??"};
+                                                "%", "*", "/", "+", "-", "^", "&", "|", "<", ">", "="," is "," as ","??"};
 
         public static string[] ACTIONS = (OPER_ACTIONS.Union(MATH_ACTIONS)).ToArray();
 
@@ -210,7 +210,7 @@ namespace AliceScript
         public static List<string> FUNCT_WITH_SPACE = new List<string>
         {
             CLASS,
-            FUNCTION, NAMESPACE, NEW, PRINT,SHOW,
+            FUNCTION, NAMESPACE, NEW, PRINT,SHOW
         };
         //関数呼び出し時に丸括弧が不要な関数。ただしこれらの関数の引数は一つのみである必要があります。
         public static List<string> FUNCT_WITH_SPACE_ONCE = new List<string>

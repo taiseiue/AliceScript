@@ -10,12 +10,39 @@ namespace AliceScript
     {
         /// <summary>
         /// このオブジェクトの名前
+        /// ただし、すべて小文字に変換されます
+        /// 規定値はobject
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get
+            {
+                return m_name;
+            }
+            set
+            {
+                m_name = value.ToLower();
+            }
+        }
+        /// <summary>
+        /// newキーワードを使ってこのクラスのインスタンスを新規に作成することができるかを表す値
+        /// </summary>
+        public bool CanCreateInstance
+        {
+            get
+            {
+                return m_cancreateInstance;
+            }
+            set
+            {
+                m_cancreateInstance = value;
+            }
+        }
+        private bool m_cancreateInstance = false;
+        private string m_name="object";
 
         public Dictionary<string, PropertyBase> Properties = new Dictionary<string, PropertyBase>();
-        public Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
-        public Dictionary<string, Variable> Events = new Dictionary<string, Variable>();
+        public Dictionary<string, ParserFunction> Functions = new Dictionary<string, ParserFunction>();
 
         public ObjectBase(string name = "")
         {
@@ -27,7 +54,6 @@ namespace AliceScript
         {
             List<string> v = new List<string>(Properties.Keys);
             v.AddRange(new List<string>(Functions.Keys));
-            v.AddRange(new List<string>(Events.Keys));
             return v;
         }
         internal static bool GETTING = false;
@@ -37,6 +63,12 @@ namespace AliceScript
         {
             //継承先によって定義されます
             throw new NotImplementedException();
+        }
+        public virtual ObjectBase CreateInstance(List<Variable> args)
+        {
+            //継承先によって定義されます
+            ThrowErrorManerger.OnThrowError("このオブジェクトに有効なコンストラクタは実装されていません",Exceptions.CONSTRUCTOR_NOT_IMPLEMENT);
+            return null;
         }
         public virtual Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
         {
@@ -61,13 +93,9 @@ namespace AliceScript
                     return va;
 
                 }
-                else if (Events.ContainsKey(sPropertyName))
-                {
-                    return Task.FromResult(Events[sPropertyName]);
-                }
                 else
                 {
-                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはメソッドまたはイベントは存在しません。", Exceptions.PROPERTY_OR_METHOD_NOT_FOUND, script);
+                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはメソッドは存在しません。", Exceptions.PROPERTY_OR_METHOD_NOT_FOUND, script);
                     return Task.FromResult(Variable.EmptyInstance);
                 }
             }
@@ -81,16 +109,9 @@ namespace AliceScript
                 {
                     Properties[sPropertyName].Property = argValue;
                 }
-                else if (Events.ContainsKey(sPropertyName))
-                {
-                    if (argValue.Type==Variable.VarType.DELEGATE && argValue.Delegate != null)
-                    {
-                        Events[sPropertyName] = argValue;
-                    }
-                }
                 else
                 {
-                    ThrowErrorManerger.OnThrowError("指定されたプロパティまたはデリゲートは存在しません",Exceptions.COULDNT_FIND_VARIABLE);
+                    ThrowErrorManerger.OnThrowError("指定されたプロパティは存在しません",Exceptions.COULDNT_FIND_VARIABLE);
                 }
             
             return Task.FromResult(Variable.EmptyInstance);
@@ -118,18 +139,26 @@ namespace AliceScript
         }
         
     }
-
-
-    public class ObjectBaseManerger
+    public class ObjectClass : CompiledClass
     {
-        public static void AddObject(ObjectBase obj)
+        public ObjectClass(ObjectBase obj)
         {
-            if (obj != null)
+            ObjectBase = obj;
+        }
+        /// <summary>
+        /// このクラスのもつオブジェクト
+        /// </summary>
+        public ObjectBase ObjectBase { get; set; }
+        public override ScriptObject GetImplementation(List<Variable> args)
+        {
+            if (ObjectBase != null)
             {
-                ParserFunction.RegisterFunction(obj.Name, new GetVarFunction(new Variable(obj)), true);
+                return ObjectBase.CreateInstance(args);
             }
+            return null;
         }
     }
+
 
     public class PropertySettingEventArgs : EventArgs
     {
@@ -177,7 +206,7 @@ namespace AliceScript
 
         public event PropertyGettingEventHandler Getting;
         /// <summary>
-        /// SetPropertyが使用可能かを表す値。デフォルトではTrueです。
+        /// プロパティに値を代入可能かを表す値。デフォルトではTrueです。
         /// </summary>
         public bool CanSet
         {
@@ -190,26 +219,49 @@ namespace AliceScript
                 m_CanSet = value;
             }
         }
+        /// <summary>
+        /// プロパティから値を取得可能かを表す値。デフォルトではTrueです。
+        /// </summary>
+        public bool CanGet
+        {
+            get
+            {
+                return m_CanGet;
+            }
+            set
+            {
+                m_CanGet = value;
+            }
+        }
         private bool m_CanSet = true;
+        private bool m_CanGet = true;
         public Variable Property
         {
             get
             {
-                if (HandleEvents)
+                if (m_CanGet)
                 {
-                    PropertyGettingEventArgs e = new PropertyGettingEventArgs();
-                    e.Value = Value;
-                    Getting?.Invoke(this, e);
-                    return e.Value;
+                    if (HandleEvents)
+                    {
+                        PropertyGettingEventArgs e = new PropertyGettingEventArgs();
+                        e.Value = Value;
+                        Getting?.Invoke(this, e);
+                        return e.Value;
+                    }
+                    else
+                    {
+                        return Value;
+                    }
                 }
                 else
                 {
-                    return Value;
+                    ThrowErrorManerger.OnThrowError("このプロパティから値を取得することはできません", Exceptions.COULDNT_GET_THIS_PROPERTY);
+                    return Variable.EmptyInstance;
                 }
             }
             set
             {
-                if (CanSet)
+                if (m_CanSet)
                 {
                     if (HandleEvents)
                     {
@@ -225,6 +277,22 @@ namespace AliceScript
                 {
                     ThrowErrorManerger.OnThrowError("このプロパティに代入できません",Exceptions.COULDNT_ASSIGN_THIS_PROPERTY);
                 }
+            }
+        }
+        public static PropertyBase NewInstance(Variable value,string name="",bool canSet=true,bool canGet=true)
+        {
+            PropertyBase property = new PropertyBase();
+            property.Value = value;
+            property.Name = name;
+            property.CanSet = canSet;
+            property.CanGet = canGet;
+            return property;
+        }
+        public static PropertyBase EmptyInstance
+        {
+            get
+            {
+                return NewInstance(Variable.EmptyInstance);
             }
         }
 

@@ -71,7 +71,6 @@ namespace AliceScript.NameSpaces
         public ProcessObject()
         {
             this.Name = "Process";
-
             this.AddProperty(new StartInfoProperty(this));
 
             this.AddFunction(new ProcessFunction(ProcessFunction.ProcessFunctionMode.CloseMainWindow,this));
@@ -84,6 +83,10 @@ namespace AliceScript.NameSpaces
             
         }
         internal Process Process=new Process();
+        public override ObjectBase CreateInstance(List<Variable> args)
+        {
+            return new ProcessObject();
+        }
         class StartInfoProperty : PropertyBase
         {
             public StartInfoProperty(ProcessObject host)
@@ -363,7 +366,10 @@ namespace AliceScript.NameSpaces
             this.AddProperty(new IsHighResolutionProperty(stopwatch));
             this.AddProperty(new IsRunningProperty(stopwatch));
         }
-
+        public override ObjectBase CreateInstance(List<Variable> args)
+        {
+            return new StopWatchObject();
+        }
 
         private Stopwatch stopwatch = new Stopwatch();
 

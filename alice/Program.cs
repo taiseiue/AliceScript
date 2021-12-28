@@ -4,6 +4,7 @@ using System.IO;
 using WSOFT.ConfigManerger;
 using AliceScript;
 using System.IO.Compression;
+using System.Linq;
 
 namespace alice
 {
@@ -115,6 +116,53 @@ namespace alice
                 else
                 {
                     Console.WriteLine("有効な出力先を指定してください");
+                }
+            }else if (pa.Files != null && pa.Files.Count > 0)
+            {   //万能実行モード
+                if (pa.Values.ContainsKey("print"))
+                {
+                    if (pa.Values["print"].ToLower() == "off")
+                    {
+                        allow_print = false;
+                    }
+                    else
+                    {
+                        print_redirect_files.Add(pa.Values["print"]);
+                    }
+                }
+                if (pa.Values.ContainsKey("throw"))
+                {
+                    if (pa.Values["throw"].ToLower() == "off")
+                    {
+                        allow_throw = false;
+                    }
+                    else
+                    {
+                        throw_redirect_files.Add(pa.Values["throw"]);
+                    }
+                }
+                if (pa.Values.ContainsKey("runtime"))
+                {
+                    Alice.Runtime_File_Path = pa.Values["runtime"];
+                }
+                bool mainfile = pa.Flags.Contains("mainfile");
+                ThrowErrorManerger.HandleError = true;
+                ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError;
+                Interpreter.Instance.OnOutput += Instance_OnOutput;
+                foreach (string fn in pa.Files)
+                {
+                    byte[] magic_zip = { 0x50,0x4b };
+                    byte[] data = File.ReadAllBytes(fn);
+                    byte[] zipmg=data.Take(2).ToArray();
+                    byte[] magic = data.Take(Constants.PACKAGE_MAGIC_NUMBER.Length).ToArray();
+                    if (magic.SequenceEqual(Constants.PACKAGE_MAGIC_NUMBER)|| zipmg.SequenceEqual(magic_zip))
+                    {
+                        AlicePackage.Load(Path.GetFileName(fn));
+                    }
+                    else
+                    {
+                        Alice.ExecuteFile(fn, mainfile);
+                    }
                 }
             }
             else

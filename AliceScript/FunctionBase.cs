@@ -125,23 +125,36 @@ namespace AliceScript
         /// この関数が呼び出されたときに発生するイベント
         /// </summary>
         public event FunctionBaseEventHandler Run;
-        public Variable GetVaruableFromArgs(List<Variable> args)
+        /// <summary>
+        /// 指定された引数とスクリプトを使ってこの関数を呼び出します
+        /// このメソッドはオーバーライドでき、継承先のクラスによって動作が変わる可能性があります
+        /// </summary>
+        /// <param name="args">引数</param>
+        /// <param name="script">スクリプト</param>
+        /// <param name="instance">現在のクラスインスタンス</param>
+        /// <param name="current">現在の変数</param>
+        /// <returns>関数の戻り値</returns>
+        public virtual Variable OnRun(List<Variable> args=null,ParsingScript script=null, AliceScriptClass.ClassInstance instance = null, Variable current = null)
         {
+            if (args == null)
+            {
+                args = new List<Variable>();
+            }
             if (MinimumArgCounts >= 1)
             {
                 Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
             }
             FunctionBaseEventArgs ex = new FunctionBaseEventArgs();
             ex.Args = args;
+            ex.Script = script;
             Run?.Invoke(null, ex);
 
             return ex.Return;
         }
-        public void OnRun(List<Variable> args)
+        internal List<FunctionBase> Children
         {
-            GetVaruableFromArgs(args);
+            get; set;
         }
-
     }
     /// <summary>
     /// 関数の機能の種類を表します
@@ -163,15 +176,19 @@ namespace AliceScript
         /// <summary>
         /// フロー関数です。これらの関数の戻り値には意味はありません
         /// </summary>
-        CONTROL_FLOW = 3,
+        CONTROL_FLOW = 4,
         /// <summary>
         /// 言語構造です。これらの関数では引数の自動チェックなどが実行されず、Script以外の要素はすべてNullになります
         /// </summary>
-        LANGUAGE_STRUCTURE = 4,
+        LANGUAGE_STRUCTURE = 5,
         /// <summary>
         /// オーバーライド可能です。CanOverrideプロパティもしくはこの属性が定義のいずれかが定義されている場合、オーバーライド可能です。
         /// </summary>
-        VIRTUAL = 5
+        VIRTUAL = 11,
+        /// <summary>
+        /// ユーザー定義関数です。
+        /// </summary>
+        USER_DEFINED = 12
     }
 
     public static class FunctionBaseManerger

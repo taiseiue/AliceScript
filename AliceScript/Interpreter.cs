@@ -1126,11 +1126,11 @@ namespace AliceScript
             System.Threading.Tasks.Task<Variable> task = null;
             try
             {
-                task = CustomFunction.Run(functionName, arg1, arg2, arg3, script);
+                task = CustomFunction.RunFunc(functionName, arg1, arg2, arg3, script);
             }
             catch (Exception exc)
             {
-                task = CustomFunction.Run(Constants.ON_EXCEPTION, new Variable(functionName),
+                task = CustomFunction.RunFunc(Constants.ON_EXCEPTION, new Variable(functionName),
                                           new Variable(exc.Message), arg2, script);
                 if (task == null)
                 {
@@ -1141,16 +1141,16 @@ namespace AliceScript
         }
 
 
-        public static Variable Run(CustomFunction function, List<Variable> args, ParsingScript script = null)
+        public static Variable Run(FunctionBase function, List<Variable> args, ParsingScript script = null)
         {
             Variable result = null;
             try
             {
-                result = function.Run(args, script);
+                result = function.OnRun(args, script);
             }
             catch (Exception exc)
             {
-                var task = CustomFunction.Run(Constants.ON_EXCEPTION, new Variable(function.Name),
+                var task = CustomFunction.RunFunc(Constants.ON_EXCEPTION, new Variable(function.Name),
                                           new Variable(exc.Message), args.Count > 0 ? args[0] : Variable.EmptyInstance, script);
                 if (task == null)
                 {

@@ -7,9 +7,9 @@ namespace AliceScript
 {
     public class DelegateObject
     {
-        private List<CustomFunction> m_fucntions = new List<CustomFunction>();
+        private List<FunctionBase> m_fucntions = new List<FunctionBase>();
 
-        public List<CustomFunction> Functions
+        public List<FunctionBase> Functions
         {
             get
             {
@@ -20,17 +20,17 @@ namespace AliceScript
                 m_fucntions = value;
             }
         }
-        public CustomFunction Function
+        public FunctionBase Function
         {
             get
             {
-                CustomFunction r=null;
+                FunctionBase r=null;
                 for (int i = 0; i < m_fucntions.Count; i++)
                 {
                     if (i == 0)
                     {
                         r= m_fucntions[i];
-                        r.Children = new List<CustomFunction>();
+                        r.Children = new List<FunctionBase>();
                     }
                     else
                     {
@@ -57,7 +57,7 @@ namespace AliceScript
         {
 
         }
-        public DelegateObject(CustomFunction func)
+        public DelegateObject(FunctionBase func)
         {
             m_fucntions.Add(func);
         }
@@ -112,9 +112,9 @@ namespace AliceScript
         public Variable Invoke(List<Variable> args=null,ParsingScript script=null,AliceScriptClass.ClassInstance instance=null)
         {
             Variable last_result = Variable.EmptyInstance;
-            foreach(CustomFunction func in m_fucntions)
+            foreach(FunctionBase func in m_fucntions)
             {
-                last_result=func.Run(args,script,instance);
+                last_result=func.OnRun(args,script,instance);
             }
             return last_result;
         }

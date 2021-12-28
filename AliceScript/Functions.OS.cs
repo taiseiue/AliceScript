@@ -249,7 +249,7 @@ namespace AliceScript
         {
             if (!string.IsNullOrWhiteSpace(s_method))
             {
-                CustomFunction.Run(s_method, new Variable(s_tracking),
+                CustomFunction.RunFunc(s_method, new Variable(s_tracking),
                                    new Variable(data));
                 return "";
             }

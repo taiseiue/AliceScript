@@ -134,11 +134,11 @@ namespace AliceScript
                 return ((GetVarFunction)result).Value;
             }
 
-            if (result is CustomFunction)
+            if (result is FunctionBase)
             {
                 script.Forward();
                 List<Variable> args = script.GetFunctionArgs();
-                return ((CustomFunction)result).Run(args, script);
+                return ((FunctionBase)result).OnRun(args, script);
             }
             return Variable.Undefined;
         }
