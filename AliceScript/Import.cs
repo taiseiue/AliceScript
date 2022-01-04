@@ -45,15 +45,15 @@ namespace AliceScript
         }
         public string Name { get; set; }
         public List<FunctionBase> Functions = new List<FunctionBase>();
-        public List<ObjectBase> Classes = new List<ObjectBase>();
+        public List<ObjectClass> Classes = new List<ObjectClass>();
         public Dictionary<string, string> Enums = new Dictionary<string, string>();
         public void Add(FunctionBase func)
         {
             Functions.Add(func);
         }
-        public void Add(ObjectBase obj)
+        public void Add(ObjectClass cls)
         {
-            Classes.Add(obj);
+            Classes.Add(cls);
         }
         public void Add(string name, string val)
         {
@@ -88,11 +88,11 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
-            foreach (ObjectBase obj in Classes)
+            foreach (ObjectClass cls in Classes)
             {
                 try
                 {
-                    ClassManerger.Add(obj,script);
+                    ClassManerger.Add(cls,script);
                 }
                 catch { ecount++; }
             }
@@ -126,11 +126,11 @@ namespace AliceScript
                 }
                 catch { ecount++; }
             }
-            foreach (ObjectBase obj in Classes)
+            foreach (ObjectClass cls in Classes)
             {
                 try
                 {
-                    ClassManerger.Remove(obj,script);
+                    ClassManerger.Remove(cls,script);
                 }
                 catch { ecount++; }
             }

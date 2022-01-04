@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace AliceScript
 {
 
-    public class Variable : ScriptObject
+    public class Variable : ObjectBase
     {
         public enum VarType
         {
@@ -56,53 +56,311 @@ namespace AliceScript
                 Functions.Remove(name);
             }
         }
+        public override Variable Operator(Variable other, string action, ParsingScript script)
+        {
+            if (this.Type == Variable.VarType.NUMBER &&
+                other.Type == Variable.VarType.NUMBER)
+            {
+                return MergeNumbers( other,action, script);
+            }
+            else if (this.Type == Variable.VarType.BOOLEAN &&
+                    other.Type == Variable.VarType.BOOLEAN)
+            {
+                return MergeBooleans( other,action, script);
+            }
+            else if (this.Type == Variable.VarType.STRING || other.Type == Variable.VarType.STRING)
+            {
+                return MergeStrings( other,action, script);
+            }
+            else if (this.Type == Variable.VarType.ARRAY)
+            {
+                return MergeArray( other,action, script);
+            }
+            else if (this.Type == Variable.VarType.DELEGATE && other.Type == Variable.VarType.DELEGATE)
+            {
+                return MergeDelegate( other,action, script);
+            }
+            else if (this.Type == Variable.VarType.OBJECT && this.Object is ObjectBase obj)
+            {
+                return obj.Operator( other, action, script);
+            }
+            else
+            {
+                return MergeObjects( other,action, script);
+            }
+        }
+        private Variable MergeBooleans(Variable other,string action, ParsingScript script)
+        {
+            if (other.Type != Variable.VarType.BOOLEAN)
+            {
+                other = new Variable(other.AsBool());
+            }
+            switch (action)
+            {
+                case "&&":
+                    return new Variable(
+                        this.Bool && other.Bool);
+                case "&":
+                    return new Variable(this.Bool & other.Bool);
+                case "||":
+                    return new Variable(
+                         this.Bool || other.Bool);
+                case "|":
+                    return new Variable(this.Bool | other.Bool);
+                case "^":
+                    return new Variable(
+                        this.Bool ^ other.Bool);
+                case ")":
+                    return this;
+                default:
+                    Utils.ThrowErrorMsg("[" +action + "]演算子を、"+Constants.TypeToString(Type)+"型と"+Constants.TypeToString(other.Type)+"型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                         script, action);
+                    return this;
+            }
+        }
+        private  Variable MergeNumbers(Variable other,string action, ParsingScript script)
+        {
+            if (other.Type != Variable.VarType.NUMBER)
+            {
+                other.Value = other.AsDouble();
+            }
+            switch (action)
+            {
+                case "%":
+                    return new Variable(this.Value % other.Value);
+                case "*":
+                    return new Variable(this.Value * other.Value);
+                case "/":
+                    return new Variable(this.Value / other.Value);
+                case "+":
+                    if (other.Type != Variable.VarType.NUMBER)
+                    {
+                        return new Variable(this.AsString() + other.String);
+                    }
+                    else
+                    {
+                        return new Variable(this.Value + other.Value);
+                    }
+                case "-":
+                    return new Variable(this.Value - other.Value);
+                case "<":
+                    return new Variable(this.Value < other.Value);
+                case ">":
+                    return new Variable(this.Value > other.Value);
+                case "<=":
+                    return new Variable(this.Value <= other.Value);
+                case ">=":
+                    return new Variable(this.Value >= other.Value);
+                case "&":
+                    return new Variable((int)this.Value & (int)other.Value);
+                case "^":
+                    return new Variable((int)this.Value ^ (int)other.Value);
+                case "|":
+                    return new Variable((int)this.Value | (int)other.Value);
+                case "**":
+                    return new Variable(Math.Pow(this.Value, other.Value));
+                case "+=":
+                    this.Value += other.Value;
+                    return this;
+                case "-=":
+                    this.Value -= other.Value;
+                    return this;
+                case "*=":
+                    this.Value *= other.Value;
+                    return this;
+                case "/=":
+                    this.Value /= other.Value;
+                    return this;
+                case "%=":
+                    this.Value %= other.Value;
+                    return this;
+                case "&=":
+                    this.Value = (int)this.Value & (int)other.Value;
+                    return this;
+                case "|=":
+                    this.Value = (int)this.Value | (int)other.Value;
+                    return this;
+                case "^=":
+                    this.Value = (int)this.Value ^ (int)other.Value;
+                    return this;
+                case ")":
+                    // Utils.ThrowErrorMsg("Can't process last token [" + other.Value + "] in the expression.",
+                    //      script, script.Current.ToString());
+                    return this;
+                default:
+                    Utils.ThrowErrorMsg("[" + action + "]演算子を、" + Constants.TypeToString(Type) + "型と" + Constants.TypeToString(other.Type) + "型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                         script, action);
+                    return this;
+            }
+        }
+
+        private  Variable MergeStrings(Variable other,string action, ParsingScript script)
+        {
+            switch (action)
+            {
+                case "+=":
+                    if (other.Type == Variable.VarType.STRING)
+                    {
+                        this.String += other.AsString();
+                    }
+                    else
+                    {
+                        this.String+= other.Value;
+                    }
+                    return this;
+                case "+":
+                    return new Variable(this.AsString() + other.AsString());
+                case "<":
+                    string arg1 = this.AsString();
+                    string arg2 = other.AsString();
+                    return new Variable(string.Compare(arg1, arg2) < 0);
+                case ">":
+                    return new Variable(
+                     string.Compare(this.AsString(), other.AsString()) > 0);
+                case "<=":
+                    return new Variable(
+                      string.Compare(this.AsString(), other.AsString()) <= 0);
+                case ">=":
+                    return new Variable(
+                      string.Compare(this.AsString(), other.AsString()) >= 0);
+                case ":":
+                    this.SetHashVariable(this.AsString(), other);
+                    break;
+                case ")":
+                    break;
+                default:
+                    Utils.ThrowErrorMsg("[" + action + "]演算子を、" + Constants.TypeToString(Type) + "型と" + Constants.TypeToString(other.Type) + "型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                        script, action);
+                    break;
+            }
+            return this;
+        }
+        private  Variable MergeArray(Variable other,string action, ParsingScript script)
+        {
+            switch (action)
+            {
+                case "+=":
+                    {
+                        if (other.Type == Variable.VarType.ARRAY)
+                        {
+                            this.Tuple.AddRange(other.Tuple);
+                        }
+                        else
+                        {
+                            this.Tuple.Add(other);
+                        }
+                        return this;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+                        if (other.Type == Variable.VarType.ARRAY)
+                        {
+                            v.Tuple.AddRange(this.Tuple);
+                            v.Tuple.AddRange(other.Tuple);
+                        }
+                        else
+                        {
+                            v.Tuple.AddRange(this.Tuple);
+                            v.Tuple.Add(other);
+                        }
+                        return v;
+                    }
+                case "-=":
+                    {
+                        if (this.Tuple.Remove(other))
+                        {
+                            return this;
+                        }
+                        else
+                        {
+                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした", Exceptions.COULDNT_FIND_ITEM,
+                         script, this.Action);
+                            return this;
+                        }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.ARRAY);
+
+                        v.Tuple.AddRange(this.Tuple);
+                        v.Tuple.Remove(other);
+
+                        return v;
+                    }
+                case ")":
+                    return this;
+                default:
+                    Utils.ThrowErrorMsg("[" + action + "]演算子を、" + Constants.TypeToString(Type) + "型と" + Constants.TypeToString(other.Type) + "型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                        script, action);
+                    return this;
+            }
+
+        }
+        private  Variable MergeDelegate(Variable other, string action, ParsingScript script)
+        {
+            switch (action)
+            {
+                case "+=":
+                    {
+                        this.Delegate.Add(other.Delegate);
+                        return this;
+                    }
+                case "+":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(this.Delegate);
+                        v.Delegate.Add(other.Delegate);
+                        return v;
+                    }
+                case "-=":
+                    {
+                        if (this.Delegate.Remove(other.Delegate))
+                        {
+                            return this;
+                        }
+                        else
+                        {
+                            Utils.ThrowErrorMsg("デリゲートに対象の変数が見つかりませんでした", Exceptions.COULDNT_FIND_ITEM,
+                         script, this.Action);
+                            return this;
+                        }
+                    }
+                case "-":
+                    {
+                        Variable v = new Variable(Variable.VarType.DELEGATE);
+                        v.Delegate = new DelegateObject(this.Delegate);
+                        v.Delegate.Remove(other.Delegate);
+
+                        return v;
+                    }
+                case ")":
+                    return this;
+                default:
+                    Utils.ThrowErrorMsg("[" + action + "]演算子を、" + Constants.TypeToString(Type) + "型と" + Constants.TypeToString(other.Type) + "型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                         script, action);
+                    return this;
+            }
+
+        }
+
+        private  Variable MergeObjects(Variable other, string action, ParsingScript script)
+        {
+            switch (action)
+            {
+                case ")":
+                    return this;
+                default:
+                    Utils.ThrowErrorMsg("[" + action + "]演算子を、" + Constants.TypeToString(Type) + "型と" + Constants.TypeToString(other.Type) + "型のオペランドに使用することはできません", Exceptions.INVALID_OPERAND,
+                        script, action);
+                    return this;
+            }
+        }
 
         public static Dictionary<string, FunctionBase> Functions = new Dictionary<string, FunctionBase>();
 
-        List<string> ScriptObject.GetProperties()
-        {
-            List<string> v = Functions.Keys.ToList();
-
-
-            return v;
-        }
-        public static bool GETTING = false;
         public static List<Variable> LaskVariable;
 
-        Task<Variable> ScriptObject.GetProperty(string sPropertyName, List<Variable> args, ParsingScript script)
-        {
-
-
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, ((ScriptObject)this).GetProperties());
-
-
-            if (Functions.ContainsKey(sPropertyName))
-            {
-                //issue#1「ObjectBase内の関数で引数が認識されない」に対する対処
-                //原因:先に値検出関数にポインタが移動されているため正常に引数が認識できていない
-                //対処:値検出関数で拾った引数のリストをバックアップし、関数で使用する
-                //ただしこれは、根本的な解決にはなっていない可能性がある
-                GETTING = true;
-
-                Task<Variable> va = Task.FromResult(Functions[sPropertyName].GetValue(script));
-                GETTING = false;
-                return va;
-            }
-
-            else
-            {
-                return Task.FromResult(Variable.EmptyInstance);
-            }
-
-        }
-        public virtual Task<Variable> SetProperty(string sPropertyName, Variable argValue)
-        {
-
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, ((ScriptObject)this).GetProperties());
-
-
-            return Task.FromResult(Variable.EmptyInstance);
-        }
         public static Variable AsType(VarType type)
         {
             var r = new Variable(VarType.TYPE);
@@ -1179,10 +1437,12 @@ namespace AliceScript
                 return result;
             }
 
-            if (Object is ScriptObject)
+            if (Object is ObjectBase obj)
             {
-                ScriptObject obj = Object as ScriptObject;
-                string match = GetActualPropertyName(propName, obj.GetProperties());
+                // TODO:ここから
+                InterfaceBase ib = this.Interface;
+                if (ib == null) { ib = obj.Interface; }
+                string match = GetActualPropertyName(propName, ib.GetProperties());
                 if (!string.IsNullOrWhiteSpace(match))
                 {
                     List<Variable> args = null;
@@ -1191,7 +1451,6 @@ namespace AliceScript
                     {
 
                         args = script.GetFunctionArgs();
-                        ObjectBase.LaskVariable = args;
                     }
                     else if (script != null)
                     {
@@ -1224,17 +1483,20 @@ namespace AliceScript
                 return result;
             }
 
-            if (Object is ScriptObject)
+            if (Object is ObjectBase obj)
             {
-                ScriptObject obj = Object as ScriptObject;
-                string match = GetActualPropertyName(propName, obj.GetProperties());
+                // TODO:ここから
+                InterfaceBase ib = this.Interface;
+                if (ib == null) { ib = obj.Interface; }
+                string match = GetActualPropertyName(propName, ib.GetProperties());
                 if (!string.IsNullOrWhiteSpace(match))
                 {
                     List<Variable> args = null;
                     if (script != null &&
                        (script.Pointer == 0 || script.Prev == Constants.START_ARG))
                     {
-                        args = await script.GetFunctionArgsAsync();
+
+                        args = script.GetFunctionArgs();
                     }
                     else if (script != null)
                     {
@@ -1271,7 +1533,7 @@ namespace AliceScript
 
        
 
-        public List<Variable> GetProperties()
+        public  List<Variable> GetProperties()
         {
             List<string> all = GetAllProperties();
             List<Variable> allVars = new List<Variable>(all.Count);
@@ -1359,29 +1621,13 @@ namespace AliceScript
             return len;
         }
 
-        public virtual string GetTypeString()
-        {
-            if (Type == VarType.OBJECT && Object != null)
-            {
-                if (Object is ObjectBase)
-                {
-                    return ((ObjectBase)Object).Name;
-                }
-                else
-                {
-                    return Object.GetType().ToString();
-                }
-            }
-            return Constants.TypeToString(Type);
-        }
 
         public Variable GetValue(int index)
         {
             if (index >= Count)
             {
-                throw new ArgumentException("There are only [" + Count +
-                                             "] but " + index + " requested.");
-
+                ThrowErrorManerger.OnThrowError("インデックス:"+index+"は配列の境界:"+Count+"の範囲外です",Exceptions.INDEX_OUT_OF_RANGE);
+                return null;
             }
             if (Type == VarType.ARRAY)
             {
@@ -1415,8 +1661,8 @@ namespace AliceScript
                     string objName = !string.IsNullOrWhiteSpace(baseName) ? baseName + "." : "";
                     if (string.IsNullOrWhiteSpace(objName))
                     {
-                        AliceScriptClass.ClassInstance obj = root.m_object as AliceScriptClass.ClassInstance;
-                        objName = obj != null ? obj.InstanceName + "." : "";
+                        var obj = root.m_object as ObjectBase;
+                        objName = obj != null ? obj.Name + "." : "";
                     }
                     match = Constants.GetRealName(objName + propName);
                     match = match.Substring(objName.Length);

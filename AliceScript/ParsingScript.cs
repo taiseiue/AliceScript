@@ -21,7 +21,8 @@ namespace AliceScript
         private Dictionary<string, ParserFunction> m_variables = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された変数
         private Dictionary<string, ParserFunction> m_consts = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された定数
         private Dictionary<string, ParserFunction> m_functions = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された関数
-        private Dictionary<string, AliceScriptClass> m_classes = new Dictionary<string, AliceScriptClass>();//スクリプトの内部で定義されたクラス
+        private Dictionary<string, ObjectClass> m_classes = new Dictionary<string, ObjectClass>();//スクリプトの内部で定義されたクラス
+        private Dictionary<string, InterfaceBase> m_interfaces = new Dictionary<string, InterfaceBase>();//スクリプトの内部で定義されたインタフェース
         /// <summary>
         /// このスクリプトに関連付けられたオブジェクトです
         /// </summary>
@@ -95,10 +96,18 @@ namespace AliceScript
         /// <summary>
         /// 現在のスクリプト内で定義されたクラス
         /// </summary>
-        public Dictionary<string,AliceScriptClass> Classes
+        public Dictionary<string,ObjectClass> Classes
         {
             get { return m_classes; }
             set { m_classes = value; }
+        }
+        /// <summary>
+        /// 現在のスクリプト内で定義されたインタフェース
+        /// </summary>
+        public Dictionary<string, InterfaceBase> Interfaces
+        {
+            get { return m_interfaces; }
+            set { m_interfaces = value; }
         }
         public string Rest
         {
@@ -183,8 +192,8 @@ namespace AliceScript
 
         public ParsingScript ParentScript;
 
-        public AliceScriptClass CurrentClass { get; set; }
-        public AliceScriptClass.ClassInstance ClassInstance { get; set; }
+        public CustomClass CurrentClass { get; set; }
+        public ObjectBase ClassInstance { get; set; }
 
         public ParsingScript(string data, int from = 0,
                              Dictionary<int, int> char2Line = null)
@@ -321,7 +330,7 @@ namespace AliceScript
             }
             return false;
         }
-        public bool TryGetClass(string name, out AliceScriptClass cls)
+        public bool TryGetClass(string name, out ObjectClass cls)
         {
             if (Classes.TryGetValue(name, out cls))
             {
@@ -345,6 +354,36 @@ namespace AliceScript
             else
             {
                 if (ParentScript != null && ParentScript.ContainsClass(name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool TryGetInterface(string name, out InterfaceBase ib)
+        {
+            if (Interfaces.TryGetValue(name, out ib))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.TryGetInterface(name, out ib))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool ContainsInterface(string name)
+        {
+            if (Interfaces.ContainsKey(name))
+            {
+                return true;
+            }
+            else
+            {
+                if (ParentScript != null && ParentScript.ContainsInterface(name))
                 {
                     return true;
                 }

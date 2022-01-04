@@ -571,17 +571,18 @@ namespace AliceScript
                 //処理は不要
                 return Variable.EmptyInstance;
             }
+            // コア演算子:ここから
             //[is]演算子、型テスト演算子ですべての型に適応できます
             if (leftCell.Action == " is ")
             {
-                leftCell = new Variable(leftCell.Type==rightCell.AsType());
+                leftCell = new Variable(leftCell.Type == rightCell.AsType());
             }
             //[as]演算子、キャスト演算子で右辺がType型の時すべての型に適応できます
-            else if (leftCell.Action == " as "&&rightCell.Type==Variable.VarType.TYPE)
+            else if (leftCell.Action == " as " && rightCell.Type == Variable.VarType.TYPE)
             {
                 leftCell = leftCell.Convert(rightCell.VariableType);
-            //[??]演算子、Null合体演算子ですべての型に適応できます
             }
+            //[??]演算子、Null合体演算子ですべての型に適応できます
             else if (leftCell.Action == "??")
             {
                 if (leftCell.IsNull())
@@ -609,272 +610,15 @@ namespace AliceScript
             {
                 leftCell = new Variable(!leftCell.Equals(rightCell));
             }
-            else if (leftCell.Type == Variable.VarType.NUMBER &&
-                rightCell.Type == Variable.VarType.NUMBER)
-            {
-                leftCell = MergeNumbers(leftCell, rightCell, script);
-            }
-            else if (leftCell.Type == Variable.VarType.BOOLEAN &&
-                    rightCell.Type == Variable.VarType.BOOLEAN)
-            {
-                leftCell = MergeBooleans(leftCell, rightCell, script);
-            }
-            else if (leftCell.Type == Variable.VarType.STRING || rightCell.Type == Variable.VarType.STRING)
-            {
-                leftCell=MergeStrings(leftCell, rightCell, script);
-            }
-            else if (leftCell.Type == Variable.VarType.ARRAY)
-            {
-                leftCell = MergeArray(leftCell, rightCell, script);
-            }
-            else if(leftCell.Type == Variable.VarType.DELEGATE && rightCell.Type == Variable.VarType.DELEGATE)
-            {
-                leftCell = MergeDelegate(leftCell,rightCell,script);
-            }
-            else if(leftCell.Type==Variable.VarType.OBJECT&&leftCell.Object is ObjectBase obj)
-            {
-                leftCell=obj.Operator(leftCell,rightCell,leftCell.Action,script);
-            }
+            // コア演算子:ここまで
             else
             {
-                leftCell = MergeObjects(leftCell, rightCell, script);
+                leftCell = leftCell.Operator(rightCell,leftCell.Action,script);
             }
             leftCell.Action = rightCell.Action;
             return leftCell;
         }
-        private static Variable MergeBooleans(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            if (rightCell.Type != Variable.VarType.BOOLEAN)
-            {
-                rightCell = new Variable(rightCell.AsBool());
-            }
-            switch (leftCell.Action)
-            {
-                case "&&":
-                    return new Variable(
-                        leftCell.Bool && rightCell.Bool);
-                case "&":
-                    return new Variable(leftCell.Bool & rightCell.Bool);
-                case "||":
-                    return new Variable(
-                         leftCell.Bool || rightCell.Bool);
-                case "|":
-                    return new Variable(leftCell.Bool | rightCell.Bool);
-                case "^":
-                    return new Variable(
-                        leftCell.Bool ^ rightCell.Bool);
-                case ")":
-                    return leftCell;
-                default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
-                         script, leftCell.Action);
-                    return leftCell;
-            }
-        }
-        private static Variable MergeNumbers(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            if (rightCell.Type != Variable.VarType.NUMBER)
-            {
-                rightCell.Value = rightCell.AsDouble();
-            }
-            switch (leftCell.Action)
-            {
-                case "%":
-                    return new Variable(leftCell.Value % rightCell.Value);
-                case "*":
-                    return new Variable(leftCell.Value * rightCell.Value);
-                case "/":
-                    return new Variable(leftCell.Value / rightCell.Value);
-                case "+":
-                    if (rightCell.Type != Variable.VarType.NUMBER)
-                    {
-                        return new Variable(leftCell.AsString() + rightCell.String);
-                    }
-                    else
-                    {
-                        return new Variable(leftCell.Value + rightCell.Value);
-                    }
-                case "-":
-                    return new Variable(leftCell.Value - rightCell.Value);
-                case "<":
-                    return new Variable(leftCell.Value < rightCell.Value);
-                case ">":
-                    return new Variable(leftCell.Value > rightCell.Value);
-                case "<=":
-                    return new Variable(leftCell.Value <= rightCell.Value);
-                case ">=":
-                    return new Variable(leftCell.Value >= rightCell.Value);
-                case "&":
-                    return new Variable((int)leftCell.Value & (int)rightCell.Value);
-                case "^":
-                    return new Variable((int)leftCell.Value ^ (int)rightCell.Value);
-                case "|":
-                    return new Variable((int)leftCell.Value | (int)rightCell.Value);
-                case "**":
-                    return new Variable(Math.Pow(leftCell.Value, rightCell.Value));
-                case ")":
-                    // Utils.ThrowErrorMsg("Can't process last token [" + rightCell.Value + "] in the expression.",
-                    //      script, script.Current.ToString());
-                    return leftCell;
-                default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
-                         script, leftCell.Action);
-                    return leftCell;
-            }
-        }
-
-        static Variable MergeStrings(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            switch (leftCell.Action)
-            {
-                case "+":
-                    return new Variable(leftCell.AsString() + rightCell.AsString());
-                case "<":
-                    string arg1 = leftCell.AsString();
-                    string arg2 = rightCell.AsString();
-                    return new Variable(string.Compare(arg1, arg2) < 0);
-                case ">":
-                    return new Variable(
-                     string.Compare(leftCell.AsString(), rightCell.AsString()) > 0);
-                case "<=":
-                    return new Variable(
-                      string.Compare(leftCell.AsString(), rightCell.AsString()) <= 0);
-                case ">=":
-                    return new Variable(
-                      string.Compare(leftCell.AsString(), rightCell.AsString()) >= 0);
-                case ":":
-                    leftCell.SetHashVariable(leftCell.AsString(), rightCell);
-                    break;
-                case ")":
-                    break;
-                default:
-                    Utils.ThrowErrorMsg("String型演算で次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND
-                         ,script, leftCell.Action);
-                    break;
-            }
-            return leftCell;
-        }
-        private static Variable MergeArray(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            switch (leftCell.Action)
-            {
-                case "+=":
-                    {
-                        if (rightCell.Type == Variable.VarType.ARRAY)
-                        {
-                            leftCell.Tuple.AddRange(rightCell.Tuple);
-                        }
-                        else
-                        {
-                            leftCell.Tuple.Add(rightCell);
-                        }
-                        return leftCell;
-                    }
-                case "+":
-                    {
-                        Variable v = new Variable(Variable.VarType.ARRAY);
-                        if (rightCell.Type == Variable.VarType.ARRAY)
-                        {
-                            v.Tuple.AddRange(leftCell.Tuple);
-                            v.Tuple.AddRange(rightCell.Tuple);
-                        }
-                        else
-                        {
-                            v.Tuple.AddRange(leftCell.Tuple);
-                            v.Tuple.Add(rightCell);
-                        }
-                        return v;
-                    }
-                case "-=":
-                    {
-                        if (leftCell.Tuple.Remove(rightCell))
-                        {
-                            return leftCell;
-                        }
-                        else
-                        {
-                            Utils.ThrowErrorMsg("配列に対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
-                         script, leftCell.Action);
-                            return leftCell;
-                        }
-                    }
-                case "-":
-                    {
-                        Variable v = new Variable(Variable.VarType.ARRAY);
-                        
-                            v.Tuple.AddRange(leftCell.Tuple);
-                            v.Tuple.Remove(rightCell);
-                        
-                        return v;
-                    }
-                case ")":
-                    return leftCell;
-                default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
-                         script, leftCell.Action);
-                    return leftCell;
-            }
-
-        }
-        private static Variable MergeDelegate(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            switch (leftCell.Action)
-            {
-                case "+=":
-                    {
-                        leftCell.Delegate.Add(rightCell.Delegate);
-                        return leftCell;
-                    }
-                case "+":
-                    {
-                        Variable v = new Variable(Variable.VarType.DELEGATE);
-                        v.Delegate = new DelegateObject(leftCell.Delegate);
-                        v.Delegate.Add(rightCell.Delegate);
-                        return v;
-                    }
-                case "-=":
-                    {
-                        if (leftCell.Delegate.Remove(rightCell.Delegate))
-                        {
-                            return leftCell;
-                        }
-                        else
-                        {
-                            Utils.ThrowErrorMsg("デリゲートにに対象の変数が見つかりませんでした",Exceptions.COULDNT_FIND_ITEM,
-                         script, leftCell.Action);
-                            return leftCell;
-                        }
-                    }
-                case "-":
-                    {
-                        Variable v = new Variable(Variable.VarType.DELEGATE);
-                        v.Delegate = new DelegateObject(leftCell.Delegate);
-                        v.Delegate.Remove(rightCell.Delegate);
-
-                        return v;
-                    }
-                case ")":
-                    return leftCell;
-                default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
-                         script, leftCell.Action);
-                    return leftCell;
-            }
-
-        }
-
-        private static Variable MergeObjects(Variable leftCell, Variable rightCell, ParsingScript script)
-        {
-            switch (leftCell.Action)
-            {
-                case ")":
-                    return leftCell;
-                default:
-                    Utils.ThrowErrorMsg("次の演算子を処理できませんでした。[" + leftCell.Action + "]",Exceptions.INVALID_OPERAND,
-                         script, leftCell.Action);
-                    return leftCell;
-            }
-        }
+        
         static bool CanMergeCells(Variable leftCell, Variable rightCell)
         {
             return GetPriority(leftCell.Action) >= GetPriority(rightCell.Action);

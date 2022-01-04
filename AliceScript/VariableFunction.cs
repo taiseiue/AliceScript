@@ -123,6 +123,9 @@ namespace AliceScript
             if (e.Args[0].Type == Variable.VarType.TYPE)
             {
                 e.Return = e.CurentVariable.Convert(e.Args[0].VariableType);
+            }else if(e.CurentVariable.Type==Variable.VarType.OBJECT&&e.Args[0].Type==Variable.VarType.OBJECT&&e.Args[0].Object is TypeObject obj)
+            {
+                obj.Cast(e.CurentVariable);
             }
             else
             {

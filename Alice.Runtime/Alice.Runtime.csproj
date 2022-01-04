@@ -12,10 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Alice.Drawing.cs" />
+    <Compile Remove="Alice.Interpreter.cs" />
+    <Compile Remove="Alice.Packaging.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\WSOFT_Documents\Alice\alice_logo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="Alice.Drawing.cs" />
+    <None Include="Alice.Interpreter.cs" />
+    <None Include="Alice.Packaging.cs" />
   </ItemGroup>
 
   <ItemGroup>

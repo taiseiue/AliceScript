@@ -113,8 +113,6 @@ namespace AliceScript
             RegisterFunctions();
             RegisterEnums();
             RegisterActions();
-
-            CompiledClass.Init();
         }
 
         public void RegisterFunctions()
@@ -139,9 +137,6 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.NEW, new NewObjectFunction());
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
-            ParserFunction.RegisterFunction(Constants.GET_PROPERTIES, new GetPropertiesFunction());
-            ParserFunction.RegisterFunction(Constants.GET_PROPERTY, new GetPropertyFunction());
-            ParserFunction.RegisterFunction(Constants.SET_PROPERTY, new SetPropertyFunction());
 
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
@@ -178,6 +173,8 @@ namespace AliceScript
             ParserFunction.AddAction(Constants.POINTER, new PointerFunction());
             ParserFunction.AddAction(Constants.POINTER_REF, new PointerReferenceFunction());
 
+            ClassManerger.Add(new TypeClass());
+            TestClass.Init();
 
             if (File.Exists(Alice.Runtime_File_Path))
             {

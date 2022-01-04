@@ -26,7 +26,7 @@ namespace AliceScript
         {
             if (item.Length == 0 && (ch == Constants.START_ARG || !script.StillValid()))
             {
-                // There is no function, just an expression in parentheses
+                // 括弧内の式を計算します
                 m_impl = s_idFunction;
                 return;
             }
@@ -56,8 +56,6 @@ namespace AliceScript
             {
                 return;
             }
-
-
 
             m_impl = GetVariable(item, script);
             if (m_impl != null)
@@ -148,7 +146,7 @@ namespace AliceScript
             if (script.ClassInstance != null &&
                (script.ClassInstance.PropertyExists(name) || script.ClassInstance.FunctionExists(name)))
             {
-                name = script.ClassInstance.InstanceName + "." + name;
+                name = script.ClassInstance.Name + "." + name;
             }
             //int ind = name.LastIndexOf('.');
             int ind = name.IndexOf('.');
@@ -1058,7 +1056,6 @@ namespace AliceScript
             s_localScope.Clear();
             s_namespaces.Clear();
             s_namespace = s_namespacePrefix = "";
-            CompiledClass.Init();
         }
 
         protected string m_name;

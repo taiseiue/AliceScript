@@ -18,11 +18,11 @@ namespace AliceScript.NameSpaces
         {
             Alice_Initer.Init();
             Alice_Console.Init();
-            Alice_Interpreter_Initer.Init();
-            Alice_Packaging_Initer.Init();
+            //Alice_Interpreter_Initer.Init();
+            //Alice_Packaging_Initer.Init();
             Alice_Regex_Initer.Init();
             Alice_Diagnostics_Initer.Init();
-            Alice_Drawing_Initer.Init();
+            //Alice_Drawing_Initer.Init();
             Alice_IO_Intiter.Init();
             Alice_Math_Initer.Init();
             Alice_Net_Initer.Init();

@@ -101,8 +101,6 @@ namespace AliceScript
         public const string FIND_INDEX = "FindIndex";
         public const string FLOOR = "floor";
         public const string GET_COLUMN = "GetColumn";
-        public const string GET_PROPERTIES = "GetPropertyStrings";
-        public const string GET_PROPERTY = "GetProperty";
         public const string GET_KEYS = "GetKeys";
         public const string LOCK = "lock";
         public const string NAMESPACE = "Namespace";
@@ -116,7 +114,6 @@ namespace AliceScript
         public const string REMOVE = "RemoveItem";
         public const string REMOVE_AT = "RemoveAt";
         public const string REMOVE_RANGE = "RemoveRange";
-        public const string SET_PROPERTY = "SetProperty";
         public const string SHOW = "show";
         public const string SIGNAL = "signal";
         public const string SINGLETON = "singleton";
@@ -131,6 +128,13 @@ namespace AliceScript
         public const string ADD_DATA = "AddDataToCollection";
         public const string COLLECT_DATA = "StartCollectingData";
         public const string GET_DATA = "GetCollectedData";
+
+        // 変数の属性
+        public const string GLOBAL = "global";
+
+        // 関数の属性
+        public const string OVERRIDE = "override";
+        public const string VIRTUAL = "virtual";
 
         // プロパティ
         public const string EMPTY_NULL = "EmptyOrNull";

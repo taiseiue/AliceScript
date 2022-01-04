@@ -12,114 +12,120 @@
             NameSpaceManerger.Add(space);
         }
     }
-    internal class AlicePackageObject : ObjectBase
+    internal class AlicePackageClass : ObjectClass
     {
-        public AlicePackageObject(AlicePackage package)
+        public AlicePackageClass(AlicePackage package)
         {
             this.Package = package;
             this.Name = "AlicePackage";
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Manifest));
+            this.AddProperty(new AlicePackageClassProperty(AlicePackageClassProperty.AlicePackageClassPropertyMode.Manifest));
         }
         public AlicePackage Package { get; set; }
-        private class AlicePackageObjectProperty : PropertyBase
+        private class AlicePackageClassProperty : PropertyBase
         {
-            public AlicePackageObjectProperty(AlicePackageObject host, AlicePackageObjectPropertyMode mode)
+            public AlicePackageClassProperty(AlicePackageClassPropertyMode mode)
             {
-                Host = host;
                 Mode = mode;
                 this.Name = Mode.ToString();
                 this.HandleEvents = true;
                 this.CanSet = false;
-                this.Getting += AlicePackageObjectProperty_Getting;
+                this.Getting += AlicePackageClassProperty_Getting;
             }
 
-            private void AlicePackageObjectProperty_Getting(object sender, PropertyGettingEventArgs e)
+            private void AlicePackageClassProperty_Getting(object sender, PropertyGettingEventArgs e)
             {
                 switch (Mode)
                 {
-                    case AlicePackageObjectPropertyMode.Manifest:
+                    case AlicePackageClassPropertyMode.Manifest:
                         {
-                            e.Value = new Variable(new PackageManifestObject(Host.Package.Manifest));
+                            e.Value = new Variable(new PackageManifestClass(((AlicePackageObject)e.Instance).Package.Manifest));
                             break;
                         }
                 }
             }
 
-            public enum AlicePackageObjectPropertyMode
+            public enum AlicePackageClassPropertyMode
             {
                 Manifest
             }
-            public AlicePackageObjectPropertyMode Mode { get; set; }
-            public AlicePackageObject Host { get; set; }
+            public AlicePackageClassPropertyMode Mode { get; set; }
+            private class AlicePackageObject : ObjectBase
+            {
+                public AlicePackageObject(AlicePackage package)
+                {
+                    Package = package;
+                }
+                public AlicePackage Package { get; set; }
+            }
         }
     }
-    internal class PackageManifestObject : ObjectBase
+    internal class PackageManifestClass : ObjectClass
     {
-        public PackageManifestObject(PackageManifest manifest)
+        public PackageManifestClass(PackageManifest manifest)
         {
             this.Name = "PackageManifest";
             Manifest = manifest;
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Name));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Version));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Description));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Publisher));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.ScriptPath));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.Script));
-            this.AddProperty(new AlicePackageObjectProperty(this, AlicePackageObjectProperty.AlicePackageObjectPropertyMode.UseInlineScript));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.Name));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.Version));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.Description));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.Publisher));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.ScriptPath));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.Script));
+            this.AddProperty(new AlicePackageClassProperty(this, AlicePackageClassProperty.AlicePackageClassPropertyMode.UseInlineScript));
         }
         public PackageManifest Manifest { get; set; }
-        private class AlicePackageObjectProperty : PropertyBase
+        private class AlicePackageClassProperty : PropertyBase
         {
-            public AlicePackageObjectProperty(PackageManifestObject host, AlicePackageObjectPropertyMode mode)
+            public AlicePackageClassProperty(PackageManifestClass host, AlicePackageClassPropertyMode mode)
             {
                 Host = host;
                 Mode = mode;
                 this.Name = Mode.ToString();
                 this.HandleEvents = true;
                 this.CanSet = false;
-                this.Getting += AlicePackageObjectProperty_Getting;
+                this.Getting += AlicePackageClassProperty_Getting;
             }
 
-            private void AlicePackageObjectProperty_Getting(object sender, PropertyGettingEventArgs e)
+            private void AlicePackageClassProperty_Getting(object sender, PropertyGettingEventArgs e)
             {
                 switch (Mode)
                 {
-                    case AlicePackageObjectPropertyMode.Name:
+                    case AlicePackageClassPropertyMode.Name:
                         {
                             e.Value = new Variable(Host.Manifest.Name);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.Version:
+                    case AlicePackageClassPropertyMode.Version:
                         {
                             e.Value = new Variable(Host.Manifest.Version);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.Description:
+                    case AlicePackageClassPropertyMode.Description:
                         {
                             e.Value = new Variable(Host.Manifest.Description);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.Publisher:
+                    case AlicePackageClassPropertyMode.Publisher:
                         {
                             e.Value = new Variable(Host.Manifest.Publisher);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.Target:
+                    case AlicePackageClassPropertyMode.Target:
                         {
                             e.Value = new Variable(Host.Manifest.Target);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.ScriptPath:
+                    case AlicePackageClassPropertyMode.ScriptPath:
                         {
                             e.Value = new Variable(Host.Manifest.ScriptPath);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.Script:
+                    case AlicePackageClassPropertyMode.Script:
                         {
                             e.Value = new Variable(Host.Manifest.Script);
                             break;
                         }
-                    case AlicePackageObjectPropertyMode.UseInlineScript:
+                    case AlicePackageClassPropertyMode.UseInlineScript:
                         {
                             e.Value = new Variable(Host.Manifest.UseInlineScript);
                             break;
@@ -127,12 +133,12 @@
                 }
             }
 
-            public enum AlicePackageObjectPropertyMode
+            public enum AlicePackageClassPropertyMode
             {
                 Name, Version, Description, Publisher, Target, ScriptPath, Script, UseInlineScript
             }
-            public AlicePackageObjectPropertyMode Mode { get; set; }
-            public PackageManifestObject Host { get; set; }
+            public AlicePackageClassPropertyMode Mode { get; set; }
+            public PackageManifestClass Host { get; set; }
         }
     }
     internal class Package_GetManifestFromXmlFunc : FunctionBase
@@ -146,7 +152,7 @@
 
         private void Interpreter_GetManifestFromXmlFunc_Run(object sender, FunctionBaseEventArgs e)
         {
-            e.Return = new Variable(new PackageManifestObject(AlicePackage.GetManifest(e.Args[0].AsString())));
+            e.Return = new Variable(new PackageManifestClass(AlicePackage.GetManifest(e.Args[0].AsString())));
         }
     }
     internal class Package_CreateFromZipFileFunc : FunctionBase

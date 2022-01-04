@@ -18,6 +18,72 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError(msg+"には引数が"+expected+"個必要ですが、"+args+"個しか指定されていません",Exceptions.INSUFFICIENT_ARGUMETS);
             }
         }
+        public static bool CheckImplementProperty(ObjectClass obj)
+        {
+            bool result = true;
+           foreach(string s in obj.Properties)
+            {
+                string sl = s.ToLower();
+                if (!obj.m_properties.ContainsKey(sl))
+                {
+                    result = false;
+                    ThrowErrorManerger.OnThrowError(obj.Name+"にプロパティ: "+sl+"が実装されていません",Exceptions.NOT_IMPLEMENTED);
+                }
+            }
+            return result;
+        }
+        public static bool CheckImplementProperty(Variable v)
+        {
+            bool result = true;
+            if (v.Object != null && v.Object is ObjectBase obj)
+            {
+                var ib = v.Interface;
+                if (ib == null) { ib = obj.Interface; }
+                foreach (string s in ib.Properties)
+                {
+                    string sl = s.ToLower();
+                    if (!obj.Properties.ContainsKey(sl))
+                    {
+                        result = false;
+                        ThrowErrorManerger.OnThrowError(obj.Name + "にプロパティ: " + sl + "が実装されていません", Exceptions.NOT_IMPLEMENTED);
+                    }
+                }
+            }
+            return result;
+        }
+        public static bool CheckImplementFunction(ObjectClass obj)
+        {
+            bool result = true;
+            foreach(string s in obj.Functions)
+            {
+                string sl = s.ToLower();
+                if (!obj.m_functions.ContainsKey(sl))
+                {
+                    result = false;
+                    ThrowErrorManerger.OnThrowError(obj.Name+"にメソッド: "+sl+"が実装されていません",Exceptions.NOT_IMPLEMENTED);
+                }
+            }
+            return result;
+        }
+        public static bool CheckImplementFunction(Variable v)
+        {
+            bool result = true;
+            if (v.Object != null && v.Object is ObjectBase obj)
+            {
+                var ib = v.Interface;
+                if (ib == null) { ib = obj.Interface; }
+                foreach (string s in ib.Functions)
+                {
+                    string sl = s.ToLower();
+                    if (!obj.Functions.ContainsKey(sl))
+                    {
+                        result = false;
+                        ThrowErrorManerger.OnThrowError(obj.Name + "にメソッド: " + sl + "が実装されていません", Exceptions.NOT_IMPLEMENTED);
+                    }
+                }
+            }
+            return result;
+        }
 
         public static void CheckNonNegativeInt(Variable variable, ParsingScript script)
         {
@@ -179,7 +245,7 @@ namespace AliceScript
 
         public static ParsingScript GetTempScript(string str, ParserFunction.StackLevel stackLevel, string name = "",
             ParsingScript script = null, ParsingScript parentScript = null,
-            int parentOffset = 0, AliceScriptClass.ClassInstance instance = null)
+            int parentOffset = 0,ObjectBase instance = null)
         {
             ParsingScript tempScript = new ParsingScript(str);
             tempScript.ScriptOffset = parentOffset;

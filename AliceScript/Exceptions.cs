@@ -277,6 +277,10 @@ namespace AliceScript
         /// <summary>
         /// このプロパティから値を取得することはできません
         /// </summary>
-        COULDNT_GET_THIS_PROPERTY=0x043
+        COULDNT_GET_THIS_PROPERTY=0x043,
+        /// <summary>
+        /// 型名が見つかりません
+        /// </summary>
+        COULDNT_FIND_CLASS=0x044
     }
 }

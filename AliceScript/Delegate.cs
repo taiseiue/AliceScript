@@ -37,6 +37,10 @@ namespace AliceScript
                         r.Children.Add(m_fucntions[i]);
                     }
                 }
+                if (r == null)
+                {
+                    r = new FunctionBase();
+                }
                 return r;
             }
             set
@@ -109,7 +113,7 @@ namespace AliceScript
             }
             return r;
         }
-        public Variable Invoke(List<Variable> args=null,ParsingScript script=null,AliceScriptClass.ClassInstance instance=null)
+        public Variable Invoke(List<Variable> args=null,ParsingScript script=null,ObjectBase instance=null)
         {
             Variable last_result = Variable.EmptyInstance;
             foreach(FunctionBase func in m_fucntions)
@@ -118,7 +122,7 @@ namespace AliceScript
             }
             return last_result;
         }
-        public void BeginInvoke(List<Variable> args=null,ParsingScript script=null,AliceScriptClass.ClassInstance instance = null)
+        public void BeginInvoke(List<Variable> args=null,ParsingScript script=null,ObjectBase instance = null)
         {
             m_BeginInvokeMessanger mb = new m_BeginInvokeMessanger();
             mb.Delegate = this;
@@ -137,7 +141,7 @@ namespace AliceScript
             public DelegateObject Delegate { get; set; }
             public List<Variable> Args { get; set; }
             public ParsingScript Script { get; set; }
-            public AliceScriptClass.ClassInstance Instance { get; set; }
+            public ObjectBase Instance { get; set; }
         }
         public bool Equals(DelegateObject d)
         {

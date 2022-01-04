@@ -4,146 +4,380 @@ using System.Threading.Tasks;
 
 namespace AliceScript
 {
-    public class TestScriptObject : ScriptObject
+
+    public static class ClassManerger
     {
-        static List<string> s_properties = new List<string> {
-            "Name", "Color", "Translate"
-        };
-
-        public TestScriptObject(string name = "", string color = "")
+        public static void Add(ObjectClass cls, ParsingScript script = null)
         {
-            m_name = name;
-            m_color = color;
-        }
-
-        string m_name;
-        string m_color;
-
-        public virtual List<string> GetProperties()
-        {
-            return s_properties;
-        }
-
-        public Variable GetNameProperty()
-        {
-            return new Variable(m_name);
-        }
-        public Variable GetColorProperty()
-        {
-            return new Variable(m_color);
-        }
-
-        public virtual Task<Variable> GetProperty(string sPropertyName, List<Variable> args = null, ParsingScript script = null)
-        {
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
-            switch (sPropertyName)
+            if (script == null)
             {
-                case "Name": return Task.FromResult( GetNameProperty() );
-                case "Color": return Task.FromResult( GetColorProperty() );
-                case "Translate":
-                    return Task.FromResult(
-                        args != null && args.Count > 0 ?
-                    Translate(args[0]) : Variable.EmptyInstance);
-                default:
-                    return Task.FromResult( Variable.EmptyInstance );
+                Classes.Add(cls.Name, cls);
+                TypeClass tc = new TypeClass();
+                TypeObject to = new TypeObject();
+                to.InterfaceBase = cls;
+                to.Init(tc,null);
+                Constants.CONSTS.Add(cls.Name,new Variable(to));
+            }
+            else
+            {
+                script.Classes.Add(cls.Name, cls);
+
+                TypeClass tc = new TypeClass();
+                TypeObject to = new TypeObject();
+                to.InterfaceBase = cls;
+                to.Init(tc, null);
+                Constants.CONSTS.Add(cls.Name, new Variable(to));
+            }
+        }
+        public static void Add(InterfaceBase ib,ParsingScript script=null)
+        {
+            if (script == null)
+            {
+                Interfaces.Add(ib.Name, ib);
+
+                TypeClass tc = new TypeClass();
+                TypeObject to = new TypeObject();
+                to.InterfaceBase = ib;
+                to.Init(tc, null);
+                Constants.CONSTS.Add(ib.Name, new Variable(to));
+            }
+            else
+            {
+                Interfaces.Add(ib.Name, ib);
+
+                TypeClass tc = new TypeClass();
+                TypeObject to = new TypeObject();
+                to.InterfaceBase = ib;
+                to.Init(tc, null);
+                Constants.CONSTS.Add(ib.Name, new Variable(to));
+            }
+        }
+        public static void Remove(InterfaceBase ib, ParsingScript script = null)
+        {
+            if (script == null)
+            {
+                Interfaces.Remove(ib.Name);
+            }
+            else
+            {
+                Interfaces.Remove(ib.Name);
+            }
+        }
+        public static void Remove(ObjectClass cls, ParsingScript script=null)
+        {
+            if (script == null)
+            {
+                Classes.Remove(cls.Name);
+            }
+            else
+            {
+                script.Classes.Remove(cls.Name);
+            }
+        }
+        public static Dictionary<string, InterfaceBase> Interfaces = new Dictionary<string, InterfaceBase>();
+        public static Dictionary<string, ObjectClass> Classes = new Dictionary<string, ObjectClass>();
+    }
+    public class CustomClass : ObjectClass
+    {
+        public CustomClass() { }
+
+        public CustomClass(string className)
+        {
+            Name = className;
+            RegisterClass(className, this);
+        }
+
+        public CustomClass(string className, string[] baseClasses, ParsingScript script)
+        {
+            Name = className;
+            RegisterClass(className, this);
+            bool inheritanceFromClass = false;
+            foreach (string baseClass in baseClasses)
+            {
+                var bc = GetClassOrInterface(baseClass, script);
+                if (bc == null)
+                {
+                    throw new ArgumentException("継承元クラスである [" + baseClass + "] が存在しません");
+                }
+                foreach (var entry in bc.Properties)
+                {
+                    Properties.Add(entry);
+                }
+                foreach (var entry in bc.Functions)
+                {
+                    Functions.Add(entry);
+                }
+                if (bc is ObjectClass oc)
+                {
+                    if (inheritanceFromClass)
+                    {
+                        throw new ArgumentException("すでにこのクラスは継承しているため、新たにクラスを継承することはできません");
+                    }
+                    else
+                    {
+                        Parent = oc;
+                        foreach (var entry in oc.m_properties)
+                        {
+                            m_properties[entry.Key] = entry.Value;
+                        }
+                        foreach (var entry in oc.m_functions)
+                        {
+                            m_functions[entry.Key] = entry.Value;
+                        }
+                        inheritanceFromClass = true;
+                    }
+                }
+                else
+                {
+                    Implementations.Add(bc);
+                }
+            }
+        }
+        public override ObjectBase GetImplementation(List<Variable> args, ParsingScript script = null, string className = "")
+        {
+            ObjectBase parent = null;
+            if (Parent != null)
+            {
+               parent = Parent.GetImplementation(args, script, Parent.Name);
+            }
+            return new ClassInstance(script.CurrentAssign, className, args, script, parent);
+        }
+
+        public void AddMethod(string name, string[] args, CustomFunction method)
+        {
+            if (name == Name)
+            {
+                Constructors[args.Length] = method;
+                for (int i = 0; i < method.DefaultArgsCount && i < args.Length; i++)
+                {
+                    Constructors[args.Length - i - 1] = method;
+                }
+            }
+            else
+            {
+                Functions.Add(name);
+                m_functions[name] = method;
             }
         }
 
-        public Task<Variable> SetNameProperty(string sValue)
+        public void AddProperty(string name, PropertyBase property)
         {
-            m_name = sValue;
-            return Task.FromResult( Variable.EmptyInstance );
+            Properties.Add(name);
+            m_properties[name] = property;
         }
 
-        public Variable SetColorProperty(string aColor)
-        {
-            m_color = aColor;
-            return Variable.EmptyInstance;
-        }
 
-        public virtual async Task<Variable> SetProperty(string sPropertyName, Variable argValue)
+        public ParsingScript ParentScript = null;
+        public int ParentOffset = 0;
+
+
+        public class ClassInstance : ObjectBase
         {
-            sPropertyName = Variable.GetActualPropertyName(sPropertyName, GetProperties());
-            switch (sPropertyName)
+            public ClassInstance(string instanceName, string className, List<Variable> args,
+                                 ParsingScript script = null, ObjectBase parent = null)
             {
-                case "Name": return await SetNameProperty(argValue.AsString());
-                case "Color": return SetColorProperty(argValue.AsString());
-                case "Translate": return Translate(argValue);
-                default: return Variable.EmptyInstance;
-            }
-        }
+                Name = instanceName;
+                Parent = parent;
+                m_cscsClass = CustomClass.GetClass(className, script);
+                if (m_cscsClass == null)
+                {
+                    throw new ArgumentException("クラスインスタンス [" + className + "] が存在しません");
+                }
 
-        public Variable Translate(Variable aVariable)
-        {
-            return new Variable(m_name + "_" + m_color + "_" + aVariable.AsString());
+                // すべてのプロパティをクラスからコピー
+                foreach (var entry in m_cscsClass.Properties)
+                {
+                    if (m_cscsClass.TryGetProperty(entry, out PropertyBase prop))
+                    {
+                        SetProperty(entry,prop);
+                    }
+                }
+                // すべてのメソッドもクラスからコピー
+                foreach(var entry in m_cscsClass.Functions)
+                {
+                    if(m_cscsClass.TryGetFunction(entry,out FunctionBase func))
+                    {
+                        SetMethod(entry,func);
+                    }
+                }
+                // 引数の個数に応じたコンストラクタを実行
+                // ただし、コンストラクタがあるにもかかわらず引数の個数が異なる場合はエラー
+                FunctionBase constructor = null;
+                if (m_cscsClass.Constructors.TryGetValue(args.Count, out constructor))
+                {
+                    constructor.OnRun(args, script, this);
+                }
+                else if (m_cscsClass.Constructors.Count > 0)
+                {
+                    ThrowErrorManerger.OnThrowError("このオブジェクトに引数" + args.Count + "個を指定するコンストラクタは実装されていません", Exceptions.CONSTRUCTOR_NOT_IMPLEMENT, script);
+                }
+            }
+
+            private ObjectClass m_cscsClass;
+
+            public override string ToString()
+            {
+                FunctionBase customFunction = null;
+                if (!m_cscsClass.TryGetFunction(Constants.PROP_TO_STRING.ToLower(),
+                     out customFunction))
+                {
+                    return m_cscsClass.Name + "." + Name;
+                }
+
+                Variable result = customFunction.OnRun(null, null, this);
+                return result.ToString();
+            }
+
+            public override Task<Variable> SetProperty(string name, Variable value)
+            {
+                name = name.ToLower();
+                var prop = Properties[name];
+                if (prop.NeedCallFromParent && Parent != null)
+                {
+                    prop.SetProperty(value, Parent);
+                }
+                else
+                {
+                    prop.SetProperty(value, this);
+                }
+                //m_propSet.Add(name);
+                //m_propSetLower.Add(name.ToLower());
+                return Task.FromResult(Variable.EmptyInstance);
+            }
+            public Task<Variable> SetProperty(string name, PropertyBase property)
+            {
+                name = name.ToLower();
+                Properties[name] = property;
+                //m_propSet.Add(name);
+                //m_propSetLower.Add(name.ToLower());
+                return Task.FromResult(Variable.EmptyInstance);
+            }
+            public Task<Variable> SetMethod(string name, FunctionBase func)
+            {
+                name = name.ToLower();
+                Functions[name] = func;
+                //m_propSet.Add(name);
+                //m_propSetLower.Add(name.ToLower());
+                return Task.FromResult(Variable.EmptyInstance);
+            }
+
+            public override async Task<Variable> GetProperty(string name, List<Variable> args = null, ParsingScript script = null)
+            {
+                name = name.ToLower();
+                if (Properties.TryGetValue(name, out PropertyBase value))
+                {
+                    if (value.NeedCallFromParent && Parent != null)
+                    {
+                        return value.GetProperty(Parent);
+                    }
+                    else
+                    {
+                        return value.GetProperty(this);
+                    }
+                }
+
+                if (!Functions.TryGetValue(name, out FunctionBase customFunction))
+                {
+                    return null;
+                }
+                if (args == null)
+                {
+                    return Variable.EmptyInstance;
+                }
+
+                foreach (var entry in m_cscsClass.Properties)
+                {
+                    if (m_cscsClass.TryGetProperty(entry, out PropertyBase prop))
+                    {
+                        args.Add(prop.GetProperty(this));
+                    }
+                }
+                if (customFunction.NeedCallFromParent)
+                {
+                    return customFunction.OnRun(args, script, Parent);
+                }
+                else
+                {
+                    return customFunction.OnRun(args, script, this);
+                }
+            }
+            public override List<string> GetProperties()
+            {
+                /*
+                List<string> props = new List<string>(Properties.Keys);
+                props.AddRange(m_cscsClass.Functions.Keys);
+
+                return props;
+                */
+                return m_cscsClass.Properties;
+            }
+            public override bool PropertyExists(string name)
+            {
+                return Properties.ContainsKey(name.ToLower());
+            }
+
+            public override bool FunctionExists(string name)
+            {
+                if (!m_cscsClass.TryGetFunction(name, out FunctionBase customFunction))
+                {
+                    return false;
+                }
+                return true;
+            }
         }
     }
 
-    public abstract class CompiledClass : AliceScriptClass
+    internal class TestClass : ObjectClass
     {
         public static void Init()
         {
-            /*
-            RegisterClass("CompiledTest", new TestCompiledClass());
-            RegisterClass("CompiledTestAsync", new TestCompiledClassAsync());
-
-            RegisterFunction("TestObject",
-                new GetVarFunction(new Variable(new TestScriptObject())), true);
-            */
-           
+            ClassManerger.Add(new ITestObject());
+            ClassManerger.Add(new TestClass());
+        }
+        public TestClass()
+        {
+            this.Name = "TestClass";
+            this.AddFunction(new TestFunc());
+        }
+        public override ObjectBase GetImplementation(List<Variable> args, ParsingScript script = null, string className = "")
+        {
+            var obj = new TestObject("Tag");
+            obj.Init(this, args, script, className);
+            return obj;
         }
 
-        public abstract ScriptObject GetImplementation(List<Variable> args);
-    }
-    public static class ClassManerger
-    {
-        public static void Add(ObjectBase obj,ParsingScript script=null)
+        private class TestFunc : FunctionBase
         {
-            if (script == null)
+            public TestFunc()
             {
-                Classes.Add(obj.Name,new ObjectClass(obj));
+                this.Name = "Show";
+                this.NeedCallFromParent = true;
+                this.Run += TestFunc_Run;
             }
-            else
+
+            private void TestFunc_Run(object sender, FunctionBaseEventArgs e)
             {
-                script.Classes.Add(obj.Name,new ObjectClass(obj));
-            }
-        }
-        public static void Remove(ObjectBase obj,ParsingScript script)
-        {
-            if (script == null)
-            {
-                Classes.Remove(obj.Name);
-            }
-            else
-            {
-                script.Classes.Remove(obj.Name);
+                var v = (TestObject)e.Instance;
+                Interpreter.Instance.AppendOutput(v.Tag, true);
             }
         }
-        public static Dictionary<string, ObjectClass> Classes = new Dictionary<string, ObjectClass>();
-    }
 
-    public abstract class CompiledClassAsync : AliceScriptClass
-    {
-        public abstract Task<ScriptObject> GetImplementationAsync(List<Variable> args);
-    }
-
-    public class TestCompiledClass : CompiledClass
-    {
-        public override ScriptObject GetImplementation(List<Variable> args)
+        private class TestObject : ObjectBase
         {
-            string name = Utils.GetSafeString(args, 0);
-            string color = Utils.GetSafeString(args, 1);
-            return new TestScriptObject(name, color);
+            public TestObject(string tag)
+            {
+                Tag = tag;
+            }
+            public string Tag = "";
         }
     }
-    public class TestCompiledClassAsync : CompiledClassAsync
+    internal class ITestObject : InterfaceBase
     {
-        public override Task<ScriptObject> GetImplementationAsync(List<Variable> args)
+        public ITestObject()
         {
-            string name = Utils.GetSafeString(args, 0);
-            string color = Utils.GetSafeString(args, 1);
-            ScriptObject myScriptObject = new TestScriptObject(name, color);
-            return Task.FromResult( myScriptObject );
+            this.Name = "ITest";
+            this.AddFunction("Show");
         }
     }
+
 }

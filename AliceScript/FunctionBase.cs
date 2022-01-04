@@ -49,19 +49,18 @@ namespace AliceScript
         /// この関数が変数のプロパティとして呼び出される場合、その変数の種類を取得または設定します
         /// </summary>
         public Variable.VarType RequestType { get; set; }
+        /// <summary>
+        /// クラス内でこのメソッドが継承されたとき、このメソッドに継承元のクラスから呼び出しが必要かどうかを表す値を表します。
+        /// </summary>
+        public bool NeedCallFromParent { get; set; }
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
-                if (ObjectBase.GETTING)
-                {
-                    args = ObjectBase.LaskVariable;
-                }
-                else
-                {
+                
                     args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
-                }
+             
 
                 if (MinimumArgCounts >= 1)
                 {
@@ -90,14 +89,9 @@ namespace AliceScript
             List<Variable> args = null;
             if (!this.Attribute.HasFlag(FunctionAttribute.LANGUAGE_STRUCTURE))
             {
-                if (ObjectBase.GETTING)
-                {
-                    args = ObjectBase.LaskVariable;
-                }
-                else
-                {
+               
                     args = script.GetFunctionArgs(Constants.START_ARG, Constants.END_ARG);
-                }
+                
                 if (MinimumArgCounts >= 1)
                 {
                     Utils.CheckArgs(args.Count, MinimumArgCounts, m_name);
@@ -134,7 +128,7 @@ namespace AliceScript
         /// <param name="instance">現在のクラスインスタンス</param>
         /// <param name="current">現在の変数</param>
         /// <returns>関数の戻り値</returns>
-        public virtual Variable OnRun(List<Variable> args=null,ParsingScript script=null, AliceScriptClass.ClassInstance instance = null, Variable current = null)
+        public virtual Variable OnRun(List<Variable> args=null,ParsingScript script=null, ObjectBase instance = null, Variable current = null)
         {
             if (args == null)
             {
@@ -147,6 +141,8 @@ namespace AliceScript
             FunctionBaseEventArgs ex = new FunctionBaseEventArgs();
             ex.Args = args;
             ex.Script = script;
+            ex.Instance= instance;
+            ex.CurentVariable = current;
             Run?.Invoke(null, ex);
 
             return ex.Return;
@@ -310,10 +306,13 @@ namespace AliceScript
         public ParsingScript Script { get; set; }
 
         /// <summary>
-        /// (Variableオブジェクト内のみ)呼び出し元のオブジェクトを表します
+        /// (Variableオブジェクトかクラス内のみ)呼び出し元のオブジェクトを表します
         /// </summary>
         public Variable CurentVariable { get; set; }
-
+        /// <summary>
+        /// (クラス内のみ)現在のクラスインスタンスを表します
+        /// </summary>
+        public ObjectBase Instance { get; set; }
 
     }
 
