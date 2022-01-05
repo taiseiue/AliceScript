@@ -89,6 +89,7 @@ namespace AliceScript
         public const string ADD_UNIQUE = "addunique";
         public const string ADD_TO_HASH = "AddToHash";
         public const string ADD_ALL_TO_HASH = "AddAllToHash";
+        public const string ARROW = "=>";
         public const string CANCEL_RUN = "CancelRun";
         public const string CHECK_LOADER_MAIN = "LoaderMain";
         public const string CONST = "const";
@@ -124,6 +125,7 @@ namespace AliceScript
         public const string TO_STRING = "string";
         public const string VAR = "var";
         public const string WAIT = "wait";
+        public const string WRITE = "write";
 
         public const string ADD_DATA = "AddDataToCollection";
         public const string COLLECT_DATA = "StartCollectingData";
@@ -263,6 +265,7 @@ namespace AliceScript
             {BREAK,new Variable(Variable.VarType.BREAK) },
             //ループを次に進めます
             {CONTINUE,new Variable(Variable.VarType.CONTINUE) },
+            //型定数
             {"string", Variable.AsType(Variable.VarType.STRING) },
             {"number",Variable.AsType(Variable.VarType.NUMBER) },
             {"array",Variable.AsType(Variable.VarType.ARRAY) },
@@ -293,6 +296,10 @@ namespace AliceScript
 
         public static string ConvertName(string name)
         {
+            if (name == null)
+            {
+                name = string.Empty;
+            }
             name = name.Trim();
             if (string.IsNullOrWhiteSpace(name) || name[0] == QUOTE || name[0] == QUOTE1)
             {

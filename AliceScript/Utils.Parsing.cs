@@ -407,86 +407,6 @@ namespace AliceScript
                 prev = currentChar;
             }
         }
-
-        public static bool IsCompareSign(char ch)
-        {
-            return ch == '<' || ch == '>' || ch == '=';
-        }
-
-        public static bool IsAndOrSign(char ch)
-        {
-            return ch == '&' || ch == '|';
-        }
-
-        // Checks whether there is an argument separator (e.g.  ',') before the end of the
-        // function call. E.g. returns true for "a,b)" and "a(b,c),d)" and false for "b),c".
-        public static bool SeparatorExists(ParsingScript script)
-        {
-            if (!script.StillValid())
-            {
-                return false;
-            }
-
-            int argumentList = 0;
-            for (int i = script.Pointer; i < script.Size(); i++)
-            {
-                char ch = script.At(i);
-                switch (ch)
-                {
-                    case Constants.NEXT_ARG:
-                        return true;
-                    case Constants.START_ARG:
-                        argumentList++;
-                        break;
-                    case Constants.END_STATEMENT:
-                    case Constants.END_GROUP:
-                    case Constants.END_ARG:
-                        if (--argumentList < 0)
-                        {
-                            return false;
-                        }
-                        break;
-                }
-            }
-
-            return false;
-        }
-
-        public static void GetCompiledArgs(ParsingScript script, out string funcReturn, out string funcName)
-        {
-            string body = Utils.GetBodyBetween(script, Constants.END_ARG, Constants.START_ARG);
-            var parts = body.Split();
-            funcReturn = parts.Length > 1 ? parts[0] : "void";
-            funcName = parts.Last();
-        }
-
-        public static List<string> GetFunctionArgs(ParsingScript script)
-        {
-            bool isList;
-            List<Variable> args = Utils.GetArgs(script,
-                Constants.START_ARG, Constants.END_ARG, (outList) => { isList = outList; });
-
-            List<string> result = new List<string>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                result.Add(args[i].AsString());
-            }
-            return result;
-        }
-        public static async Task<List<string>> GetFunctionArgsAsync(ParsingScript script)
-        {
-            bool isList;
-            List<Variable> args = await Utils.GetArgsAsync(script,
-                Constants.START_ARG, Constants.END_ARG, (outList) => { isList = outList; });
-
-            List<string> result = new List<string>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                result.Add(args[i].AsString());
-            }
-            return result;
-        }
-
         public static List<Variable> GetArgs(ParsingScript script,
             char start, char end, Action<bool> outList)
         {
@@ -699,35 +619,6 @@ namespace AliceScript
             return args;
         }
 
-        public static string[] GetCompiledFunctionSignature(ParsingScript script, out Dictionary<string, Variable> dict)
-        {
-            script.MoveForwardIf(Constants.START_ARG, Constants.SPACE);
-
-            int endArgs = script.FindFirstOf(Constants.END_ARG.ToString());
-            if (endArgs < 0)
-            {
-                throw new ArgumentException("Couldn't extract function signature");
-            }
-
-            string argStr = script.Substr(script.Pointer, endArgs - script.Pointer);
-            List<string> args = GetCompiledArgs(argStr);
-            //string[] args = argStr.Split(Constants.NEXT_ARG_ARRAY, StringSplitOptions.RemoveEmptyEntries);
-
-            dict = new Dictionary<string, Variable>(args.Count);
-            var sep = new char[] { ' ' };
-            for (int i = 0; i < args.Count; i++)
-            {
-                string[] pair = args[i].ToLower().Trim().Split(sep, StringSplitOptions.RemoveEmptyEntries);
-                Variable.VarType type = pair.Length > 1 ? Constants.StringToType(pair[0]) : Variable.VarType.STRING;
-                dict.Add(pair[pair.Length - 1], new Variable(type));
-                args[i] = pair[pair.Length - 1];
-            }
-
-            string[] result = args.Select(element => element.Trim()).ToArray();
-            script.Pointer = endArgs + 1;
-
-            return result;
-        }
 
         public static bool EndsWithFunction(string buffer, List<string> functions)
         {
@@ -1107,68 +998,6 @@ namespace AliceScript
             return sb.ToString().Trim();
         }
 
-        public static string BeautifyScript(string script, string header)
-        {
-            StringBuilder result = new StringBuilder();
-            char[] extraSpace = ("<>=&|+-*/%").ToCharArray();
-
-            int indent = Constants.INDENT;
-            result.AppendLine(header);
-
-            bool inQuotes = false;
-            bool lineStart = true;
-
-            for (int i = 0; i < script.Length; i++)
-            {
-                char ch = script[i];
-                inQuotes = ch == Constants.QUOTE ? !inQuotes : inQuotes;
-
-                if (inQuotes)
-                {
-                    result.Append(ch);
-                    continue;
-                }
-
-                bool needExtra = extraSpace.Contains(ch) && i > 0 && i < script.Length - 1;
-                if (needExtra && !extraSpace.Contains(script[i - 1]))
-                {
-                    result.Append(" ");
-                }
-
-                switch (ch)
-                {
-                    case Constants.START_GROUP:
-                        result.AppendLine(" " + Constants.START_GROUP);
-                        indent += Constants.INDENT;
-                        lineStart = true;
-                        break;
-                    case Constants.END_GROUP:
-                        indent -= Constants.INDENT;
-                        result.AppendLine(new String(' ', indent) + Constants.END_GROUP);
-                        lineStart = true;
-                        break;
-                    case Constants.END_STATEMENT:
-                        result.AppendLine(ch.ToString());
-                        lineStart = true;
-                        break;
-                    default:
-                        if (lineStart)
-                        {
-                            result.Append(new String(' ', indent));
-                            lineStart = false;
-                        }
-                        result.Append(ch.ToString());
-                        break;
-                }
-                if (needExtra && !extraSpace.Contains(script[i + 1]))
-                {
-                    result.Append(" ");
-                }
-            }
-
-            result.AppendLine(Constants.END_GROUP.ToString());
-            return result.ToString();
-        }
         public static string GetBodySize(ParsingScript script, string endToken1, string endToken2 = null)
         {
             int start = script.Pointer;
@@ -1297,8 +1126,8 @@ namespace AliceScript
 
             return sb.ToString();
         }
-        //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。この関数は将来使用するために残されています。
-        public static string GetBodyArrowBetween(ParsingScript script, char open = Constants.START_ARG,
+        //ラムダ式の本文を取得します
+        public static string GetBodyLambdaBetween(ParsingScript script, char open = Constants.START_ARG,
                                             char close = Constants.END_ARG, char end = '\0')
         {
             // We are supposed to be one char after the beginning of the string, i.e.
@@ -1350,7 +1179,7 @@ namespace AliceScript
                 }
 
                 sb.Append(ch);
-                if (before == '=' && ch == '>') { getarrow = true; }
+                if (before == Constants.ARROW[0] && ch == Constants.ARROW[1]) { getarrow = true; }
                 prevprev = prev;
                 prev = ch;
                 if (braces < 0)
@@ -1363,41 +1192,42 @@ namespace AliceScript
                     break;
                 }
             }
-            //delegate()=>{};の形では、=>{実際のコード};のようになっている場合がある。
-            string s = sb.ToString();
-            if (s.Length > 5)
+            if (braces == 0)
             {
-                if (s.StartsWith("=>{") && s.EndsWith("};"))
+                //波括弧が存在しなかった場合
+                //まず、(input-parameters) => expression;の形では、=>expression;のようになっている場合がある
+                string s = sb.ToString();
+                if (s.Length > 2&&s.StartsWith(Constants.ARROW))
                 {
                     //その場合、実際のコード部分を切り出す
-                    s = s.Substring(3, s.Length - 5);
+                    s = s.Substring(2);
                 }
-            }
-            return s;
-        }
-
-
-        public static string ProtectQuotes(string str)
-        {
-            StringBuilder sb = new StringBuilder(str.Length);
-            char prev = Constants.EMPTY;
-            char prevprev = Constants.EMPTY;
-
-            for (int i = 0; i < str.Length; i++)
-            {
-                char ch = str[i];
-
-                if (ch == Constants.QUOTE && (prev != '\\' || prevprev == '\\'))
+                if (Utils.GetCountChar(s,Constants.END_STATEMENT)==1&&s[s.Length-1]==Constants.END_STATEMENT&&!s.Contains(Constants.RETURN))
                 {
-                    sb.Append('\\');
+                    //式内にトークンが一つしかなく、returnステートメントが省略されている場合
+                    //既存の式にreturnステートメントを追加する
+                    //例:expression;ならreturn(expression);となる
+                    s = Constants.RETURN + Constants.START_ARG + s.TrimEnd(Constants.END_STATEMENT) + Constants.END_ARG + Constants.END_STATEMENT; ;
                 }
-                sb.Append(ch);
-                prevprev = prev;
-                prev = ch;
+                return s;
             }
-
-            return sb.ToString();
+            else
+            {
+                //delegate()=>{};の形では、=>{実際のコード};のようになっている場合がある。
+                string s = sb.ToString();
+                int len = Constants.ARROW.Length + 1;
+                if (s.Length > len+2)
+                {
+                    if (s.StartsWith(Constants.ARROW+Constants.START_ARG) && s.EndsWith(Constants.END_ARG.ToString()+Constants.END_STATEMENT.ToString()))
+                    {
+                        //その場合、実際のコード部分を切り出す
+                        s = s.Substring(len, s.Length - (len+2));
+                    }
+                }
+                return s;
+            }
         }
+
 
         public static string IsNotSign(string data)
         {
@@ -1432,11 +1262,6 @@ namespace AliceScript
         {
             int end = 0;
             return GetArrayIndices(script, varName, end, (string str, int i) => { updateVarName(str); end = i; });
-        }
-        public static async Task<List<Variable>> GetArrayIndicesAsync(ParsingScript script, string varName, Action<string> updateVarName)
-        {
-            int end = 0;
-            return await GetArrayIndicesAsync(script, varName, end, (string str, int i) => { updateVarName(str); end = i; });
         }
 
         public static List<Variable> GetArrayIndices(ParsingScript script, string varName, int end, Action<string, int> updateVals)
@@ -1569,19 +1394,6 @@ namespace AliceScript
             }
             return currLevel;
         }
-        public static async Task<Variable> GetVar(string paramName, ParsingScript script)
-        {
-            if (script == null)
-            {
-                script = new ParsingScript("");
-            }
-            ParserFunction function = ParserFunction.GetVariable(paramName, script);
-            if (function == null)
-            {
-                throw new ArgumentException("Variable [" + paramName + "] not found.");
-            }
-            Variable result = await function.GetValueAsync(script);
-            return result;
-        }
+      
     }
 }

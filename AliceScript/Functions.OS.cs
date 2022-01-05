@@ -17,12 +17,12 @@ namespace AliceScript
         {
             if (isWrite)
             {
-                this.Name = "write";
+                this.Name = Constants.WRITE;
                 m_write = true;
             }
             else
             {
-                this.Name = "print";
+                this.Name = Constants.PRINT;
             }
 
             //AliceScript925から、Print関数は引数を持つ必要がなくなりました。

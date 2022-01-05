@@ -285,52 +285,6 @@ namespace AliceScript
             return true;
         }
 
-        public static string GetFileText(string filename)
-        {
-            string fileContents = string.Empty;
-            if (File.Exists(filename))
-            {
-                fileContents= SafeReader.ReadAllText(filename, out _);
-            }
-            else
-            {
-                ThrowErrorManerger.OnThrowError("ファイルが存在しません",Exceptions.FILE_NOT_FOUND);
-                return fileContents;
-            }
-            return fileContents;
-        }
-
-        public static void PrintScript(string script, ParsingScript parentSript)
-        {
-            StringBuilder item = new StringBuilder();
-
-            bool inQuotes = false;
-
-            for (int i = 0; i < script.Length; i++)
-            {
-                char ch = script[i];
-                inQuotes = ch == Constants.QUOTE ? !inQuotes : inQuotes;
-
-                if (inQuotes)
-                {
-                    Interpreter.Instance.AppendOutput(ch.ToString());
-                    continue;
-                }
-                if (!Constants.TOKEN_SEPARATION.Contains(ch))
-                {
-                    item.Append(ch);
-                    continue;
-                }
-                if (item.Length > 0)
-                {
-                    string token = item.ToString();
-                    Interpreter.Instance.AppendOutput(token);
-                    item.Clear();
-                }
-                Interpreter.Instance.AppendOutput(ch.ToString());
-            }
-        }
-
         public static string GetFileLines(string filename)
         {
                 string lines = SafeReader.ReadAllText(filename,out _);
@@ -430,51 +384,6 @@ namespace AliceScript
             return args[index];
         }
 
-        public static string GetSafeToken(List<Variable> args, int index, string defaultValue = "")
-        {
-            if (args.Count <= index)
-            {
-                return defaultValue;
-            }
-
-            Variable var = args[index];
-            string token = var.ParsingToken;
-
-            return token;
-        }
-
-        public static Variable GetVariable(string varName, ParsingScript script = null, bool testNull = true)
-        {
-            varName = varName.ToLower();
-            if (script == null)
-            {
-                script = new ParsingScript("");
-            }
-
-            ParserFunction func = ParserFunction.GetVariable(varName, script);
-            if (!testNull && func == null)
-            {
-                return null;
-            }
-            Utils.CheckNotNull(varName, func, script);
-            Variable varValue = func.GetValue(script);
-            Utils.CheckNotNull(varValue, varName, script);
-            return varValue;
-        }
-
-        public static async Task<Variable> GetVariableAsync(string varName, ParsingScript script, bool testNull = true)
-        {
-            ParserFunction func = ParserFunction.GetVariable(varName, script);
-            if (!testNull && func == null)
-            {
-                return null;
-            }
-            Utils.CheckNotNull(varName, func, script);
-            Variable varValue = await func.GetValueAsync(script);
-            Utils.CheckNotNull(varValue, varName, script);
-            return varValue;
-        }
-
         public static double ConvertToDouble(object obj, ParsingScript script = null)
         {
             string str = obj.ToString().ToLower();
@@ -552,47 +461,6 @@ namespace AliceScript
 
         }
 
-        public static bool ConvertToBool(object obj)
-        {
-            string str = obj.ToString();
-            double dRes = 0;
-            if (CanConvertToDouble(str, out dRes))
-            {
-                return dRes != 0;
-            }
-            bool res = false;
-
-            Boolean.TryParse(str, out res);
-            return res;
-        }
-        public static int ConvertToInt(object obj, ParsingScript script = null)
-        {
-            double num = ConvertToDouble(obj, script);
-            return (int)num;
-        }
-
-        public static void Extract(string data, ref string str1, ref string str2,
-                                   ref string str3, ref string str4, ref string str5)
-        {
-            string[] vals = data.Split(new char[] { ',', ':' });
-            str1 = vals[0];
-            if (vals.Length > 1)
-            {
-                str2 = vals[1];
-                if (vals.Length > 2)
-                {
-                    str3 = vals[2];
-                    if (vals.Length > 3)
-                    {
-                        str4 = vals[3];
-                        if (vals.Length > 4)
-                        {
-                            str5 = vals[4];
-                        }
-                    }
-                }
-            }
-        }
         public static int GetNumberOfDigits(string data, int itemNumber = -1)
         {
             if (itemNumber >= 0)
@@ -616,29 +484,6 @@ namespace AliceScript
                 return 0;
             }
             return data.Length - index - 1;
-        }
-        public static void Extract(string data, ref double val1, ref double val2,
-                                                ref double val3, ref double val4)
-        {
-            string[] vals = data.Split(new char[] { ',', ':' });
-            val1 = ConvertToDouble(vals[0].Trim());
-
-            if (vals.Length > 1)
-            {
-                val2 = ConvertToDouble(vals[1].Trim());
-                if (vals.Length > 2)
-                {
-                    val3 = ConvertToDouble(vals[2].Trim());
-                }
-                if (vals.Length > 3)
-                {
-                    val4 = ConvertToDouble(vals[3].Trim());
-                }
-            }
-            else
-            {
-                val3 = val2 = val1;
-            }
         }
         public static string GetFileContents(string filename)
         {
@@ -738,6 +583,10 @@ namespace AliceScript
                 ThrowErrorManerger.OnThrowError("カレントディレクトリの取得に失敗しました\r\n詳細:"+exc,Exceptions.NONE);
             }
             return "";
+        }
+        public static int GetCountChar(string s, char c)
+        {
+            return s.Length - s.Replace(c.ToString(), "").Length;
         }
     }
 }

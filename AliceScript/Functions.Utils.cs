@@ -79,9 +79,9 @@ namespace AliceScript
                 parentOffset += script.CurrentClass.ParentOffset;
             }
 
-            string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
+            string body = Utils.GetBodyBetween(script, Constants.START_GROUP, Constants.END_GROUP);
             //AliceScript926から、Delegateの宣言に=>演算子は必要なくなりました。下の式は将来使用するために残されています。
-            //string body = Utils.GetBodyBetween(script,Constants.START_GROUP,Constants.END_GROUP);
+            //string body = Utils.GetBodyArrowBetween(script, Constants.START_GROUP, Constants.END_GROUP);
 
             script.MoveForwardIf(Constants.END_GROUP);
             CustomFunction customFunc = new CustomFunction("", body, args, script,"DELEGATE");

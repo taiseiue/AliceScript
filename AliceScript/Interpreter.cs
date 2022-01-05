@@ -146,7 +146,6 @@ namespace AliceScript
             FunctionBaseManerger.Add(new DllImportFunc());
             FunctionBaseManerger.Add(new IceImportFunc());
             FunctionBaseManerger.Add(new DelegateCreator());
-            FunctionBaseManerger.Add(new DelegateCreator(), "_");
             FunctionBaseManerger.Add(new PrintFunction());
             FunctionBaseManerger.Add(new PrintFunction(true));
             FunctionBaseManerger.Add(new StringFormatFunction());

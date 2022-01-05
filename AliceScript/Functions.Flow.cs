@@ -147,7 +147,7 @@ namespace AliceScript
     {
         public ThrowFunction()
         {
-            this.Name = "throw";
+            this.Name = Constants.THROW;
             this.Attribute = FunctionAttribute.FUNCT_WITH_SPACE_ONC;
             this.MinimumArgCounts = 1;
             this.Run += ThrowFunction_Run;
@@ -1097,16 +1097,6 @@ namespace AliceScript
             }
         }
 
-        public string Header
-        {
-            get
-            {
-                return Constants.FUNCTION + " " + Constants.GetRealName(Name) + " " +
-                       Constants.START_ARG + string.Join(", ", m_args) +
-                       Constants.END_ARG + " " + Constants.START_GROUP;
-            }
-        }
-
         protected int m_this = -1;
         protected string m_body;
         protected object m_tag;
@@ -1208,14 +1198,6 @@ namespace AliceScript
         protected override async Task<Variable> EvaluateAsync(ParsingScript script)
         {
             return await script.ExecuteAsync(Constants.END_ARG_ARRAY);
-        }
-    }
-
-    internal class ConstantsFunction : ParserFunction
-    {
-        protected override Variable Evaluate(ParsingScript script)
-        {
-            return new Variable(m_name);
         }
     }
 
