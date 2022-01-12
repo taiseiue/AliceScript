@@ -1197,17 +1197,11 @@ namespace AliceScript
                 //波括弧が存在しなかった場合
                 //まず、(input-parameters) => expression;の形では、=>expression;のようになっている場合がある
                 string s = sb.ToString();
-                if (s.Length > 2&&s.StartsWith(Constants.ARROW))
+                int len=Constants.ARROW.Length;
+                if (s.Length > len&&s.StartsWith(Constants.ARROW))
                 {
                     //その場合、実際のコード部分を切り出す
-                    s = s.Substring(2);
-                }
-                if (Utils.GetCountChar(s,Constants.END_STATEMENT)==1&&s[s.Length-1]==Constants.END_STATEMENT&&!s.Contains(Constants.RETURN))
-                {
-                    //式内にトークンが一つしかなく、returnステートメントが省略されている場合
-                    //既存の式にreturnステートメントを追加する
-                    //例:expression;ならreturn(expression);となる
-                    s = Constants.RETURN + Constants.START_ARG + s.TrimEnd(Constants.END_STATEMENT) + Constants.END_ARG + Constants.END_STATEMENT; ;
+                    s = s.Substring(len);
                 }
                 return s;
             }

@@ -25,6 +25,7 @@ namespace AliceScript
         public const char CONTINUE_LINE = '\\';
         public const char EMPTY = '\0';
         public const char TERNARY_OPERATOR = '?';
+        public const char NAMESPACE_SPLITER = '.';
 
         public const string FOR_EACH = ":";
         public const string FOR_IN = "in";
