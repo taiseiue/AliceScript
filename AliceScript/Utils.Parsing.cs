@@ -1126,21 +1126,30 @@ namespace AliceScript
 
             return sb.ToString();
         }
-        //ラムダ式の本文を取得します
-        public static string GetBodyLambdaBetween(ParsingScript script, char open = Constants.START_ARG,
-                                            char close = Constants.END_ARG, char end = '\0')
+        /// <summary>
+        /// ラムダ式の本文を取得します
+        /// </summary>
+        /// <param name="script">ソーススクリプト</param>
+        /// <param name="open">式形式ラムダ開始文字</param>
+        /// <param name="open2">ステートメント形式ラムダ開始文字</param>
+        /// <param name="close">式形式ラムダ終了文字</param>
+        /// <param name="close2">ステートメント形式ラムダ終了文字</param>
+        /// <param name="end">パース終了文字</param>
+        /// <returns>ラムダ式の本文</returns>
+        public static string GetBodyLambdaBetween(ParsingScript script, char open = Constants.START_ARG,char open2 = Constants.START_GROUP,
+                                            char close = Constants.END_ARG,char close2 = Constants.END_GROUP, char end = Constants.END_STATEMENT)
         {
             // We are supposed to be one char after the beginning of the string, i.e.
             // we must not have the opening char as the first one.
             StringBuilder sb = new StringBuilder(script.Size());
             int braces = 0;
+            int braces2 = 0;
             bool inQuotes = false;
             bool inQuotes1 = false;
             bool inQuotes2 = false;
             bool checkBraces = true;
             char prev = Constants.EMPTY;
             char prevprev = Constants.EMPTY;
-            char before = ' ';
             bool getarrow = false;
 
             for (; script.StillValid(); script.Forward())
@@ -1169,6 +1178,10 @@ namespace AliceScript
                 {
                     continue;
                 }
+                else if (prev == Constants.ARROW[0] && ch == Constants.ARROW[1])
+                {
+                    getarrow = true; 
+                }
                 else if (checkBraces && ch == open && getarrow)
                 {
                     braces++;
@@ -1177,9 +1190,16 @@ namespace AliceScript
                 {
                     braces--;
                 }
+                else if (checkBraces && ch == open2 && getarrow)
+                {
+                    braces2++;
+                }
+                else if (checkBraces && ch == close2 && getarrow)
+                {
+                    braces2--;
+                }
 
                 sb.Append(ch);
-                if (before == Constants.ARROW[0] && ch == Constants.ARROW[1]) { getarrow = true; }
                 prevprev = prev;
                 prev = ch;
                 if (braces < 0)
@@ -1190,11 +1210,19 @@ namespace AliceScript
                         sb.Remove(sb.Length - 1, 1);
                     }
                     break;
+                }else if (braces2 < 0)
+                {
+                    getarrow = false;
+                    if (ch == close2)
+                    {
+                        sb.Remove(sb.Length - 1, 1);
+                    }
+                    break;
                 }
             }
-            if (braces == 0)
+            if (braces2 == 0)
             {
-                //波括弧が存在しなかった場合
+                //波括弧が存在しなかった場合(=式形式ラムダ)
                 //まず、(input-parameters) => expression;の形では、=>expression;のようになっている場合がある
                 string s = sb.ToString();
                 int len=Constants.ARROW.Length;
@@ -1207,6 +1235,7 @@ namespace AliceScript
             }
             else
             {
+                //波括弧が存在する場合(=ステートメント形式ラムダ)
                 //delegate()=>{};の形では、=>{実際のコード};のようになっている場合がある。
                 string s = sb.ToString();
                 int len = Constants.ARROW.Length + 1;

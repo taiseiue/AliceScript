@@ -863,7 +863,6 @@ namespace AliceScript
         public Variable ProcessTry(ParsingScript script)
         {
             int startTryCondition = script.Pointer - 1;
-            int currentStackLevel = ParserFunction.GetCurrentStackLevel();
             Exception exception = null;
 
             Variable result = null;
@@ -908,8 +907,7 @@ namespace AliceScript
 
             if (exception != null)
             {
-                string excStack = CreateExceptionStack(exceptionName, currentStackLevel);
-                ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
+                string excStack = "";
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
@@ -932,7 +930,6 @@ namespace AliceScript
         public async Task<Variable> ProcessTryAsync(ParsingScript script)
         {
             int startTryCondition = script.Pointer - 1;
-            int currentStackLevel = ParserFunction.GetCurrentStackLevel();
             Exception exception = null;
 
             Variable result = null;
@@ -975,8 +972,7 @@ namespace AliceScript
 
             if (exception != null)
             {
-                string excStack = CreateExceptionStack(exceptionName, currentStackLevel);
-                ParserFunction.InvalidateStacksAfterLevel(currentStackLevel);
+                string excStack = "";
 
                 GetVarFunction excMsgFunc = new GetVarFunction(new Variable(exception.Message));
                 GetVarFunction excStackFunc = new GetVarFunction(new Variable(excStack));
@@ -996,51 +992,6 @@ namespace AliceScript
             return result;
         }
 
-        private static string CreateExceptionStack(string exceptionName, int lowestStackLevel)
-        {
-            string result = "";
-            Stack<ParserFunction.StackLevel> stack = ParserFunction.ExecutionStack;
-            int level = stack.Count;
-            foreach (ParserFunction.StackLevel stackLevel in stack)
-            {
-                if (level-- < lowestStackLevel)
-                {
-                    break;
-                }
-                if (string.IsNullOrWhiteSpace(stackLevel.Name))
-                {
-                    continue;
-                }
-                result += Environment.NewLine + "  " + stackLevel.Name + "()";
-            }
-
-            if (!string.IsNullOrWhiteSpace(result))
-            {
-                result = " --> " + exceptionName + result;
-            }
-
-            return result;
-        }
-        public static string GetStack(int lowestStackLevel = 0)
-        {
-            string result = "";
-            Stack<ParserFunction.StackLevel> stack = ParserFunction.ExecutionStack;
-            int level = stack.Count;
-            foreach (ParserFunction.StackLevel stackLevel in stack)
-            {
-                if (level-- < lowestStackLevel)
-                {
-                    break;
-                }
-                if (string.IsNullOrWhiteSpace(stackLevel.Name))
-                {
-                    continue;
-                }
-                result += Environment.NewLine + "  " + stackLevel.Name + "()";
-            }
-
-            return result;
-        }
 
         private void SkipBlock(ParsingScript script)
         {

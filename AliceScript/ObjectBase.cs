@@ -186,10 +186,6 @@ namespace AliceScript
         /// </summary>
         public ObjectClass Parent { get; set; }
         /// <summary>
-        /// インタフェースの所属する名前空間
-        /// </summary>
-        public string NameSpace { get; set; }
-        /// <summary>
         /// インタフェースに含まれるプロパティ
         /// </summary>
         public List<string> Properties = new List<string>();
@@ -225,16 +221,7 @@ namespace AliceScript
         }
         public static InterfaceBase GetInterface(string name, ParsingScript script = null)
         {
-            string currNamespace = ParserFunction.GetCurrentNamespace;
-            if (!string.IsNullOrWhiteSpace(currNamespace))
-            {
-                bool namespacePresent = name.Contains(".");
-                if (!namespacePresent)
-                {
-                    name = currNamespace + "." + name;
-                }
-            }
-
+            
             InterfaceBase theClass = null;
             if (script != null && script.TryGetInterface(name, out theClass))
             {
@@ -317,16 +304,7 @@ namespace AliceScript
         }
         public static ObjectClass GetClass(string name, ParsingScript script = null)
         {
-            string currNamespace = ParserFunction.GetCurrentNamespace;
-            if (!string.IsNullOrWhiteSpace(currNamespace))
-            {
-                bool namespacePresent = name.Contains(".");
-                if (!namespacePresent)
-                {
-                    name = currNamespace + "." + name;
-                }
-            }
-
+            
             ObjectClass theClass = null;
             if (s_allClasses.TryGetValue(name, out theClass))
             {
@@ -355,11 +333,14 @@ namespace AliceScript
 
         public static void RegisterClass(string className, ObjectClass obj)
         {
+            //TODO:クラス名の登録
+            /*
             obj.NameSpace = ParserFunction.GetCurrentNamespace;
             if (!string.IsNullOrWhiteSpace(obj.NameSpace))
             {
                 className = obj.NameSpace + "." + className;
             }
+            */
 
             obj.Name = className;
             className = Constants.ConvertName(className);

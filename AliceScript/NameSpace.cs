@@ -146,6 +146,35 @@ namespace AliceScript
         }
 
     }
+    public static class NameSpaceManerger
+    {
+        public static Dictionary<string, NameSpace> NameSpaces = new Dictionary<string, NameSpace>();
+        public static void Add(NameSpace space, string name = "")
+        {
+            if (name == "") { name = space.Name; }
+            NameSpaces.Add(name, space);
+        }
+        public static bool Contains(NameSpace name)
+        {
+            return NameSpaces.ContainsValue(name);
+        }
+        public static bool Contains(string name)
+        {
+            return NameSpaces.ContainsKey(name);
+        }
+        public static bool TryGetNameSpace(string name,out NameSpace space)
+        {
+            return NameSpaces.TryGetValue(name,out space);
+        }
+        public static void Load(string name, ParsingScript script)
+        {
+            NameSpaces[name].Load(script);
+        }
+        public static void UnLoad(string name, ParsingScript script)
+        {
+            NameSpaces[name].UnLoad(script);
+        }
+    }
     public class UsingDelective : FunctionBase
     {
         public UsingDelective()
@@ -158,6 +187,14 @@ namespace AliceScript
         private void UsingDelective_Run(object sender, FunctionBaseEventArgs e)
         {
             string namespaceName = Utils.GetToken(e.Script, Constants.NEXT_OR_END_ARRAY);
+            if (NameSpaceManerger.TryGetNameSpace(namespaceName,out NameSpace space))
+            {
+                e.Script.UsingNameSpaces.Add(space);
+            }
+            else
+            {
+                ThrowErrorManerger.OnThrowError("指定された名前空間が存在しません",Exceptions.NAMESPACE_NOT_FOUND,e.Script);
+            }
         }
     }
 }

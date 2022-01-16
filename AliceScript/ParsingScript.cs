@@ -16,13 +16,43 @@ namespace AliceScript
         private int m_scriptOffset = 0; // 大きなスクリプトで定義された関数で使用されます
         private int m_generation = 1;   // スクリプトの世代
         private object m_tag;           // 現在のスクリプトに関連付けられたオブジェクト。これは多用途で使用されます
+        private NameSpace m_nameSpace = null;// 現在のスクリプトの所属する名前空間
         private AlicePackage m_package = null;//現在のスクリプトが実行されているパッケージ
+        private List<NameSpace> m_usingNameSpaces = new List<NameSpace>();// 現在スクリプトが使用中の名前空間
         private Dictionary<int, int> m_char2Line = null; // 元の行へのポインタ
         private Dictionary<string, ParserFunction> m_variables = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された変数
         private Dictionary<string, ParserFunction> m_consts = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された定数
         private Dictionary<string, ParserFunction> m_functions = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された関数
         private Dictionary<string, ObjectClass> m_classes = new Dictionary<string, ObjectClass>();//スクリプトの内部で定義されたクラス
         private Dictionary<string, InterfaceBase> m_interfaces = new Dictionary<string, InterfaceBase>();//スクリプトの内部で定義されたインタフェース
+        /// <summary>
+        /// このスクリプトの所属する名前空間です
+        /// </summary>
+        public NameSpace NameSpace
+        {
+            get
+            {
+                return m_nameSpace;
+            }
+            set
+            {
+                m_nameSpace = value;
+            }
+        }
+        /// <summary>
+        /// 現在のスクリプトが使用中の名前空間です
+        /// </summary>
+        public List<NameSpace> UsingNameSpaces
+        {
+            get
+            {
+                return m_usingNameSpaces;
+            }
+            set
+            {
+                m_usingNameSpaces = value;
+            }
+        }
         /// <summary>
         /// このスクリプトに関連付けられたオブジェクトです
         /// </summary>
@@ -183,7 +213,6 @@ namespace AliceScript
             set { m_functionName = value.ToLower(); }
         }
 
-        public ParserFunction.StackLevel StackLevel { get; set; }
         public bool ProcessingList { get; set; }
 
         public bool DisableBreakpoints;
@@ -210,7 +239,6 @@ namespace AliceScript
             m_char2Line = other.Char2Line;
             m_filename = other.Filename;
             m_originalScript = other.OriginalScript;
-            StackLevel = other.StackLevel;
             CurrentClass = other.CurrentClass;
             ClassInstance = other.ClassInstance;
             ScriptOffset = other.ScriptOffset;
@@ -869,7 +897,6 @@ namespace AliceScript
             tempScript.Char2Line = this.Char2Line;
             tempScript.OriginalScript = this.OriginalScript;
             tempScript.InTryBlock = this.InTryBlock;
-            tempScript.StackLevel = this.StackLevel;
             tempScript.AllLabels = this.AllLabels;
             tempScript.LabelToFile = this.LabelToFile;
             tempScript.FunctionName = this.FunctionName;

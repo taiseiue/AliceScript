@@ -243,7 +243,7 @@ namespace AliceScript
             return true;
         }
 
-        public static ParsingScript GetTempScript(string str, ParserFunction.StackLevel stackLevel, string name = "",
+        public static ParsingScript GetTempScript(string str,  string name = "",
             ParsingScript script = null, ParsingScript parentScript = null,
             int parentOffset = 0,ObjectBase instance = null)
         {
@@ -258,7 +258,6 @@ namespace AliceScript
             tempScript.ParentScript = script;
             tempScript.InTryBlock = script == null ? false : script.InTryBlock;
             tempScript.ClassInstance = instance;
-            tempScript.StackLevel = stackLevel;
             if (script != null)
             {
                 tempScript.Package = script.Package;

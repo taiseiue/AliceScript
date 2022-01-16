@@ -20,7 +20,6 @@ namespace AliceScript
         public const char SPACE = ' ';
         public const char START_GROUP = '{';
         public const char END_GROUP = '}';
-        public const char VAR_START = '$';
         public const char END_STATEMENT = ';';
         public const char CONTINUE_LINE = '\\';
         public const char EMPTY = '\0';

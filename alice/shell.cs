@@ -547,7 +547,6 @@ namespace alice
             catch (Exception exc)
             {
                 errorMsg = exc.InnerException != null ? exc.InnerException.Message : exc.Message;
-                ParserFunction.InvalidateStacksAfterLevel(0);
             }
 
             if (!s_PrintingCompleted)

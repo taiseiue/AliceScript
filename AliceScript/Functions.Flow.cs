@@ -192,7 +192,7 @@ namespace AliceScript
                 var ind = a.IndexOf('=');
                 if (ind <= 0)
                 {
-                    if (!FunctionExists(a, script) && !m_Const)
+                    if (!m_Const)
                     {
                         AddGlobalOrLocalVariable(a, new GetVarFunction(new Variable(Variable.VarType.NONE)), script, false, true, isGlobal);
                     }
@@ -546,7 +546,6 @@ namespace AliceScript
             //Utils.CheckNotEnd(script, m_name);
             Variable result = null;
 
-            ParserFunction.AddNamespace(namespaceName);
             try
             {
                 script.MoveForwardIf(Constants.START_GROUP);
@@ -572,7 +571,7 @@ namespace AliceScript
             }
             finally
             {
-                ParserFunction.PopNamespace();
+
             }
 
             return result;
@@ -582,12 +581,13 @@ namespace AliceScript
     public class CustomFunction : FunctionBase
     {
         public CustomFunction(string funcName,
-                                string body, string[] args, ParsingScript script, object tag = null)
+                                string body, string[] args, ParsingScript script, object tag = null,bool forceReturn=false)
         {
             this.Attribute = FunctionAttribute.USER_DEFINED;
             Name = funcName;
             m_body = body;
             m_tag = tag;
+            m_forceReturn= forceReturn;
             //正確な変数名の一覧
             List<string> trueArgs = new List<string>();
             //m_args = RealArgs = args;
@@ -847,17 +847,7 @@ namespace AliceScript
                 m_VarMap[args[i].ParamName] = arg;
             }
 
-            if (NamespaceData != null)
-            {
-                var vars = NamespaceData.Variables;
-                string prefix = NamespaceData.Name + ".";
-                foreach (KeyValuePair<string, ParserFunction> elem in vars)
-                {
-                    string key = elem.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ?
-                        elem.Key.Substring(prefix.Length) : elem.Key;
-                    m_VarMap[key] = elem.Value;
-                }
-            }
+          
 
         }
 
@@ -964,7 +954,7 @@ namespace AliceScript
 
             // 2. Execute the body of the function.
             Variable result = null;
-            ParsingScript tempScript = Utils.GetTempScript(m_body, null, m_name, script,
+            ParsingScript tempScript = Utils.GetTempScript(m_body, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
             tempScript.Tag = m_tag;
             tempScript.Variables = m_VarMap;
@@ -982,9 +972,13 @@ namespace AliceScript
             {
                 result = Variable.EmptyInstance;
             }
-            else
+            else if (result.IsReturn || m_forceReturn)
             {
                 result.IsReturn = false;
+            }
+            else
+            {
+                result = Variable.EmptyInstance;
             }
 
             return result;
@@ -998,7 +992,7 @@ namespace AliceScript
 
             // 2. Execute the body of the function.
             Variable result = null;
-            ParsingScript tempScript = Utils.GetTempScript(m_body, null, m_name, script,
+            ParsingScript tempScript = Utils.GetTempScript(m_body, m_name, script,
                                                            m_parentScript, m_parentOffset, instance);
             tempScript.Tag = m_tag;
             tempScript.Variables = m_VarMap;
@@ -1016,9 +1010,13 @@ namespace AliceScript
             {
                 result = Variable.EmptyInstance;
             }
-            else
+            else if (result.IsReturn || m_forceReturn)
             {
                 result.IsReturn = false;
+            }
+            else
+            {
+                result = Variable.EmptyInstance;
             }
 
             return result;
@@ -1066,7 +1064,6 @@ namespace AliceScript
         public int ArgumentCount { get { return m_args.Length; } }
         public string Argument(int nIndex) { return m_args[nIndex]; }
 
-        public StackLevel NamespaceData { get; set; }
         public bool IsMethod
         {
             get
@@ -1096,10 +1093,10 @@ namespace AliceScript
                 return m_defaultArgs.Count;
             }
         }
-
         protected int m_this = -1;
         protected string m_body;
         protected object m_tag;
+        protected bool m_forceReturn;
         protected string[] m_args;
         protected ParsingScript m_parentScript = null;
         protected int m_parentOffset = 0;
@@ -1930,10 +1927,6 @@ namespace AliceScript
             string name = varName.Substring(0, ind);
             string prop = varName.Substring(ind + 1);
 
-            if (ParserFunction.TryAddToNamespace(prop, name, varValue))
-            {
-                return varValue.DeepClone();
-            }
 
             ParserFunction existing = ParserFunction.GetVariable(name, script);
             Variable baseValue = existing != null ? existing.GetValue(script) : new Variable(Variable.VarType.ARRAY);
@@ -1972,10 +1965,6 @@ namespace AliceScript
             string name = varName.Substring(0, ind);
             string prop = varName.Substring(ind + 1);
 
-            if (ParserFunction.TryAddToNamespace(prop, name, varValue))
-            {
-                return varValue.DeepClone();
-            }
 
             ParserFunction existing = ParserFunction.GetVariable(name, script);
             Variable baseValue = existing != null ? await existing.GetValueAsync(script) : new Variable(Variable.VarType.ARRAY);
@@ -2131,10 +2120,6 @@ namespace AliceScript
                 currentValue = new Variable("");
             }
 
-            if (script.StackLevel != null)
-            {
-                ParserFunction.AddLocalVariable(new GetVarFunction(currentValue), script, varName);
-            }
             else if (script.CurrentClass != null)
             {
                 Utils.ThrowErrorMsg(m_name + "をクラス内で定義することはできません", Exceptions.COULDNT_DEFINE_IN_CLASS,
