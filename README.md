@@ -1,10 +1,10 @@
 # AliceScript
-�J�X�^�}�C�Y�\�ȃX�N���v�g�����.Net�ŁB
+カスタマイズ可能なスクリプト言語を.Netで。
 
-AliceScript(�A���X�X�N���v�g�Ɠǂ݂܂�)�́A�y�ʂ�.NET�G�R�V�X�e����œ��삷��C���^�v�����^�^�̃v���O���~���O����ł��B AliceScript���g�p����ƊȒP�Ɉ��S�ŐM�����̍����A�v���P�[�V�������\�z���邱�Ƃ��ł��܂��B AliceScript��C#��Python�����[�c�Ƃ��Ă��邽�߁AC�AC#�AJavaScript�APyhton�APHP�̃v���O���}�[�ł���΂����Ɏg�����Ȃ����Ƃ��ł��܂��B
+AliceScript(アリススクリプトと読みます)は、軽量な.NETエコシステム上で動作するインタプリンタ型のプログラミング言語です。 AliceScriptを使用すると簡単に安全で信頼性の高いアプリケーションを構築することができます。 AliceScriptはC#やPythonをルーツとしているため、C、C#、JavaScript、Pyhton、PHPのプログラマーであればすぐに使いこなすことができます。
 
-AliceScript�ɂ́A�ȒP�ɍ��x�ȃA�v���P�[�V�������쐬����̂ɖ𗧂@�\������������܂��B"�K�y�[�W�R���N�V����"�ɂ͓��B�ł����A�g�p����Ă��Ȃ��I�u�W�F�N�g�ɂ���Đ�L���ꂽ�������������I�ɉ�����邱�Ƃ��ł���@�\������܂��B "�C�x���g"�ɂ͎����̃I�u�W�F�N�g�ɑ΂��ĊȒP�ɘA������邱�Ƃ��ł���@�\������܂��B
+AliceScriptには、簡単に高度なアプリケーションを作成するのに役立つ機能がいくつかあります。"ガページコレクション"には到達できず、使用されていないオブジェクトによって占有されたメモリを自動的に回収することができる機能があります。 "イベント"には自他のオブジェクトに対して簡単に連絡を取ることができる機能があります。
 
-"��O����"�ɂ́A�G���[�̌��o�ƕ������s�����߂̃A�v���[�`���p�ӂ���Ă��܂��B AliceScript��"�����^�V�X�e��"������Ă��܂�����Aint��string�Ȃǂ̌^���܂߂����ׂĂ̌^�̓��[�g�ƂȂ���Variable�^����h�����Ă��܂��B���ׂĂ̌^�́A��ʓI�ȑ���̃Z�b�g�����L���Ă��܂�����A���ׂĂ̌^����т������@�ő��삷�邱�Ƃ��ł��܂��B
+"例外処理"には、エラーの検出と復旧を行うためのアプローチが用意されています。 AliceScriptは"統合型システム"を備えていますから、intやstringなどの型を含めたすべての型はルートとなる一つのVariable型から派生しています。すべての型は、一般的な操作のセットを共有していますから、すべての型を一貫した方法で操作することができます。
 
-�ڂ����́Ahttps://alice.wsoft.tk ���������������B
+詳しくは、https://alice.wsoft.gq をご覧ください。
