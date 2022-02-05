@@ -281,6 +281,10 @@ namespace AliceScript
         /// <summary>
         /// 型名が見つかりません
         /// </summary>
-        COULDNT_FIND_CLASS=0x044
+        COULDNT_FIND_CLASS=0x044,
+        /// <summary>
+        /// 不正な属性の指定です
+        /// </summary>
+        INVAILD_ATTRIBUTE=0x045
     }
 }

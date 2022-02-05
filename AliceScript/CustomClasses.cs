@@ -155,9 +155,14 @@ namespace AliceScript
             }
             else
             {
-                Functions.Add(name);
+                if (!Functions.Contains(name)) 
+                { Functions.Add(name); }
                 m_functions[name] = method;
             }
+        }
+        public void AddStaticMethod(string name,CustomFunction method)
+        {
+            Static_Functions[name]=method;
         }
 
         public void AddProperty(string name, PropertyBase property)

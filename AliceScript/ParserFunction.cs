@@ -215,7 +215,23 @@ namespace AliceScript
             GetVarFunction varFunc = pf as GetVarFunction;
             if (varFunc == null)
             {
-                return null;
+                string cname = (name + ".").Split('.')[0];
+                var cls = ObjectClass.GetClass(cname,script);
+                if (cls == null)
+                {
+                    return null;
+                }
+                else if(cls.Static_Properties.TryGetValue(prop,out PropertyBase pb))
+                {
+                    return new GetVarFunction(pb.GetProperty(null));
+                }else if(cls.Static_Functions.TryGetValue(prop, out FunctionBase fb))
+                {
+                    return fb;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             varFunc.PropertyName = prop;

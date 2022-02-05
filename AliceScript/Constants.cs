@@ -72,6 +72,7 @@ namespace AliceScript
         public const string INCLUDE = "include";
         public const string IMPORT = "import";
         public const string NEW = "new";
+        public const string PARMS = "parms";
         public const string RETURN = "return";
         public const string SWITCH = "switch";
         public const string THIS = "this";
@@ -133,6 +134,7 @@ namespace AliceScript
 
         // 変数の属性
         public const string GLOBAL = "global";
+        public const string STATIC = "static";
 
         // 関数の属性
         public const string OVERRIDE = "override";

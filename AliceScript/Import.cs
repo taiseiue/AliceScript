@@ -91,7 +91,8 @@ namespace AliceScript
                         {
                             if (NameSpaceManerger.NameSpaces.ContainsKey(file))
                             {
-                                NameSpaceManerger.UnLoad(file, e.Script);
+                                //TODO:これ
+                              //  NameSpaceManerger.UnLoad(file, e.Script);
                             }
                             else
                             {
@@ -100,7 +101,7 @@ namespace AliceScript
                         }
                         else
                         {
-                            NameSpaceManerger.Load(file, e.Script);
+                           // NameSpaceManerger.Load(file, e.Script);
                         }
                         return;
                     }

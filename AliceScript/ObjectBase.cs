@@ -241,6 +241,15 @@ namespace AliceScript
         public Dictionary<string, PropertyBase> m_properties = new Dictionary<string, PropertyBase>();
         public Dictionary<string, FunctionBase> m_functions = new Dictionary<string, FunctionBase>();
         public Dictionary<int, FunctionBase> Constructors = new Dictionary<int, FunctionBase>();
+
+        /// <summary>
+        /// このクラス内で定義された静的プロパティを表します
+        /// </summary>
+        public Dictionary<string, PropertyBase> Static_Properties = new Dictionary<string, PropertyBase>();
+        /// <summary>
+        /// このクラス内で定義された静的メソッドを表します
+        /// </summary>
+        public Dictionary<string, FunctionBase> Static_Functions = new Dictionary<string, FunctionBase>();
         public PropertyBase GetPropertyBase(string name)
         {
             PropertyBase v;

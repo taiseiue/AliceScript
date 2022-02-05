@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace AliceScript
 {
@@ -215,12 +218,28 @@ namespace AliceScript
                 return ms.GetBuffer();
             }
         }
-        public static void CreateEncodingPackage(string filepath, string outfilepath, byte[] controlCode = null)
+        public static void CreateEncodingPackage(string filepath, string outfilepath, byte[] controlCode = null,string pfxFile=null,string pfxPassword=null)
         {
             int i, len;
             byte[] buffer = new byte[4096];
             byte[] data = File.ReadAllBytes(filepath);
+            /// PKGFlagは次の形式です(各1ビット)
+            /// 番地|使用法
+            ///    0|このパッケージが署名されているか
+            ///    1|未使用
+            ///    2|未使用
+            ///    3|未使用
+            ///    4|未使用
+            ///    5|未使用
+            ///    6|未使用
+            ///    7|未使用
 
+            BitArray pkgflag = new BitArray(8);
+            byte[] optinal = new byte[3];
+            if (pfxFile != null)
+            {
+                pkgflag[0] = true;
+            }
             if (controlCode == null)
             {
                 controlCode = new byte[16];
@@ -262,6 +281,8 @@ namespace AliceScript
                     using (CryptoStream cse = new CryptoStream(outfs, encryptor, CryptoStreamMode.Write))
                     {
                         outfs.Write(Constants.PACKAGE_MAGIC_NUMBER, 0, Constants.PACKAGE_MAGIC_NUMBER.Length);     // ファイルヘッダを先頭に埋め込む
+                        outfs.Write(BitsToBytes(pkgflag),0,1);//パッケージフラグを埋め込む
+                        outfs.Write(optinal,0,3);//予備領域を埋め込む
                         outfs.Write(controlCode,0,16);//制御コードをファイルに埋め込む
                         outfs.Write(aes.Key, 0, 16); //次にKeyをファイルに埋め込む
                         outfs.Write(aes.IV, 0, 16); // 続けてIVもファイルに埋め込む
@@ -270,6 +291,17 @@ namespace AliceScript
                             double size = data.LongLength;
                             byte[] sum = BitConverter.GetBytes(size);
                             ds.Write(sum, 0, 8);//解凍後の実際の長さを書き込む(これを用いて解凍をチェックする)
+                            if (pkgflag[0])
+                            {
+                                //パッケージを署名する場合
+                                byte[] signature = Sign(data,out byte[] publicKey,pfxFile,pfxPassword);
+                                byte[] publen = BitConverter.GetBytes(signature.Length);
+                                ds.Write(publen,0,4);//まず署名長さを書き込む
+                                publen = BitConverter.GetBytes(publicKey.Length);
+                                ds.Write(publen, 0, 4);//公開鍵長さを書き込む
+                                ds.Write(signature,0,signature.Length);//署名を書き込む
+                                ds.Write(publicKey,0,publicKey.Length);//公開鍵を書き込む
+                            }
                             using (MemoryStream fs = new MemoryStream(data))
                             {
                                 while ((len = fs.Read(buffer, 0, 4096)) > 0)
@@ -284,7 +316,59 @@ namespace AliceScript
                 }
             }
         }
-
+        /// <summary>
+        /// PXFファイルを使ってデータに署名します。同時にPFXファイルから公開鍵のみを取り出します。
+        /// </summary>
+        /// <param name="byteData">署名したいデータ</param>
+        /// <param name="pfxfile">PFXファイル</param>
+        /// <param name="password">PXFファイルのパスワード</param>
+        /// <param name="publicKey">公開鍵</param>
+        /// <returns>署名</returns>
+        private static byte[] Sign(byte[] byteData, out byte[] publicKey, string pfxfile,string password=null)
+        {
+            //pfxファイルを読み込み
+            X509Certificate2 cert;
+            if (password == null)
+            {
+                cert=new X509Certificate2(pfxfile);
+            }
+            else
+            {
+                cert = new X509Certificate2(pfxfile, password);
+            }
+            //秘密鍵の取り出し
+            var rsa = (RSA)cert.PrivateKey;
+            //公開鍵の取り出し
+            var pub = (RSA)cert.PublicKey.Key;
+            // 署名実行
+            var signature = rsa.SignData(byteData,0,byteData.Length,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
+            publicKey=pub.ExportRSAPublicKey();
+            return signature;
+        }
+        /// <summary>
+        /// 指定されたデータの署名を検証します。
+        /// </summary>
+        /// <param name="byteData">署名を検証したいデータ</param>
+        /// <param name="signature">署名</param>
+        /// <param name="publicKey">公開鍵</param>
+        /// <returns>検証が承認(Accept)された場合はTrue、棄却(Reject)された場合はFalse</returns>
+        private static bool Vertify(byte[] byteData,byte[] signature,byte[] publicKey)
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            rsa.ImportRSAPublicKey(publicKey,out _);
+            return rsa.VerifyData(byteData, 0, byteData.Length, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        }
+        private static byte[] BitsToBytes(BitArray bits)
+        {
+                if (bits.Count != 8)
+                {
+                    throw new ArgumentException("bits");
+                }
+                byte[] bytes = new byte[1];
+                bits.CopyTo(bytes, 0);
+            return bytes;
+        }
+        
         public static void LoadEncodingPackage(byte[] data, string filename = "")
         {
             int len;
@@ -310,6 +394,10 @@ namespace AliceScript
                             ThrowErrorManerger.OnThrowError("エラー:有効なAlicePackageファイルではありません", Exceptions.BAD_PACKAGE);
                             return;
                         }
+                        byte[] f = new byte[1];
+                        fs.Read(f,0,1);
+                        BitArray pkgflag = new BitArray(f);//パッケージフラグ
+                        fs.Seek(3,SeekOrigin.Current);//予備領域分シーク
                         fs.Seek(16,SeekOrigin.Current);//制御コード分シーク
                         // Key
                         byte[] key = new byte[16];
@@ -327,8 +415,33 @@ namespace AliceScript
                             using (DeflateStream ds = new DeflateStream(cse, CompressionMode.Decompress))   //解凍
                             {
                                 byte[] sum = new byte[8];
-                                ds.Read(sum, 0, 8);
+                                try
+                                {
+                                    ds.Read(sum, 0, 8);
+                                }
+                                catch
+                                {
+                                    ThrowErrorManerger.OnThrowError("エラー:AlicePackageが壊れています", Exceptions.BAD_PACKAGE);
+                                    return;
+                                }
                                 double size = BitConverter.ToDouble(sum);
+                                int sl = 0;
+                                int l = 0;
+                                byte[] publicKey=null;
+                                byte[] signature = null;
+                                if (pkgflag[0])
+                                {
+                                    //署名済みパッケージ
+                                    byte[] ln = new byte[4];
+                                    ds.Read(ln, 0, 4);
+                                    sl = BitConverter.ToInt32(ln);
+                                    ds.Read(ln,0,4);
+                                    l = BitConverter.ToInt32(ln);
+                                    signature = new byte[sl];
+                                    ds.Read(signature,0,sl);
+                                    publicKey= new byte[l];
+                                    ds.Read(publicKey,0,l);
+                                }
                                 while ((len = ds.Read(buffer, 0, 4096)) > 0)
                                 {
                                     outfs.Write(buffer, 0, len);
@@ -336,6 +449,12 @@ namespace AliceScript
                                 if (outfs.Length != size)
                                 {
                                     ThrowErrorManerger.OnThrowError("エラー:AlicePackageが壊れています", Exceptions.BAD_PACKAGE);
+                                    return;
+                                }
+                                if (pkgflag[0] && !Vertify(outfs.GetBuffer(), signature, publicKey))
+                                {
+                                    ThrowErrorManerger.OnThrowError("エラー:署名の検証に失敗しました",Exceptions.BAD_PACKAGE);
+                                    outfs.Dispose();
                                     return;
                                 }
                             }

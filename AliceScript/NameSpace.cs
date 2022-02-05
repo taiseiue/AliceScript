@@ -15,9 +15,8 @@ namespace AliceScript
             Name = name;
         }
         public string Name { get; set; }
-        public List<FunctionBase> Functions = new List<FunctionBase>();
         public List<ObjectClass> Classes = new List<ObjectClass>();
-        public Dictionary<string, string> Enums = new Dictionary<string, string>();
+        public List<InterfaceBase> Interfaces = new List<InterfaceBase>();
         public NameSpace Parent { get; set; }
         public string FullName
         {
@@ -40,111 +39,19 @@ namespace AliceScript
                 return name;
             }
         }
-        public void Add(FunctionBase func)
+        public void Add(InterfaceBase ib)
         {
-            Functions.Add(func);
+            Interfaces.Add(ib);
         }
         public void Add(ObjectClass cls)
         {
             Classes.Add(cls);
         }
-        public void Add(string name, string val)
+        public void Remove(InterfaceBase ib)
         {
-            Enums.Add(name, val);
+            Interfaces.Remove(ib);
         }
-        public void Remove(FunctionBase func)
-        {
-            Functions.Remove(func);
-        }
-        public void Clear()
-        {
-            Functions.Clear();
-        }
-        public event EventHandler<ImportEventArgs> Loading;
-        public event EventHandler<ImportEventArgs> UnLoading;
-        public virtual void Load(ParsingScript script)
-        {
-            int ecount = 0;
-            ImportEventArgs e = new ImportEventArgs();
-            e.Cancel = false;
-            e.Script = script;
-            Loading?.Invoke(this, e);
-            if (e.Cancel)
-            {
-                return;
-            }
-            foreach (FunctionBase func in Functions)
-            {
-                try
-                {
-                    FunctionBaseManerger.Add(func, func.Name, script);
-                }
-                catch { ecount++; }
-            }
-            foreach (ObjectClass cls in Classes)
-            {
-                try
-                {
-                    ClassManerger.Add(cls, script);
-                }
-                catch { ecount++; }
-            }
-            foreach (string s in Enums.Keys)
-            {
-                try
-                {
-                    FunctionBase.RegisterEnum(s, Enums[s], script);
-                }
-                catch { ecount++; }
-            }
-
-            if (ecount != 0) { throw new Exception("名前空間のロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
-        }
-        public virtual void UnLoad(ParsingScript script)
-        {
-            int ecount = 0;
-            ImportEventArgs e = new ImportEventArgs();
-            e.Cancel = false;
-            e.Script = script;
-            UnLoading?.Invoke(this, e);
-            if (e.Cancel)
-            {
-                return;
-            }
-            foreach (FunctionBase func in Functions)
-            {
-                try
-                {
-                    FunctionBaseManerger.Remove(func, func.Name, script);
-                }
-                catch { ecount++; }
-            }
-            foreach (ObjectClass cls in Classes)
-            {
-                try
-                {
-                    ClassManerger.Remove(cls, script);
-                }
-                catch { ecount++; }
-            }
-            foreach (string s in Enums.Keys)
-            {
-                try
-                {
-                    FunctionBase.UnregisterScriptFunction(s, script);
-                }
-                catch { ecount++; }
-            }
-            if (ecount != 0) { throw new Exception("名前空間のアンロード中に" + ecount + "件の例外が発生しました。これらの例外は捕捉されませんでした"); }
-        }
-        public int Count
-        {
-            get
-            {
-                return Functions.Count + Classes.Count;
-            }
-        }
-
+       
     }
     public static class NameSpaceManerger
     {
@@ -165,14 +72,6 @@ namespace AliceScript
         public static bool TryGetNameSpace(string name,out NameSpace space)
         {
             return NameSpaces.TryGetValue(name,out space);
-        }
-        public static void Load(string name, ParsingScript script)
-        {
-            NameSpaces[name].Load(script);
-        }
-        public static void UnLoad(string name, ParsingScript script)
-        {
-            NameSpaces[name].UnLoad(script);
         }
     }
     public class UsingDelective : FunctionBase

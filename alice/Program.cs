@@ -16,6 +16,7 @@ namespace alice
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            ThrowErrorManerger.ThrowError += ThrowErrorManerger_ThrowError1;
             ParsedArguments pa = new ParsedArguments(args);
             if (pa.Flags.Contains("r") || pa.Flags.Contains("run"))
             {
@@ -95,6 +96,8 @@ namespace alice
             {
                 //パッケージ生成モード
                 string outfile;
+                string pfx = null;
+                pa.Values.TryGetValue("pfx",out pfx);
                 if (pa.Values.TryGetValue("out",out outfile))
                 {
                     int success = 0;
@@ -102,7 +105,7 @@ namespace alice
                     int total = 1;
                     foreach(string fn in pa.Files)
                     {
-                        if (BuildPackage(fn, outfile, total))
+                        if (BuildPackage(fn, outfile, total,pfx))
                         {
                             success++;
                         }
@@ -170,6 +173,12 @@ namespace alice
                 Shell.Do(args);
             }
         }
+
+        private static void ThrowErrorManerger_ThrowError1(object sender, ThrowErrorEventArgs e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
         private static bool allow_print = true;
         private static List<string> print_redirect_files = new List<string>();
         private static bool allow_throw = true;
@@ -193,7 +202,7 @@ namespace alice
             s += " }";
             return s;
         }
-        internal static bool BuildPackage(string fn,string outfilename,int num=1)
+        internal static bool BuildPackage(string fn,string outfilename,int num=1,string pfx=null)
         {
             if (File.GetAttributes(fn).HasFlag(FileAttributes.Directory))
             {
@@ -218,24 +227,28 @@ namespace alice
                 Console.WriteLine(num + "> パッケージ名: "+manifest.Name+" エントリポイント: "+srcpath);
                 string target = manifest.Target == null ? "Any" : ListToString(manifest.Target);
                 Console.WriteLine(num + "> ターゲット: "+target);
+                if (pfx != null)
+                {
+                    Console.WriteLine(num+"> パッケージへの署名: "+pfx);
+                }
                 string path = Path.GetTempFileName();
                 File.Delete(path);
                 Console.WriteLine(num + "> 圧縮: {0} -> {1}", fn,path);
                 ZipFile.CreateFromDirectory(fn,path);
                 Console.WriteLine(num + "> 変換: {0} -> {1}", path,outfilename);
-                try
-                {
-                    AlicePackage.CreateEncodingPackage(path, outfilename); 
+              //  try
+              //  {
+                    AlicePackage.CreateEncodingPackage(path, outfilename,null,pfx); 
                     Console.WriteLine(num + "> パッケージ {0} のビルドが完了しました --成功", manifest.Name);
                     return true;
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine(num + "> エラー: AlicePackage形式に変換できません");
-                    Console.WriteLine(num + "> 詳細: "+ex.Message);
-                    Console.WriteLine(num + "> パッケージ {0} のビルドが終了しました --失敗", manifest.Name);
-                    return false;
-                }
+             //   }
+              //  catch(Exception ex)
+            //    {
+             //       Console.WriteLine(num + "> エラー: AlicePackage形式に変換できません");
+             //       Console.WriteLine(num + "> 詳細: "+ex.Message);
+             //       Console.WriteLine(num + "> パッケージ {0} のビルドが終了しました --失敗", manifest.Name);
+            //        return false;
+            //    }
             }
             else
             {

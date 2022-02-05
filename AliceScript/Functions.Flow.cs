@@ -248,6 +248,7 @@ namespace AliceScript
             string funcName = "";
             bool? mode = null;
             bool isGlobal = false;
+            bool isStatic = false;
             while (true)
             {
                 //トークンが得られなくなるまでループ
@@ -275,7 +276,28 @@ namespace AliceScript
                         }
                     case Constants.GLOBAL:
                         {
-                            isGlobal = true;
+                            if (isStatic)
+                            {
+                                ThrowErrorManerger.OnThrowError("global属性とstatic属性を同時に指定することはできません",Exceptions.INVAILD_ATTRIBUTE,script);
+                                return Variable.EmptyInstance;
+                            }
+                            else
+                            {
+                                isGlobal = true;
+                            }
+                            break;
+                        }
+                    case Constants.STATIC:
+                        {
+                            if (isGlobal)
+                            {
+                                ThrowErrorManerger.OnThrowError("global属性とstatic属性を同時に指定することはできません", Exceptions.INVAILD_ATTRIBUTE, script);
+                                return Variable.EmptyInstance;
+                            }
+                            else
+                            {
+                                isStatic = true;
+                            }
                             break;
                         }
                 }
@@ -330,13 +352,27 @@ namespace AliceScript
             }
             else if (script.CurrentClass != null)
             {
-                if (!script.CurrentClass.m_functions.TryGetValue(funcName, out FunctionBase func) || func.IsVirtual)
+                if (isStatic)
                 {
-                    script.CurrentClass.AddMethod(funcName, args, customFunc);
+                    if(!script.CurrentClass.Static_Functions.TryGetValue(funcName,out FunctionBase func) || func.IsVirtual)
+                    {
+                        script.CurrentClass.AddStaticMethod(funcName,customFunc);
+                    }
+                    else
+                    {
+                        ThrowErrorManerger.OnThrowError("指定されたメソッドはすでに登録されていて、オーバーライド不可能です。関数にoverride属性を付与することを検討してください。", Exceptions.FUNCTION_IS_ALREADY_DEFINED, script);
+                    }
                 }
                 else
                 {
-                    ThrowErrorManerger.OnThrowError("指定されたメソッドはすでに登録されていて、オーバーライド不可能です。関数にoverride属性を付与することを検討してください。",Exceptions.FUNCTION_IS_ALREADY_DEFINED,script);
+                    if (!script.CurrentClass.m_functions.TryGetValue(funcName, out FunctionBase func) || func.IsVirtual)
+                    {
+                        script.CurrentClass.AddMethod(funcName, args, customFunc);
+                    }
+                    else
+                    {
+                        ThrowErrorManerger.OnThrowError("指定されたメソッドはすでに登録されていて、オーバーライド不可能です。関数にoverride属性を付与することを検討してください。", Exceptions.FUNCTION_IS_ALREADY_DEFINED, script);
+                    }
                 }
             }
             else
@@ -649,10 +685,10 @@ namespace AliceScript
                     trueArgs.Add(arg);
                 }
                 Variable.VarType reqType = Variable.VarType.NONE;
-                if (options.Count > 0)
+                //if (options.Count > 0)
                 {
-                    parms = (options.Contains("parms"));
-                    if (options.Contains("this"))
+                    parms = (options.Contains(Constants.PARMS));
+                    if (options.Contains(Constants.THIS))
                     {
                         if (m_this == -1)
                         {
@@ -690,7 +726,8 @@ namespace AliceScript
                         string defValue = ind >= arg.Length - 1 ? "" : arg.Substring(ind + 1).Trim();
 
                         Variable defVariable = Utils.GetVariableFromString(defValue, script);
-                        defVariable.CurrentAssign = m_args[i];
+                        reqType = reqType == Variable.VarType.NONE ? Variable.VarType.VARIABLE : reqType;
+                        defVariable.CurrentAssign = trueArgs[i];
                         defVariable.Index = i;
 
                         if (defVariable.Type != reqType)
@@ -708,7 +745,7 @@ namespace AliceScript
                         if (parms)
                         {
                             parmsindex = i;
-                            argName = argName.TrimStart("parms".ToCharArray());
+                            argName = argName.TrimStart(Constants.PARMS.ToCharArray());
                             argName = argName.Trim();
                         }
                         trueArgs[i] = argName;
@@ -959,6 +996,7 @@ namespace AliceScript
             tempScript.Tag = m_tag;
             tempScript.Variables = m_VarMap;
 
+            
 
             while (tempScript.Pointer < m_body.Length - 1 &&
                   (result == null || !result.IsReturn))
