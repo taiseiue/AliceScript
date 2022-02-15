@@ -223,3 +223,8 @@ AliceScript2116の変更点
 
 AliceScript21205の変更点
 ・AlicePackage署名を実装
+
+AliceScript210215の変更点
+・AlicePackage署名が正しく動作しない場合がある不具合を修正
+・パッケージ改ざんに対してセキュリティ強化
+・Scriptからインタフェース呼び出しに対応

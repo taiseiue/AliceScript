@@ -18,7 +18,7 @@ namespace AliceScript
         private object m_tag;           // 現在のスクリプトに関連付けられたオブジェクト。これは多用途で使用されます
         private NameSpace m_nameSpace = null;// 現在のスクリプトの所属する名前空間
         private AlicePackage m_package = null;//現在のスクリプトが実行されているパッケージ
-        private List<NameSpace> m_usingNameSpaces = new List<NameSpace>();// 現在スクリプトが使用中の名前空間
+        private NameSpaceCollection m_usingNameSpaces = new NameSpaceCollection();// 現在スクリプトが使用中の名前空間
         private Dictionary<int, int> m_char2Line = null; // 元の行へのポインタ
         private Dictionary<string, ParserFunction> m_variables = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された変数
         private Dictionary<string, ParserFunction> m_consts = new Dictionary<string, ParserFunction>();// スクリプトの内部で定義された定数
@@ -42,7 +42,7 @@ namespace AliceScript
         /// <summary>
         /// 現在のスクリプトが使用中の名前空間です
         /// </summary>
-        public List<NameSpace> UsingNameSpaces
+        public NameSpaceCollection UsingNameSpaces
         {
             get
             {
@@ -361,6 +361,9 @@ namespace AliceScript
         public bool TryGetClass(string name, out ObjectClass cls)
         {
             if (Classes.TryGetValue(name, out cls))
+            {
+                return true;
+            }else if(UsingNameSpaces.TryGetClass(name,out cls))
             {
                 return true;
             }

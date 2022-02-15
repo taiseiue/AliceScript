@@ -138,6 +138,7 @@ namespace AliceScript
             ParserFunction.RegisterFunction(Constants.RETURN, new ReturnStatement());
             ParserFunction.RegisterFunction(Constants.FUNCTION, new FunctionCreator());
 
+            FunctionBaseManerger.Add(new UsingDelective());
             FunctionBaseManerger.Add(new ExitFunction());
             FunctionBaseManerger.Add(new wsverFunc());
             FunctionBaseManerger.Add(new DelayFunc());

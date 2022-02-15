@@ -336,6 +336,7 @@ namespace AliceScript
             {
                 cert = new X509Certificate2(pfxfile, password);
             }
+            //証明書検証
             //秘密鍵の取り出し
             var rsa = (RSA)cert.PrivateKey;
             //公開鍵の取り出し

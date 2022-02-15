@@ -74,6 +74,25 @@ namespace AliceScript
             return NameSpaces.TryGetValue(name,out space);
         }
     }
+    public class NameSpaceCollection: List<NameSpace>
+    {
+        public bool TryGetClass(string cname,out ObjectClass cls)
+        {
+            cls = null;
+            foreach(NameSpace ns in this)
+            {
+                foreach(ObjectClass oc in ns.Classes)
+                {
+                    if (oc.Name == cname)
+                    {
+                        cls = oc;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
     public class UsingDelective : FunctionBase
     {
         public UsingDelective()

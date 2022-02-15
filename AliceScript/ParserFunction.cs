@@ -45,7 +45,6 @@ namespace AliceScript
                 }
                 else
                 {
-                    //TODO:ここから、var式でのみ正しく本文が認識されない
                     // ラムダ式です
                     string[] args = Utils.GetFunctionSignature(script);
                     if (args.Length == 1 && string.IsNullOrWhiteSpace(args[0]))
