@@ -11,7 +11,7 @@ jobs:
   build:
     # Github Actions での Windows の最新の環境を指定
     #（現在は Windows Server 2019 になる）
-    runs-on: windows-latest # windows-2019 でも同じ意味
+    runs-on: windows-2019 # windows-2019 でも同じ意味
 
     steps:
       # git のチェックアウトを行い、この環境に対象のリポを取得する
