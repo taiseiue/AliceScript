@@ -1,4 +1,6 @@
 # AliceScript
+[![.NET](https://github.com/taiseiue/AliceScript/actions/workflows/dotnet.yml/badge.svg)](https://github.com/taiseiue/AliceScript/actions/workflows/dotnet.yml)
+
 カスタマイズ可能なスクリプト言語を.Netで。
 
 AliceScript(アリススクリプトと読みます)は、軽量な.NETエコシステム上で動作するインタプリンタ型のプログラミング言語です。 AliceScriptを使用すると簡単に安全で信頼性の高いアプリケーションを構築することができます。 AliceScriptはC#やPythonをルーツとしているため、C、C#、JavaScript、Pyhton、PHPのプログラマーであればすぐに使いこなすことができます。
