@@ -1,36 +1,25 @@
-# このワークフローの名前（バッジを作るときなどに使う）
-name: Build Grasshopper Plugin
+name: .NET
 
 on:
-  push: # develop にプッシュしたときに動く
-    branches: [develop]
-  pull_request: # main と develop にプルリクしたときに動く
-    branches: [main, develop]
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   build:
-    # Github Actions での Windows の最新の環境を指定
-    #（現在は Windows Server 2019 になる）
-    runs-on: windows-2019 # windows-2019 でも同じ意味
+
+    runs-on: ubuntu-latest
 
     steps:
-      # git のチェックアウトを行い、この環境に対象のリポを取得する
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Vusial Studio (MSBuild)のセットアップをする
-      - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v1
-
-      # nuget のセットアップをする
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1
-
-      # solution ファイルの状態を復元する
-      # 例えば、nuget で参照しているファイルを取得するなど
-      - name: Restore the application
-        run: msbuild /t:Restore /p:Configuration=Release
-
-      # Build 実行
-      - name: Build the application
-        run: msbuild /p:Configuration=Release
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
